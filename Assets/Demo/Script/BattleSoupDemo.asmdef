@@ -3,7 +3,8 @@
     "rootNamespace": "BattleSoupDemo",
     "references": [
         "Moenen.Standard",
-        "BattleSoup"
+        "BattleSoup",
+        "UIGadget.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
