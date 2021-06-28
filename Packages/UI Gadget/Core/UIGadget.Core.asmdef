@@ -1,9 +1,8 @@
 {
-    "name": "BattleSoupDemo",
-    "rootNamespace": "BattleSoupDemo",
+    "name": "UIGadget.Core",
+    "rootNamespace": "UIGadget.Core",
     "references": [
-        "Moenen.Standard",
-        "BattleSoup"
+        "UnityEngine.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

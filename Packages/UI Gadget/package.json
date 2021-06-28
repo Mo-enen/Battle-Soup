@@ -1,0 +1,11 @@
+{
+  "name": "com.moenengames.uigadget",
+  "displayName": "UIGadget",
+  "version": "1.0.0",
+  "unity": "2020.1",
+  "type": "tool",
+  "hideInEditor": false,
+  "dependencies": {
+    "com.unity.ugui": "1.0.0"
+  }
+}

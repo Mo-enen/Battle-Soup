@@ -1,11 +1,13 @@
 {
-    "name": "BattleSoupDemo",
-    "rootNamespace": "BattleSoupDemo",
+    "name": "UIGadget.Editor",
+    "rootNamespace": "UIGadget.Editor",
     "references": [
-        "Moenen.Standard",
-        "BattleSoup"
+        "UnityEngine.UI",
+        "UIGadget.Core"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

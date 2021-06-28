@@ -6,6 +6,14 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "com.moenengames.uigadget": {
+      "version": "file:UI Gadget",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.ugui": "1.0.0"
+      }
+    },
     "com.unity.2d.common": {
       "version": "5.0.0",
       "depth": 1,
