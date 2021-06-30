@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93f11f2203334b84cbea30963748e3e3, type: 3}
+  m_Name: Catamaran
+  m_EditorClassIdentifier: 
+  m_Sprite: {fileID: 279557436203817209, guid: 4ee4eafbb0c3b474a91a63e6bbf8d883, type: 3}
+  m_Ability:
+    Attacks:
+    - X: 0
+      Y: 0
+      Type: 0
+      Trigger: 0
+      AvailableTarget: 2147483647
+    - X: 0
+      Y: 1
+      Type: 0
+      Trigger: 1
+      AvailableTarget: 2147483647
+    - X: 0
+      Y: 2
+      Type: 0
+      Trigger: 1
+      AvailableTarget: 2147483647
+    - X: 0
+      Y: 3
+      Type: 0
+      Trigger: 1
+      AvailableTarget: 2147483647
+    - X: 0
+      Y: 4
+      Type: 0
+      Trigger: 1
+      AvailableTarget: 2147483647
+    - X: 0
+      Y: 5
+      Type: 0
+      Trigger: 1
+      AvailableTarget: 2147483647
+    - X: 0
+      Y: 6
+      Type: 0
+      Trigger: 1
+      AvailableTarget: 2147483647
+    Type: 1
+    Cooldown: 7
+    BreakOnMiss: 0
+  m_Body:
+  - X: 0
+    Y: 0
+  - X: 1
+    Y: 0
+  - X: 2
+    Y: 0
+  - X: 0
+    Y: 1
+  - X: 2
+    Y: 1
+  - X: 0
+    Y: 2
+  - X: 1
+    Y: 2
+  - X: 2
+    Y: 2

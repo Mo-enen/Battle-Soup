@@ -48,8 +48,7 @@ namespace BattleSoupDemo {
 		// Ser
 		[SerializeField] int m_GridCountX = 8;
 		[SerializeField] int m_GridCountY = 8;
-		[SerializeField] Sprite m_Stone = null;
-		[SerializeField] ShipData[] m_Ships = new ShipData[0];
+		[SerializeField] Sprite[] m_Blocks = new Sprite[0];
 
 		// Data
 		private static readonly UIVertex[] CacheVertices = new UIVertex[4] {
@@ -59,7 +58,6 @@ namespace BattleSoupDemo {
 			new UIVertex(){ color = Color.white },
 		};
 		private readonly List<Block> Blocks = new List<Block>();
-		private readonly List<Vector2Int> Stones = new List<Vector2Int>();
 
 
 
@@ -81,14 +79,9 @@ namespace BattleSoupDemo {
 			float gridSizeX = rect.width / m_GridCountX;
 			float gridSizeY = rect.height / m_GridCountY;
 			foreach (var block in Blocks) {
-				if (block.ID < 0 || block.ID >= m_Ships.Length) { continue; }
+				if (block.ID < 0 || block.ID >= m_Blocks.Length) { continue; }
 				SetCachePos(block.X, block.Y);
-				SetCacheUV(m_Ships[block.ID].Sprite);
-				toFill.AddUIVertexQuad(CacheVertices);
-			}
-			foreach (var stone in Stones) {
-				SetCachePos(stone.x, stone.y);
-				SetCacheUV(m_Stone);
+				SetCacheUV(m_Blocks[block.ID]);
 				toFill.AddUIVertexQuad(CacheVertices);
 			}
 			// Func
@@ -118,13 +111,7 @@ namespace BattleSoupDemo {
 		public void AddBlock (int x, int y, int id) => Blocks.Add(new Block(x, y, id));
 
 
-		public void AddStone (int x, int y) => Stones.Add(new Vector2Int(x, y));
-
-
 		public void ClearBlock () => Blocks.Clear();
-
-
-		public void ClearStone () => Stones.Clear();
 
 
 	}
@@ -137,7 +124,7 @@ namespace BattleSoupDemo.Editor {
 	using UnityEditor;
 
 
-	[CustomEditor(typeof(BlocksRenderer))]
+	[CustomEditor(typeof(BlocksRenderer), true)]
 	public class BlocksRenderer_Inspector : Editor {
 
 
