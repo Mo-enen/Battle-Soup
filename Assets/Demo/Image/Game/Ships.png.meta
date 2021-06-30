@@ -99,7 +99,7 @@ TextureImporter:
   lightmap: 0
   compressionQuality: 50
   spriteMode: 2
-  spriteExtrude: 1
+  spriteExtrude: 0
   spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
@@ -152,7 +152,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 360
+        y: 363
         width: 120
         height: 120
       alignment: 0
@@ -172,8 +172,8 @@ TextureImporter:
       name: Sea Turtle
       rect:
         serializedVersion: 2
-        x: 120
-        y: 360
+        x: 121
+        y: 363
         width: 120
         height: 120
       alignment: 0
@@ -193,8 +193,8 @@ TextureImporter:
       name: Whale
       rect:
         serializedVersion: 2
-        x: 240
-        y: 360
+        x: 242
+        y: 363
         width: 120
         height: 120
       alignment: 0
@@ -215,7 +215,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 240
+        y: 242
         width: 120
         height: 120
       alignment: 0
@@ -235,8 +235,8 @@ TextureImporter:
       name: Mini Sub
       rect:
         serializedVersion: 2
-        x: 120
-        y: 240
+        x: 121
+        y: 242
         width: 120
         height: 120
       alignment: 0
@@ -256,8 +256,8 @@ TextureImporter:
       name: Octopus
       rect:
         serializedVersion: 2
-        x: 240
-        y: 240
+        x: 242
+        y: 242
         width: 120
         height: 120
       alignment: 0
@@ -277,8 +277,8 @@ TextureImporter:
       name: Raft
       rect:
         serializedVersion: 2
-        x: 360
-        y: 240
+        x: 363
+        y: 242
         width: 120
         height: 120
       alignment: 0
@@ -298,8 +298,8 @@ TextureImporter:
       name: Sailboat
       rect:
         serializedVersion: 2
-        x: 480
-        y: 240
+        x: 484
+        y: 242
         width: 120
         height: 120
       alignment: 0
@@ -320,7 +320,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 120
+        y: 121
         width: 120
         height: 120
       alignment: 0
@@ -340,8 +340,8 @@ TextureImporter:
       name: Killer Squid
       rect:
         serializedVersion: 2
-        x: 120
-        y: 120
+        x: 121
+        y: 121
         width: 120
         height: 120
       alignment: 0
@@ -361,8 +361,8 @@ TextureImporter:
       name: Long Sub
       rect:
         serializedVersion: 2
-        x: 240
-        y: 120
+        x: 242
+        y: 121
         width: 120
         height: 120
       alignment: 0
@@ -382,7 +382,7 @@ TextureImporter:
       name: Longboat
       rect:
         serializedVersion: 2
-        x: 360
+        x: 363
         y: 121
         width: 120
         height: 120
@@ -403,8 +403,8 @@ TextureImporter:
       name: Magic Mirror
       rect:
         serializedVersion: 2
-        x: 480
-        y: 120
+        x: 484
+        y: 121
         width: 120
         height: 120
       alignment: 0
@@ -445,7 +445,7 @@ TextureImporter:
       name: Coracle
       rect:
         serializedVersion: 2
-        x: 120
+        x: 121
         y: 0
         width: 120
         height: 120
@@ -466,7 +466,7 @@ TextureImporter:
       name: Crafty Crab
       rect:
         serializedVersion: 2
-        x: 240
+        x: 242
         y: 0
         width: 120
         height: 120
@@ -487,7 +487,7 @@ TextureImporter:
       name: Crustacean
       rect:
         serializedVersion: 2
-        x: 360
+        x: 363
         y: 0
         width: 120
         height: 120
@@ -508,8 +508,8 @@ TextureImporter:
       name: Electric Eels
       rect:
         serializedVersion: 2
-        x: 480
-        y: 0
+        x: 484
+        y: 1
         width: 120
         height: 120
       alignment: 0

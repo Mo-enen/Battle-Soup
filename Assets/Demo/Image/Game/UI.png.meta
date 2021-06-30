@@ -11,6 +11,12 @@ TextureImporter:
   - first:
       213: 1080825480604336155
     second: Arrow Up
+  - first:
+      213: -9136572144232859775
+    second: VS
+  - first:
+      213: 8586885197115800619
+    second: Next
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -106,9 +112,9 @@ TextureImporter:
         x: 1
         y: 1
         width: 67
-        height: 92
+        height: 68
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -125,11 +131,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 71
-        y: 2
-        width: 70
-        height: 92
+        y: 1
+        width: 67
+        height: 68
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -146,11 +152,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 142
-        y: 0
+        y: 1
         width: 38
         height: 29
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -158,6 +164,27 @@ TextureImporter:
       bones: []
       spriteID: b10cc935c0ddffe00800000000000000
       internalID: 1080825480604336155
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VS
+      rect:
+        serializedVersion: 2
+        x: 181
+        y: 1
+        width: 56
+        height: 33
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 187754eda00643180800000000000000
+      internalID: -9136572144232859775
       vertices: []
       indices: 
       edges: []
