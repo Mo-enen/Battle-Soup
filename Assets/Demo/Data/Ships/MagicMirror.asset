@@ -27,3 +27,18 @@ MonoBehaviour:
     Y: 1
   - X: 1
     Y: 1
+  m_Ship:
+    Body:
+    - X: 0
+      Y: 0
+    - X: 1
+      Y: 0
+    - X: 0
+      Y: 1
+    - X: 1
+      Y: 1
+    Ability:
+      Attacks: []
+      Type: 4
+      Cooldown: 5
+      BreakOnMiss: 0

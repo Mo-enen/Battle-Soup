@@ -12,13 +12,13 @@ namespace BattleSoupDemo {
 
 		// Api
 		public Sprite Sprite => m_Sprite;
-		public Ability Ability => m_Ability;
-		public Int2[] Body => m_Body;
+		public Ship Ship => m_Ship;
+
 
 		// Ser
 		[SerializeField] Sprite m_Sprite = null;
-		[SerializeField] Ability m_Ability = default;
-		[SerializeField] Int2[] m_Body = new Int2[0];
+		[SerializeField] Ship m_Ship = default;
+
 
 	}
 }

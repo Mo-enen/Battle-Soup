@@ -52,3 +52,43 @@ MonoBehaviour:
     Y: 2
   - X: 0
     Y: 3
+  m_Ship:
+    Body:
+    - X: 0
+      Y: 0
+    - X: 0
+      Y: 1
+    - X: 0
+      Y: 2
+    - X: 0
+      Y: 3
+    Ability:
+      Attacks:
+      - X: 0
+        Y: 0
+        Type: 0
+        Trigger: 0
+        AvailableTarget: 0
+      - X: 0
+        Y: 0
+        Type: 0
+        Trigger: 0
+        AvailableTarget: 0
+      - X: 0
+        Y: 0
+        Type: 0
+        Trigger: 0
+        AvailableTarget: 0
+      - X: 0
+        Y: 0
+        Type: 0
+        Trigger: 0
+        AvailableTarget: 0
+      - X: 0
+        Y: 0
+        Type: 0
+        Trigger: 0
+        AvailableTarget: 0
+      Type: 1
+      Cooldown: 5
+      BreakOnMiss: 1

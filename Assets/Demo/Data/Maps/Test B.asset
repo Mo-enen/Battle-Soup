@@ -12,24 +12,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9844610bcb8d0540b1a0e692a0823f9, type: 3}
   m_Name: Test B
   m_EditorClassIdentifier: 
-  m_Size: {x: 8, y: 8}
+  m_Size: 8
   m_Stones:
-  - {x: 0, y: 0}
-  - {x: 1, y: 0}
-  - {x: 2, y: 0}
-  - {x: 4, y: 0}
-  - {x: 6, y: 0}
-  - {x: 7, y: 0}
-  - {x: 0, y: 2}
-  - {x: 0, y: 4}
-  - {x: 0, y: 5}
-  - {x: 0, y: 6}
-  - {x: 7, y: 0}
-  - {x: 7, y: 2}
-  - {x: 7, y: 3}
-  - {x: 7, y: 4}
-  - {x: 7, y: 5}
-  - {x: 7, y: 6}
-  - {x: 0, y: 7}
-  - {x: 2, y: 7}
-  - {x: 4, y: 7}
+  - X: 0
+    Y: 0
+  - X: 1
+    Y: 0
+  - X: 2
+    Y: 0
+  - X: 3
+    Y: 0
+  - X: 6
+    Y: 0
+  - X: 7
+    Y: 0
+  - X: 7
+    Y: 1
+  - X: 7
+    Y: 2
+  - X: 7
+    Y: 6
+  - X: 7
+    Y: 7
+  - X: 6
+    Y: 7
+  - X: 4
+    Y: 7
+  - X: 3
+    Y: 7
+  - X: 2
+    Y: 7
+  - X: 0
+    Y: 7

@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9844610bcb8d0540b1a0e692a0823f9, type: 3}
   m_Name: Test A
   m_EditorClassIdentifier: 
-  m_Size: {x: 6, y: 6}
+  m_Size: 6
   m_Stones: []

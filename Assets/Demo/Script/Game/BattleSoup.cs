@@ -41,6 +41,13 @@ namespace BattleSoupDemo {
 
 
 
+		[System.Serializable]
+		public enum Group {
+			A = 0,
+			B = 1,
+		}
+
+
 		#endregion
 
 
@@ -65,6 +72,7 @@ namespace BattleSoupDemo {
 		[SerializeField] BlocksRenderer m_SonarRendererB = null;
 		[SerializeField] BlocksRenderer m_MapRendererA = null;
 		[SerializeField] BlocksRenderer m_MapRendererB = null;
+		[SerializeField] ShipPositionUI m_ShipPositionUI = null;
 		[SerializeField] Text m_ShipLabelA = null;
 		[SerializeField] Text m_ShipLabelB = null;
 		[SerializeField] Text m_MapLabelA = null;
@@ -84,8 +92,10 @@ namespace BattleSoupDemo {
 		private GameState CurrentState = GameState.Config;
 
 		// Saving
-		private readonly SavingString FleetA = new SavingString("BattleSoupDemo.Demo.FleetA", "Coracle+KillerSquid+SeaTurtle+Whale");
-		private readonly SavingString FleetB = new SavingString("BattleSoupDemo.Demo.FleetB", "Coracle+KillerSquid+SeaTurtle+Whale");
+		private readonly SavingString SelectedFleetA = new SavingString("BattleSoupDemo.Demo.SelectedFleetA", "Coracle+KillerSquid+SeaTurtle+Whale");
+		private readonly SavingString SelectedFleetB = new SavingString("BattleSoupDemo.Demo.SelectedFleetB", "Coracle+KillerSquid+SeaTurtle+Whale");
+		private readonly SavingInt SelectedMapA = new SavingInt("BattleSoupDemo.Demo.SelectedMapA", 0);
+		private readonly SavingInt SelectedMapB = new SavingInt("BattleSoupDemo.Demo.SelectedMapB", 0);
 
 
 		#endregion
@@ -105,8 +115,10 @@ namespace BattleSoupDemo {
 
 
 		private void Start () {
-			LoadShipSelectionFromSaving(true);
-			LoadShipSelectionFromSaving(false);
+			LoadShipSelectionFromSaving(Group.A);
+			LoadShipSelectionFromSaving(Group.B);
+			LoadMapSelectionFromSaving(Group.A);
+			LoadMapSelectionFromSaving(Group.B);
 			RefreshShipLabel();
 			RefreshMapLabel();
 			RefreshStartButton();
@@ -127,28 +139,17 @@ namespace BattleSoupDemo {
 		#region --- API ---
 
 
-		public void UI_OpenURL (string url) => Application.OpenURL(Util.GetUrl(url));
-
-
-		public void UI_ShipChanged (bool groupA) {
-			SaveShipSelectionToSaving(groupA);
-			RefreshStartButton();
-		}
-
-
-		public void UI_BattleModeChanged () {
-			RefreshShipLabel();
-			RefreshMapLabel();
-			RefreshStartButton();
-		}
-
-
 		public void UI_GotoNextState () {
 			switch (CurrentState) {
 				case GameState.Config:
 					if (!RefreshStartButton()) { break; }
 					if (GetSelectingBattleMode() == BattleMode.PvA) {
-						SetGameState(GameState.PositionShip);
+						if (m_ShipPositionUI.Init(
+							GetSelectingMap(Group.A),
+							GetSelectingShips(Group.A)
+						)) {
+							SetGameState(GameState.PositionShip);
+						}
 					} else {
 						SetGameState(GameState.Playing);
 					}
@@ -181,6 +182,28 @@ namespace BattleSoupDemo {
 		}
 
 
+		public void UI_OpenURL (string url) => Application.OpenURL(Util.GetUrl(url));
+
+
+		public void UI_BattleModeChanged () {
+			RefreshShipLabel();
+			RefreshMapLabel();
+			RefreshStartButton();
+		}
+
+
+		public void UI_ShipChanged (int group) {
+			SaveShipSelectionToSaving(group == 0 ? Group.A : Group.B);
+			RefreshStartButton();
+		}
+
+
+		public void UI_MapChanged (int group) {
+			SaveMapSelectionToSaving(group == 0 ? Group.A : Group.B);
+			RefreshStartButton();
+		}
+
+
 		#endregion
 
 
@@ -191,10 +214,6 @@ namespace BattleSoupDemo {
 
 		// Soup
 		private void SetSoupSize (int width, int height) {
-			m_BattleZone.SetSizeWithCurrentAnchors(
-				RectTransform.Axis.Vertical,
-				m_ShipRendererA.rectTransform.rect.width * height / width
-			);
 			m_GridA.X = width;
 			m_GridA.Y = height;
 			m_GridB.X = width;
@@ -211,15 +230,13 @@ namespace BattleSoupDemo {
 			m_MapRendererA.GridCountY = height;
 			m_MapRendererB.GridCountX = width;
 			m_MapRendererB.GridCountY = height;
-			m_BattleZone.gameObject.SetActive(false);
-			m_BattleZone.gameObject.SetActive(true);
 		}
 
 
 		// Ship
-		private void LoadShipSelectionFromSaving (bool groupA) {
+		private void LoadShipSelectionFromSaving (Group group) {
 			var savingHash = new HashSet<string>();
-			string fleetStr = groupA ? FleetA.Value : FleetB.Value;
+			string fleetStr = group == Group.A ? SelectedFleetA.Value : SelectedFleetB.Value;
 			if (!string.IsNullOrEmpty(fleetStr)) {
 				var fleetNames = fleetStr.Split('+');
 				if (fleetNames != null && fleetNames.Length > 0) {
@@ -228,20 +245,20 @@ namespace BattleSoupDemo {
 					}
 				}
 			}
-			foreach (var tg in groupA ? m_ShipsToggleA : m_ShipsToggleB) {
+			foreach (var tg in group == Group.A ? m_ShipsToggleA : m_ShipsToggleB) {
 				tg.isOn = savingHash.Contains(tg.name);
 			}
 		}
 
 
-		private void SaveShipSelectionToSaving (bool groupA) {
+		private void SaveShipSelectionToSaving (Group group) {
 			string result = "";
-			foreach (var tg in groupA ? m_ShipsToggleA : m_ShipsToggleB) {
+			foreach (var tg in group == Group.A ? m_ShipsToggleA : m_ShipsToggleB) {
 				if (tg.isOn) {
 					result += string.IsNullOrEmpty(result) ? tg.name : "+" + tg.name;
 				}
 			}
-			var saving = groupA ? FleetA : FleetB;
+			var saving = group == Group.A ? SelectedFleetA : SelectedFleetB;
 			saving.Value = result;
 		}
 
@@ -254,6 +271,30 @@ namespace BattleSoupDemo {
 
 
 		// Map
+		private void LoadMapSelectionFromSaving (Group group) {
+			var savingIndex = group == Group.A ? SelectedMapA : SelectedMapB;
+			var toggles = group == Group.A ? m_MapsToggleA : m_MapsToggleB;
+			if (savingIndex.Value >= 0 && savingIndex.Value < toggles.Length) {
+				toggles[savingIndex.Value].SetIsOnWithoutNotify(true);
+			} else {
+				toggles[0].SetIsOnWithoutNotify(true);
+			}
+		}
+
+
+		private void SaveMapSelectionToSaving (Group group) {
+			var savingIndex = group == Group.A ? SelectedMapA : SelectedMapB;
+			int index = 0;
+			foreach (var tg in group == Group.A ? m_MapsToggleA : m_MapsToggleB) {
+				if (tg.isOn) {
+					savingIndex.Value = index;
+					break;
+				}
+				index++;
+			}
+		}
+
+
 		private void RefreshMapLabel () {
 			var mode = GetSelectingBattleMode();
 			m_MapLabelA.text = mode == BattleMode.PvA ? "My Map" : "Robot-A Map";
@@ -272,8 +313,8 @@ namespace BattleSoupDemo {
 		}
 
 
-		private MapData GetSelectingMap (bool groupA) {
-			foreach (var tg in groupA ? m_MapsToggleA : m_MapsToggleB) {
+		private MapData GetSelectingMap (Group group) {
+			foreach (var tg in group == Group.A ? m_MapsToggleA : m_MapsToggleB) {
 				if (tg.isOn) {
 					foreach (var map in m_Maps) {
 						if (map.name == tg.name) {
@@ -286,10 +327,10 @@ namespace BattleSoupDemo {
 		}
 
 
-		private List<ShipData> GetSelectingShips (bool groupA) {
+		private List<ShipData> GetSelectingShips (Group group) {
 			var result = new List<ShipData>();
 			var hash = new HashSet<string>();
-			foreach (var tg in groupA ? m_ShipsToggleA : m_ShipsToggleB) {
+			foreach (var tg in group == Group.A ? m_ShipsToggleA : m_ShipsToggleB) {
 				hash.TryAdd(tg.name);
 			}
 			foreach (var ship in m_Ships) {
@@ -346,7 +387,7 @@ namespace BattleSoupDemo {
 			CurrentState = state;
 
 			// UI
-			m_LogoPanel.gameObject.SetActive(state != GameState.Playing);
+			m_LogoPanel.gameObject.SetActive(true);
 
 			m_BattlePanel.gameObject.SetActive(state == GameState.Config);
 			m_ShipPanel.gameObject.SetActive(state == GameState.Config);
@@ -358,6 +399,7 @@ namespace BattleSoupDemo {
 			m_BattleInfo.gameObject.SetActive(state == GameState.Playing);
 
 		}
+
 
 
 		#endregion

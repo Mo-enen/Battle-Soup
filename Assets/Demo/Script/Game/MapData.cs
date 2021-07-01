@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using BattleSoup;
+
 
 namespace BattleSoupDemo {
 	[CreateAssetMenu(fileName = "New Map", menuName = "BattleSoup Map", order = 102)]
@@ -8,12 +10,12 @@ namespace BattleSoupDemo {
 
 
 		// Api
-		public Vector2Int Size => m_Size;
-		public Vector2Int[] Stones => m_Stones;
+		public int Size => m_Size;
+		public Int2[] Stones => m_Stones;
 
 		// Ser
-		[SerializeField] Vector2Int m_Size = new Vector2Int(8, 8);
-		[SerializeField] Vector2Int[] m_Stones = new Vector2Int[0];
+		[SerializeField] int m_Size = 8;
+		[SerializeField] Int2[] m_Stones = new Int2[0];
 
 
 	}
