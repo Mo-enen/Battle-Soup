@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93f11f2203334b84cbea30963748e3e3, type: 3}
+  m_Name: SeaTurtle
+  m_EditorClassIdentifier: 
+  m_DisplayName: Turtle
+  m_GlobalID: 16
+  m_Sprite: {fileID: -2393242938714002295, guid: 4ee4eafbb0c3b474a91a63e6bbf8d883, type: 3}
+  m_Ship:
+    Body:
+    - X: 0
+      Y: 1
+    - X: 1
+      Y: 0
+    - X: 1
+      Y: 1
+    - X: 2
+      Y: 1
+    Ability:
+      Attacks:
+      - X: 0
+        Y: 0
+        Type: 0
+        Trigger: 0
+        AvailableTarget: 0
+      - X: 1
+        Y: 0
+        Type: 1
+        Trigger: 1
+        AvailableTarget: 0
+      - X: -1
+        Y: 0
+        Type: 1
+        Trigger: 1
+        AvailableTarget: 0
+      - X: 0
+        Y: 1
+        Type: 1
+        Trigger: 1
+        AvailableTarget: 0
+      - X: 0
+        Y: -1
+        Type: 1
+        Trigger: 1
+        AvailableTarget: 0
+      Type: 1
+      Cooldown: 2
+      BreakOnMiss: 1
