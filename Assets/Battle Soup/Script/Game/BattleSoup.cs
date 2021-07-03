@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -89,6 +89,9 @@ namespace BattleSoup {
 		[SerializeField] Text m_StartMessage_Ship = null;
 		[SerializeField] Text m_StartMessage_Map = null;
 		[SerializeField] Text m_StartMessage_ShipPos = null;
+		[SerializeField] Image m_BattleAvatarA = null;
+		[SerializeField] Image m_BattleAvatarB = null;
+		[SerializeField] Sprite[] m_BattleAvatars = null;
 		[SerializeField] ShipData[] m_Ships = null;
 		[SerializeField] MapData[] m_Maps = null;
 		[SerializeField] private CursorData[] m_Cursors = null;
@@ -121,12 +124,14 @@ namespace BattleSoup {
 				index >= 0 ? m_Cursors[index].Cursor : null,
 				index >= 0 ? m_Cursors[index].Offset : Vector2.zero
 			);
-			// Get Toggles
+			// Get Toggles 
 			m_ShipsToggleA = m_ShipsToggleContainerA.GetComponentsInChildren<Toggle>(true);
 			m_ShipsToggleB = m_ShipsToggleContainerB.GetComponentsInChildren<Toggle>(true);
 			m_MapsToggleA = m_MapsToggleContainerA.GetComponentsInChildren<Toggle>(true);
 			m_MapsToggleB = m_MapsToggleContainerB.GetComponentsInChildren<Toggle>(true);
+
 		}
+
 
 
 		private void Start () {
@@ -147,6 +152,7 @@ namespace BattleSoup {
 		private void Update () {
 			CursorUI.GlobalUpdate();
 		}
+
 
 
 		#endregion
@@ -191,6 +197,7 @@ namespace BattleSoup {
 						SetGameState(GameState.PositionShip);
 						RefreshShipPositionButton();
 					} else {
+						RefreshBattleInfo();
 						SetGameState(GameState.Playing);
 					}
 					break;
@@ -199,8 +206,10 @@ namespace BattleSoup {
 				// PositionShips >> Playing
 				case GameState.PositionShip:
 					if (!RefreshShipPositionButton()) { break; }
+					SetSoupSize(m_ShipPositionUI.Map.Size);
+					SetSoupShips(m_ShipPositionUI.Ships, m_ShipPositionUI.Positions, Group.A);
 
-
+					RefreshBattleInfo();
 					SetGameState(GameState.Playing);
 					break;
 
@@ -264,43 +273,43 @@ namespace BattleSoup {
 
 		// Game State
 		private void SetGameState (GameState state) {
-
 			CurrentState = state;
-
-			// UI
 			m_LogoPanel.gameObject.SetActive(true);
-
 			m_BattlePanel.gameObject.SetActive(state == GameState.BattleMode);
 			m_ShipPanel.gameObject.SetActive(state == GameState.Ship);
 			m_MapPanel.gameObject.SetActive(state == GameState.Map);
-
 			m_ShipPositionPanel.gameObject.SetActive(state == GameState.PositionShip);
-
 			m_BattleZone.gameObject.SetActive(state == GameState.Playing);
 			m_BattleInfo.gameObject.SetActive(state == GameState.Playing);
-
-
 		}
 
 
 		// Soup
-		private void SetSoupSize (int width, int height) {
-			m_GridA.X = width;
-			m_GridA.Y = height;
-			m_GridB.X = width;
-			m_GridB.Y = height;
-			m_ShipRendererA.GridCountX = width;
-			m_ShipRendererA.GridCountY = height;
-			m_ShipRendererB.GridCountX = width;
-			m_ShipRendererB.GridCountY = height;
-			m_SonarRendererA.GridCountX = width;
-			m_SonarRendererA.GridCountY = height;
-			m_SonarRendererB.GridCountX = width;
-			m_SonarRendererB.GridCountY = height;
-			m_MapRendererA.GridCountX = width;
-			m_MapRendererA.GridCountY = height;
-			m_MapRendererB.GridCountX = width;
-			m_MapRendererB.GridCountY = height;
+		private void SetSoupSize (int size) {
+			m_GridA.X = size;
+			m_GridA.Y = size;
+			m_GridB.X = size;
+			m_GridB.Y = size;
+			m_ShipRendererA.GridCountX = size;
+			m_ShipRendererA.GridCountY = size;
+			m_ShipRendererB.GridCountX = size;
+			m_ShipRendererB.GridCountY = size;
+			m_SonarRendererA.GridCountX = size;
+			m_SonarRendererA.GridCountY = size;
+			m_SonarRendererB.GridCountX = size;
+			m_SonarRendererB.GridCountY = size;
+			m_MapRendererA.GridCountX = size;
+			m_MapRendererA.GridCountY = size;
+			m_MapRendererB.GridCountX = size;
+			m_MapRendererB.GridCountY = size;
+		}
+
+
+		private void SetSoupShips (ShipData[] ships, List<ShipPosition> positions, Group group) {
+
+
+
+
 		}
 
 
@@ -334,6 +343,23 @@ namespace BattleSoup {
 		}
 
 
+		private List<ShipData> GetSelectingShips (Group group) {
+			var result = new List<ShipData>();
+			var hash = new HashSet<string>();
+			foreach (var tg in group == Group.A ? m_ShipsToggleA : m_ShipsToggleB) {
+				if (tg.isOn) {
+					hash.TryAdd(tg.name);
+				}
+			}
+			foreach (var ship in m_Ships) {
+				if (hash.Contains(ship.name)) {
+					result.Add(ship);
+				}
+			}
+			return result;
+		}
+
+
 		// Map
 		private void LoadMapSelectionFromSaving (Group group) {
 			var savingIndex = group == Group.A ? SelectedMapA : SelectedMapB;
@@ -359,7 +385,6 @@ namespace BattleSoup {
 		}
 
 
-		// Config UI
 		private MapData GetSelectingMap (Group group) {
 			foreach (var tg in group == Group.A ? m_MapsToggleA : m_MapsToggleB) {
 				if (tg.isOn) {
@@ -374,24 +399,7 @@ namespace BattleSoup {
 		}
 
 
-		private List<ShipData> GetSelectingShips (Group group) {
-			var result = new List<ShipData>();
-			var hash = new HashSet<string>();
-			foreach (var tg in group == Group.A ? m_ShipsToggleA : m_ShipsToggleB) {
-				if (tg.isOn) {
-					hash.TryAdd(tg.name);
-				}
-			}
-			foreach (var ship in m_Ships) {
-				if (hash.Contains(ship.name)) {
-					result.Add(ship);
-				}
-			}
-			return result;
-		}
-
-
-		// Start Button
+		// Refresh UI
 		private bool RefreshShipButton () {
 
 			// Has Ship Selected
@@ -441,14 +449,20 @@ namespace BattleSoup {
 
 
 		private bool RefreshShipPositionButton () {
-			if (!m_ShipPositionUI.CheckOverlaping()) {
+			if (!m_ShipPositionUI.RefreshOverlapRenderer(out string error)) {
 				m_StartButton_ShipPos.interactable = false;
-				m_StartMessage_ShipPos.text = "Ships can not overlap with stones or other ships";
+				m_StartMessage_ShipPos.text = error;
 				return false;
 			}
 			m_StartButton_ShipPos.interactable = true;
 			m_StartMessage_ShipPos.text = "";
 			return true;
+		}
+
+
+		private void RefreshBattleInfo () {
+			m_BattleAvatarA.sprite = m_BattleAvatars[(int)CurrentBattleMode];
+			m_BattleAvatarB.sprite = m_BattleAvatars[1];
 		}
 
 
@@ -467,6 +481,7 @@ namespace BattleSoup.Editor {
 
 	[CustomEditor(typeof(BattleSoup))]
 	public class BattleSoup_Inspector : Editor {
+
 
 
 		public override void OnInspectorGUI () {
@@ -529,10 +544,42 @@ namespace BattleSoup.Editor {
 
 		private void ReloadMaps (RectTransform container) {
 
+			// Load All MapData
+			var maps = new List<MapData>();
+			var guids = AssetDatabase.FindAssets("t:MapData");
+			foreach (var guid in guids) {
+				maps.Add(AssetDatabase.LoadAssetAtPath<MapData>(
+					AssetDatabase.GUIDToAssetPath(guid))
+				);
+			}
 
+			// Clear UI
+			var template = container.GetChild(0) as RectTransform;
+			template.SetParent(null);
+			int childCount = container.childCount;
+			for (int i = 0; i < childCount; i++) {
+				DestroyImmediate(container.GetChild(0).gameObject, false);
+			}
 
+			// Create UI
+			foreach (var map in maps) {
+				var rt = Instantiate(template.gameObject, container).transform as RectTransform;
+				rt.anchoredPosition3D = rt.anchoredPosition;
+				rt.localScale = Vector3.one;
+				rt.localRotation = Quaternion.identity;
+				rt.SetAsLastSibling();
+				rt.gameObject.name = map.name;
+				// Label
+				rt.GetComponent<Toggle>().isOn = false;
+				rt.Find("Label").GetComponent<Text>().text = $"{map.Size}×{map.Size}";
+				rt.Find("Thumbnail").GetComponent<MapRenderer>().Map = map;
+				var grid = rt.Find("Grid").GetComponent<VectorGrid>();
+				grid.X = map.Size;
+				grid.Y = map.Size;
+			}
 
-
+			// Final
+			DestroyImmediate(template.gameObject, false);
 
 		}
 

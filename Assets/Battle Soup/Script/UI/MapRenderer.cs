@@ -40,7 +40,7 @@ namespace BattleSoup {
 				m_Grid.X = m_Map.Size;
 				m_Grid.Y = m_Map.Size;
 				foreach (var stone in m_Map.Stones) {
-					AddBlock(stone.X, stone.Y, 0);
+					AddBlock(stone.x, stone.y, 0);
 				}
 			}
 		}

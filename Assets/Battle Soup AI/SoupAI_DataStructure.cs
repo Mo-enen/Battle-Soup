@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+
 
 
 namespace BattleSoupAI {
@@ -73,11 +73,11 @@ namespace BattleSoupAI {
 
 	[System.Serializable]
 	public struct Int2 {
-		public int X;
-		public int Y;
+		public int x;
+		public int y;
 		public Int2 (int x, int y) {
-			X = x;
-			Y = y;
+			this.x = x;
+			this.y = y;
 		}
 	}
 
@@ -120,8 +120,42 @@ namespace BattleSoupAI {
 
 	[System.Serializable]
 	public struct Ship {
+
+
 		public Int2[] Body;
 		public Ability Ability;
+
+
+		public (Int2 min, Int2 max) GetBounds (ShipPosition pos) {
+			int minX = int.MaxValue;
+			int minY = int.MaxValue;
+			int maxX = int.MinValue;
+			int maxY = int.MinValue;
+			foreach (var v in Body) {
+				minX = System.Math.Min(minX, v.x);
+				minY = System.Math.Min(minY, v.y);
+				maxX = System.Math.Max(maxX, v.x);
+				maxY = System.Math.Max(maxY, v.y);
+			}
+			return pos.Flip ?
+				(new Int2(minY, minX), new Int2(maxY, maxX)) :
+				(new Int2(minX, minY), new Int2(maxX, maxY));
+		}
+
+
+		public bool Contains (int x, int y, ShipPosition pos) {
+			foreach (var v in Body) {
+				if (
+					x == (pos.Flip ? v.y : v.x) + pos.Pivot.x &&
+					y == (pos.Flip ? v.x : v.y) + pos.Pivot.y
+				) { return true; }
+			}
+			return false;
+		}
+
+
+
+
 	}
 
 

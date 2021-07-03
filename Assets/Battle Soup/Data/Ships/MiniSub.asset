@@ -17,10 +17,10 @@ MonoBehaviour:
   m_Sprite: {fileID: -2840482538186444857, guid: 4ee4eafbb0c3b474a91a63e6bbf8d883, type: 3}
   m_Ship:
     Body:
-    - X: 0
-      Y: 0
-    - X: 0
-      Y: 1
+    - x: 0
+      y: 0
+    - x: 0
+      y: 1
     Ability:
       Attacks:
       - X: 0

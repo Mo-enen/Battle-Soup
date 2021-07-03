@@ -13,8 +13,8 @@ namespace BattleSoup {
 			int id = ship.GlobalID;
 			foreach (var block in ship.Ship.Body) {
 				AddBlock(
-					pos.Pivot.X + (pos.Flip ? block.Y : block.X),
-					pos.Pivot.Y + (pos.Flip ? block.X : block.Y),
+					pos.Pivot.x + (pos.Flip ? block.y : block.x),
+					pos.Pivot.y + (pos.Flip ? block.x : block.y),
 					id
 				);
 			}

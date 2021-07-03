@@ -16,7 +16,10 @@ TextureImporter:
     second: VS
   - first:
       213: 8586885197115800619
-    second: Next
+    second: Mouse Left
+  - first:
+      213: 8160775752198118580
+    second: Mouse Right
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -185,6 +188,48 @@ TextureImporter:
       bones: []
       spriteID: 187754eda00643180800000000000000
       internalID: -9136572144232859775
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mouse Left
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 71
+        width: 49
+        height: 76
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b2cb52d679eba2770800000000000000
+      internalID: 8586885197115800619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mouse Right
+      rect:
+        serializedVersion: 2
+        x: 50
+        y: 71
+        width: 49
+        height: 76
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4bcd3691f46e04170800000000000000
+      internalID: 8160775752198118580
       vertices: []
       indices: 
       edges: []

@@ -234,6 +234,13 @@ namespace Moenen.Standard {
 		}
 
 
+		public static Vector2 Get01Position (this RectTransform rt, Vector2 screenPos, Camera camera) {
+			RectTransformUtility.ScreenPointToLocalPointInRectangle(rt, screenPos, camera, out Vector2 localPos);
+			return new Vector2(
+				(localPos.x - rt.rect.xMin) / Mathf.Max(rt.rect.width, float.Epsilon),
+				(localPos.y - rt.rect.yMin) / Mathf.Max(rt.rect.height, float.Epsilon)
+			);
+		}
 
 
 

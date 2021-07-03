@@ -13,4 +13,14 @@ MonoBehaviour:
   m_Name: Test A
   m_EditorClassIdentifier: 
   m_Size: 6
-  m_Stones: []
+  m_Stones:
+  - x: 0
+    y: 4
+  - x: 0
+    y: 5
+  - x: 1
+    y: 0
+  - x: 5
+    y: 0
+  - x: 5
+    y: 2

@@ -14,17 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_DisplayName: Crafty Crab
   m_GlobalID: 2
-  m_Sprite: {fileID: 7866327680344461672, guid: 4ee4eafbb0c3b474a91a63e6bbf8d883, type: 3}
+  m_Sprite: {fileID: 7754467976634047938, guid: 4ee4eafbb0c3b474a91a63e6bbf8d883, type: 3}
   m_Ship:
     Body:
-    - X: 1
-      Y: 0
-    - X: 1
-      Y: 1
-    - X: 0
-      Y: 1
-    - X: 0
-      Y: 2
+    - x: 1
+      y: 0
+    - x: 1
+      y: 1
+    - x: 0
+      y: 1
+    - x: 0
+      y: 2
     Ability:
       Attacks:
       - X: 0
