@@ -5,6 +5,7 @@
 
 	[DisallowMultipleComponent]
 	[AddComponentMenu("UIGadget/RaycastBlocker")]
+	[RequireComponent(typeof(CanvasRenderer))]
 	public class RaycastBlocker : Graphic {
 
 

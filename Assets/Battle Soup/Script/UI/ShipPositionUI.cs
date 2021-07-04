@@ -131,7 +131,9 @@ namespace BattleSoup {
 			m_MapRenderer.Map = map;
 
 			// Pos
-			GetRandomShipPositions(_Ships, map, _Positions);
+			for (int i = 0; i < 5; i++) {
+				if (GetRandomShipPositions(_Ships, map, _Positions)) { break; }
+			}
 			RefreshShipRenderer();
 			RefreshOverlapRenderer();
 			ClampAllShipsInSoup();
