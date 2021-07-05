@@ -116,19 +116,18 @@ namespace BattleSoup {
 		#region --- API ---
 
 
-		public bool Init (MapData map, List<ShipData> ships) {
+		public bool Init (MapData map, ShipData[] ships) {
 
-			if (map == null || map.Size <= 0 || ships == null || ships.Count == 0) { return false; }
+			if (map == null || map.Size <= 0 || ships == null || ships.Length == 0) { return false; }
 
 			// Ship
-			_Ships = new ShipData[ships.Count];
-			ships.CopyTo(_Ships);
+			_Ships = ships;
 			m_ShipRenderer.GridCountX = map.Size;
 			m_ShipRenderer.GridCountY = map.Size;
 
 			// Map
 			_Map = map;
-			m_MapRenderer.Map = map;
+			m_MapRenderer.LoadMap(map);
 
 			// Pos
 			for (int i = 0; i < 5; i++) {

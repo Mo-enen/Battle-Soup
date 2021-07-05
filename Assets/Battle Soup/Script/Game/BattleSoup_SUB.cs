@@ -1,9 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
+using UIGadget;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace BattleSoup {
+
+
+
+	[System.Serializable]
+	public enum Group {
+		A = 0,
+		B = 1,
+	}
+
+
+	public enum BattleMode {
+		PvA = 0,
+		AvA = 1,
+	}
+
+
+
 	public partial class BattleSoup {
 
 
@@ -27,24 +45,10 @@ namespace BattleSoup {
 
 
 
-		public enum BattleMode {
-			PvA = 0,
-			AvA = 1,
-		}
-
-
-
-		[System.Serializable]
-		public enum Group {
-			A = 0,
-			B = 1,
-		}
-
-
 
 		// Data
 		[System.Serializable]
-		public struct PanelChest {
+		public struct PanelData {
 			public RectTransform LogoPanel;
 			public RectTransform BattlePanel;
 			public RectTransform ShipPanel;
@@ -55,19 +59,25 @@ namespace BattleSoup {
 
 
 		[System.Serializable]
-		public struct GameChest {
+		public struct GameData {
+			public Game Game;
 			public ShipPositionUI ShipPositionUI;
 			public BattleSoupUI BattleSoupUIA;
 			public BattleSoupUI BattleSoupUIB;
+			public Grabber AbilityShip;
+			public AudioSource[] AudioSources;
 		}
 
 
 		[System.Serializable]
-		public struct UIChest {
+		public struct UIData {
 			public RectTransform ShipsToggleContainerA;
 			public RectTransform ShipsToggleContainerB;
 			public RectTransform MapsToggleContainerA;
 			public RectTransform MapsToggleContainerB;
+			public RectTransform AbilityContainerA;
+			public RectTransform AbilityContainerB;
+			public RectTransform MessageRoot;
 			public Text ShipLabelA;
 			public Text ShipLabelB;
 			public Text MapLabelA;
@@ -78,13 +88,16 @@ namespace BattleSoup {
 			public Text StartMessage_Ship;
 			public Text StartMessage_Map;
 			public Text StartMessage_ShipPos;
+			public Text MessageText;
+			public RectTransform TurnArrowA;
+			public RectTransform TurnArrowB;
 			public Image[] BattleAvatarA;
 			public Image[] BattleAvatarB;
 		}
 
 
 		[System.Serializable]
-		public struct ResourceChest {
+		public struct ResourceData {
 			public Sprite[] BattleAvatars;
 			public ShipData[] Ships;
 			public MapData[] Maps;

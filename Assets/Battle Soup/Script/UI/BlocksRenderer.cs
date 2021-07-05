@@ -2,8 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using BattleSoupAI;
-
 
 
 
@@ -11,18 +9,35 @@ namespace BattleSoup {
 	public class BlocksRenderer : Image {
 
 
-		// SUB
+
+
+		#region --- SUB ---
+
+
+
 		[System.Serializable]
 		public class Block {
 			public int X = 0;
 			public int Y = 0;
 			public int ID = -1;
-			public Block (int x, int y, int id) {
+			public Color Color = Color.white;
+			public Block (int x, int y, int id) : this(x, y, id, Color.white) { }
+			public Block (int x, int y, int id, Color color) {
 				X = x;
 				Y = y;
 				ID = id;
+				Color = color;
 			}
 		}
+
+
+
+		#endregion
+
+
+
+
+		#region --- VAR ---
 
 
 		// Api
@@ -48,6 +63,7 @@ namespace BattleSoup {
 		// Ser
 		[SerializeField] int m_GridCountX = 8;
 		[SerializeField] int m_GridCountY = 8;
+		[SerializeField] float m_BlockScale = 1f;
 		[SerializeField] Sprite[] m_Blocks = new Sprite[0];
 
 		// Data
@@ -60,9 +76,14 @@ namespace BattleSoup {
 		private readonly List<Block> Blocks = new List<Block>();
 
 
+		#endregion
 
 
-		// MSG
+
+
+		#region --- MSG ---
+
+
 		protected override void Awake () {
 			base.Awake();
 			raycastPadding = new Vector4(0, 0, 0, 0);
@@ -78,18 +99,33 @@ namespace BattleSoup {
 			var rect = GetPixelAdjustedRect();
 			float gridSizeX = rect.width / m_GridCountX;
 			float gridSizeY = rect.height / m_GridCountY;
+			float scaleGapX = (gridSizeX - gridSizeX * m_BlockScale) / 2f;
+			float scaleGapY = (gridSizeY - gridSizeY * m_BlockScale) / 2f;
 			foreach (var block in Blocks) {
 				if (block.ID < 0 || block.ID >= m_Blocks.Length) { continue; }
 				SetCachePos(block.X, block.Y);
 				SetCacheUV(m_Blocks[block.ID]);
+				SetColor(block.Color * color);
 				toFill.AddUIVertexQuad(CacheVertices);
 			}
 			// Func
 			void SetCachePos (int x, int y) {
-				CacheVertices[0].position = new Vector2(rect.xMin + x * gridSizeX, rect.yMin + y * gridSizeY);
-				CacheVertices[1].position = new Vector2(rect.xMin + x * gridSizeX, rect.yMin + (y + 1) * gridSizeY);
-				CacheVertices[2].position = new Vector2(rect.xMin + (x + 1) * gridSizeX, rect.yMin + (y + 1) * gridSizeY);
-				CacheVertices[3].position = new Vector2(rect.xMin + (x + 1) * gridSizeX, rect.yMin + y * gridSizeY);
+				CacheVertices[0].position = new Vector2(
+					rect.xMin + x * gridSizeX + scaleGapX,
+					rect.yMin + y * gridSizeY + scaleGapY
+				);
+				CacheVertices[1].position = new Vector2(
+					rect.xMin + x * gridSizeX + scaleGapX,
+					rect.yMin + (y + 1) * gridSizeY - scaleGapY
+				);
+				CacheVertices[2].position = new Vector2(
+					rect.xMin + (x + 1) * gridSizeX - scaleGapX,
+					rect.yMin + (y + 1) * gridSizeY - scaleGapY
+				);
+				CacheVertices[3].position = new Vector2(
+					rect.xMin + (x + 1) * gridSizeX - scaleGapX,
+					rect.yMin + y * gridSizeY + scaleGapY
+				);
 			}
 			void SetCacheUV (Sprite sprite) {
 				if (sprite != null) {
@@ -104,14 +140,54 @@ namespace BattleSoup {
 					CacheVertices[3].uv0 = default;
 				}
 			}
+			void SetColor (Color color) {
+				CacheVertices[0].color = color;
+				CacheVertices[1].color = color;
+				CacheVertices[2].color = color;
+				CacheVertices[3].color = color;
+			}
 		}
 
 
-		// API
+		#endregion
+
+
+
+
+		#region --- API ---
+
+
 		public void AddBlock (int x, int y, int id) => Blocks.Add(new Block(x, y, id));
+		public void AddBlock (int x, int y, int id, Color color) => Blocks.Add(new Block(x, y, id, color));
 
 
 		public void ClearBlock () => Blocks.Clear();
+
+
+		#endregion
+
+
+
+
+		#region --- LGC ---
+
+
+
+
+		#endregion
+
+
+
+
+		#region --- UTL ---
+
+
+
+
+		#endregion
+
+
+
 
 
 	}
@@ -131,7 +207,7 @@ namespace BattleSoup.Editor {
 		private static readonly string[] PROP_EXC = new string[] {
 			"m_Script", "m_RaycastTarget", "m_Maskable", "m_OnCullStateChanged",
 			"m_RaycastPadding", "m_Sprite", "m_Type","m_PreserveAspect", "m_FillCenter",
-			"m_FillMethod","m_FillAmount","m_FillClockwise", "m_Color", "m_FillOrigin",
+			"m_FillMethod","m_FillAmount","m_FillClockwise",  "m_FillOrigin",
 			"m_UseSpriteMesh", "m_PixelsPerUnitMultiplier",
 		};
 

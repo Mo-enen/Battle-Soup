@@ -18,10 +18,10 @@ namespace BattleSoup {
 
 
 		// Ser
-		[SerializeField] PanelChest m_Panel = default;
-		[SerializeField] GameChest m_Game = default;
-		[SerializeField] UIChest m_UI = default;
-		[SerializeField] ResourceChest m_Resource = default;
+		[SerializeField] PanelData m_Panel = default;
+		[SerializeField] GameData m_Game = default;
+		[SerializeField] UIData m_UI = default;
+		[SerializeField] ResourceData m_Resource = default;
 
 		// Data
 		private GameState CurrentState = GameState.BattleMode;
@@ -51,6 +51,8 @@ namespace BattleSoup {
 				index >= 0 ? m_Resource.Cursors[index].Cursor : null,
 				index >= 0 ? m_Resource.Cursors[index].Offset : Vector2.zero
 			);
+			m_Game.Game.gameObject.SetActive(false);
+			m_Game.Game.SetupDelegate();
 			// Get Toggles 
 			m_ShipsToggleA = m_UI.ShipsToggleContainerA.GetComponentsInChildren<Toggle>(true);
 			m_ShipsToggleB = m_UI.ShipsToggleContainerB.GetComponentsInChildren<Toggle>(true);
@@ -70,13 +72,12 @@ namespace BattleSoup {
 			m_UI.StartMessage_Ship.text = "";
 			m_UI.StartMessage_Map.text = "";
 			m_UI.StartMessage_ShipPos.text = "";
-			SetGameState(GameState.BattleMode);
+			CurrentState = GameState.BattleMode;
+			RefreshPanelUI(GameState.BattleMode);
 		}
 
 
-		private void Update () {
-			CursorUI.GlobalUpdate();
-		}
+		private void Update () => CursorUI.GlobalUpdate();
 
 
 
@@ -94,59 +95,92 @@ namespace BattleSoup {
 
 				// BattleMode >> Ship
 				case GameState.BattleMode:
+					m_Game.Game.gameObject.SetActive(false);
 					m_UI.ShipLabelA.text = CurrentBattleMode == BattleMode.PvA ? "My Ships" : "Robot-A Ships";
 					m_UI.ShipLabelB.text = CurrentBattleMode == BattleMode.PvA ? "Opponent Ships" : "Robot-B Ships";
-					SetGameState(GameState.Ship);
 					RefreshShipButton();
+					RefreshPanelUI(GameState.Ship);
+					CurrentState = GameState.Ship;
 					break;
 
 
 				// Ship >> Map
 				case GameState.Ship:
 					if (!RefreshShipButton()) { break; }
+					m_Game.Game.gameObject.SetActive(false);
 					m_UI.MapLabelA.text = CurrentBattleMode == BattleMode.PvA ? "My Map" : "Robot-A Map";
 					m_UI.MapLabelB.text = CurrentBattleMode == BattleMode.PvA ? "Opponent Map" : "Robot-B Map";
 					RefreshMapButton();
-					SetGameState(GameState.Map);
+					RefreshPanelUI(GameState.Map);
+					CurrentState = GameState.Map;
 					break;
 
 
 				// Map >> PositionShip/Playing
 				case GameState.Map:
 					if (!RefreshMapButton()) { break; }
-					if (!m_Game.ShipPositionUI.Init(
-						GetSelectingMap(Group.A),
-						GetSelectingShips(Group.A)
-					)) { break; }
 					if (CurrentBattleMode == BattleMode.PvA) {
-						SetGameState(GameState.PositionShip);
+						// Map >> PositionShip
+						if (!m_Game.ShipPositionUI.Init(
+							GetSelectingMap(Group.A),
+							GetSelectingShips(Group.A)
+						)) { break; }
+						m_Game.Game.gameObject.SetActive(false);
 						RefreshShipPositionButton();
+						RefreshPanelUI(GameState.PositionShip);
+						CurrentState = GameState.PositionShip;
 					} else {
-						RefreshBattleInfo();
-						SetGameState(GameState.Playing);
+						// Map >> Playing
+						if (
+							!SetupAIBattleSoup(Group.A, out var mapA, out var shipsA, out var positionsA, out string error) ||
+							!SetupAIBattleSoup(Group.B, out var mapB, out var shipsB, out var positionsB, out error)
+						) {
+							ShowMessage(error);
+							break;
+						}
+						m_Game.Game.Init(CurrentBattleMode, mapA, mapB, shipsA, shipsB, positionsA, positionsB);
+						m_Game.Game.gameObject.SetActive(true);
+						m_Game.BattleSoupUIA.Init();
+						m_Game.BattleSoupUIB.Init();
+						RefreshBattleInfoUI();
+						ReloadAbilityUI();
+						RefreshPanelUI(GameState.Playing);
+						CurrentState = GameState.Playing;
 					}
 					break;
 
 
 				// PositionShips >> Playing
-				case GameState.PositionShip:
+				case GameState.PositionShip: {
 					if (!RefreshShipPositionButton()) { break; }
-					m_Game.BattleSoupUIA.Init(
-						m_Game.ShipPositionUI.Map,
-						m_Game.ShipPositionUI.Ships,
-						m_Game.ShipPositionUI.Positions
+					if (!SetupAIBattleSoup(Group.B, out var mapB, out var shipsB, out var positionsB, out string error)) {
+						ShowMessage(error);
+						break;
+					}
+					m_Game.Game.Init(
+						CurrentBattleMode,
+						m_Game.ShipPositionUI.Map, mapB,
+						m_Game.ShipPositionUI.Ships, shipsB,
+						m_Game.ShipPositionUI.Positions, positionsB
 					);
-					RefreshBattleInfo();
-					SetGameState(GameState.Playing);
+					m_Game.Game.gameObject.SetActive(true);
+					m_Game.BattleSoupUIA.Init();
+					m_Game.BattleSoupUIB.Init();
+					RefreshBattleInfoUI();
+					ReloadAbilityUI();
+					RefreshPanelUI(GameState.Playing);
+					CurrentState = GameState.Playing;
 					break;
+				}
 
 
 				// Playing >> BattleMode
 				case GameState.Playing:
-
-
-
-					SetGameState(GameState.BattleMode);
+					m_Game.Game.gameObject.SetActive(false);
+					m_Game.BattleSoupUIA.Clear();
+					m_Game.BattleSoupUIB.Clear();
+					RefreshPanelUI(GameState.BattleMode);
+					CurrentState = GameState.BattleMode;
 					break;
 			}
 		}
@@ -155,19 +189,30 @@ namespace BattleSoup {
 		public void UI_GotoPrevState () {
 			switch (CurrentState) {
 				case GameState.Ship:
-					SetGameState(GameState.BattleMode);
+					RefreshPanelUI(GameState.BattleMode);
+					CurrentState = GameState.BattleMode;
 					break;
 				case GameState.Map:
-					SetGameState(GameState.Ship);
+					RefreshPanelUI(GameState.Ship);
+					CurrentState = GameState.Ship;
 					break;
 				case GameState.PositionShip:
-					SetGameState(GameState.Map);
+					RefreshPanelUI(GameState.Map);
+					CurrentState = GameState.Map;
+					break;
+				case GameState.Playing:
+					RefreshPanelUI(GameState.BattleMode);
+					CurrentState = GameState.BattleMode;
 					break;
 			}
 		}
 
 
-		public void UI_OpenURL (string url) => Application.OpenURL(Util.GetUrl(url));
+		public void UI_OpenURL (string url) {
+			url = Util.GetUrl(url);
+			ShowMessage($"Opening {url}");
+			Application.OpenURL(url);
+		}
 
 
 		public void UI_ShipChanged (int group) {
@@ -190,6 +235,15 @@ namespace BattleSoup {
 		public void UI_SetBattleMode (int id) => CurrentBattleMode = (BattleMode)id;
 
 
+		public void UI_RefreshAbilityUI () {
+			RefreshAbilityUI(m_UI.AbilityContainerA, m_Game.BattleSoupUIA, Group.A);
+			RefreshAbilityUI(m_UI.AbilityContainerB, m_Game.BattleSoupUIB, Group.B);
+		}
+
+
+		public void UI_RefreshBattleInfoUI () => RefreshBattleInfoUI();
+
+
 		#endregion
 
 
@@ -199,13 +253,13 @@ namespace BattleSoup {
 }
 
 
+
 #if UNITY_EDITOR
 namespace BattleSoup.Editor {
 	using UnityEditor;
 
 	[CustomEditor(typeof(BattleSoup))]
 	public class BattleSoup_Inspector : Editor {
-
 
 
 		public override void OnInspectorGUI () {
@@ -225,7 +279,6 @@ namespace BattleSoup.Editor {
 			DrawPropertiesExcluding(serializedObject, "m_Script");
 			serializedObject.ApplyModifiedProperties();
 		}
-
 
 
 		private void ReloadShips (RectTransform container) {
@@ -296,7 +349,7 @@ namespace BattleSoup.Editor {
 				// Label
 				rt.GetComponent<Toggle>().isOn = false;
 				rt.Find("Label").GetComponent<Text>().text = $"{map.Size}×{map.Size}";
-				rt.Find("Thumbnail").GetComponent<MapRenderer>().Map = map;
+				rt.Find("Thumbnail").GetComponent<MapRenderer>().LoadMap(map);
 				var grid = rt.Find("Grid").GetComponent<VectorGrid>();
 				grid.X = map.Size;
 				grid.Y = map.Size;

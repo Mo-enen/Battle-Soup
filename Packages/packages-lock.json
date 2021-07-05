@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.flipbookgames.scriptinspector3": {
+      "version": "file:C:/Data/Mine/Unity3D/Packages/Assets/ScriptInspector3",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.moenengames.standard": {
       "version": "file:Standard",
       "depth": 0,

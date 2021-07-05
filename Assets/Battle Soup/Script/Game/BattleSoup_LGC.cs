@@ -1,24 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
-using Moenen.Standard;
 using UnityEngine;
+using UnityEngine.UI;
+using BattleSoupAI;
+using Moenen.Standard;
+using UIGadget;
 
 
 
 namespace BattleSoup {
 	public partial class BattleSoup {
 
-
-		// Game State
-		private void SetGameState (GameState state) {
-			CurrentState = state;
-			m_Panel.LogoPanel.gameObject.SetActive(true);
-			m_Panel.BattlePanel.gameObject.SetActive(state == GameState.BattleMode);
-			m_Panel.ShipPanel.gameObject.SetActive(state == GameState.Ship);
-			m_Panel.MapPanel.gameObject.SetActive(state == GameState.Map);
-			m_Panel.ShipPositionPanel.gameObject.SetActive(state == GameState.PositionShip);
-			m_Panel.BattleZonePanel.gameObject.SetActive(state == GameState.Playing);
-		}
 
 
 		// Ship
@@ -51,7 +43,7 @@ namespace BattleSoup {
 		}
 
 
-		private List<ShipData> GetSelectingShips (Group group) {
+		private ShipData[] GetSelectingShips (Group group) {
 			var result = new List<ShipData>();
 			var hash = new HashSet<string>();
 			foreach (var tg in group == Group.A ? m_ShipsToggleA : m_ShipsToggleB) {
@@ -64,7 +56,23 @@ namespace BattleSoup {
 					result.Add(ship);
 				}
 			}
-			return result;
+			result.Sort((a, b) => b.Ship.Body.Length.CompareTo(a.Ship.Body.Length));
+			return result.ToArray();
+		}
+
+
+		private bool SetupAIBattleSoup (Group group, out MapData map, out ShipData[] ships, out List<ShipPosition> positions, out string error) {
+			error = "";
+			ships = GetSelectingShips(group);
+			map = GetSelectingMap(group);
+			positions = SoupAI.GetShipPosition(
+				map.Size, map.Stones, ShipData.GetShips(ships)
+			);
+			if (positions == null || positions.Count == 0) {
+				error = "Failed to position AI ships.";
+				return false;
+			}
+			return true;
 		}
 
 
@@ -168,12 +176,131 @@ namespace BattleSoup {
 		}
 
 
-		private void RefreshBattleInfo () {
+		private void RefreshBattleInfoUI () {
 			foreach (var avatar in m_UI.BattleAvatarA) {
 				avatar.sprite = m_Resource.BattleAvatars[(int)CurrentBattleMode];
 			}
 			foreach (var avatar in m_UI.BattleAvatarB) {
 				avatar.sprite = m_Resource.BattleAvatars[1];
+			}
+			// Arrow
+			m_UI.TurnArrowA.gameObject.SetActive(m_Game.Game.CurrentTurn == Group.A);
+			m_UI.TurnArrowB.gameObject.SetActive(m_Game.Game.CurrentTurn == Group.B);
+
+		}
+
+
+		private void RefreshPanelUI (GameState state) {
+			m_Panel.LogoPanel.gameObject.SetActive(true);
+			m_Panel.BattlePanel.gameObject.SetActive(state == GameState.BattleMode);
+			m_Panel.ShipPanel.gameObject.SetActive(state == GameState.Ship);
+			m_Panel.MapPanel.gameObject.SetActive(state == GameState.Map);
+			m_Panel.ShipPositionPanel.gameObject.SetActive(state == GameState.PositionShip);
+			m_Panel.BattleZonePanel.gameObject.SetActive(state == GameState.Playing);
+		}
+
+
+		private void ReloadAbilityUI () {
+
+			// Clear
+			int childCountA = m_UI.AbilityContainerA.childCount;
+			int childCountB = m_UI.AbilityContainerB.childCount;
+			for (int i = 0; i < childCountA; i++) {
+				DestroyImmediate(m_UI.AbilityContainerA.GetChild(0).gameObject, false);
+			}
+			for (int i = 0; i < childCountB; i++) {
+				DestroyImmediate(m_UI.AbilityContainerB.GetChild(0).gameObject, false);
+			}
+
+			// Add New
+			DoAbilityUI(m_UI.AbilityContainerA, Group.A);
+			DoAbilityUI(m_UI.AbilityContainerB, Group.B);
+
+			// Func
+			void DoAbilityUI (RectTransform container, Group group) {
+				var ships = GetSelectingShips(group);
+				for (int i = 0; i < ships.Length; i++) {
+					var ship = ships[i];
+					var grabber = Instantiate(m_Game.AbilityShip, container);
+
+					var rt = grabber.transform as RectTransform;
+					rt.anchoredPosition3D = rt.anchoredPosition;
+					rt.localRotation = Quaternion.identity;
+					rt.localScale = Vector3.one;
+					rt.SetAsLastSibling();
+					rt.name = ship.name;
+
+					var btn = grabber.Grab<Button>();
+					btn.interactable = ship.Ship.Ability.Type == AbilityType.Active && ship.Ship.Ability.Cooldown <= 0;
+					if (
+						CurrentBattleMode == BattleMode.PvA &&
+						group == Group.A &&
+						ship.Ship.Ability.Type == AbilityType.Active
+					) {
+						btn.onClick.AddListener(() => OnAbilityClick(i, ship.Ship.Ability));
+					}
+
+					var icon = grabber.Grab<GreyImage>("Icon");
+					icon.sprite = ship.Sprite;
+					icon.SetGrey(ship.Ship.Ability.Type == AbilityType.Active && !btn.interactable);
+
+					var cooldown = grabber.Grab<Text>("Cooldown");
+					cooldown.gameObject.SetActive(ship.Ship.Ability.Type == AbilityType.Active);
+					cooldown.text = ship.Ship.Ability.Cooldown.ToString();
+
+					grabber.Grab<RectTransform>("Red Panel").gameObject.SetActive(false);
+
+				}
+			}
+
+		}
+
+
+		private void RefreshAbilityUI (RectTransform container, BattleSoupUI soup, Group group) {
+			int count = container.childCount;
+			for (int i = 0; i < count; i++) {
+				int cooldown = m_Game.Game.GetCooldown(group, i);
+				var ability = m_Game.Game.GetAbility(group, i);
+
+				var grabber = container.GetChild(i).GetComponent<Grabber>();
+				var btn = grabber.Grab<Button>();
+				btn.interactable = ability.Type == AbilityType.Active && cooldown <= 0;
+
+				var cooldownTxt = grabber.Grab<Text>("Cooldown");
+				if (cooldownTxt.gameObject.activeSelf) {
+					cooldownTxt.text = cooldown > 0 ? cooldown.ToString() : "";
+				}
+
+				grabber.Grab<GreyImage>("Icon").SetGrey(
+					ability.Type == AbilityType.Active && !btn.interactable
+				);
+				grabber.Grab<RectTransform>("Red Panel").gameObject.SetActive(
+					!soup.CheckShipAlive(i)
+				);
+
+			}
+		}
+
+
+		// Misc
+		private void ShowMessage (string msg) {
+			m_UI.MessageRoot.gameObject.SetActive(true);
+			m_UI.MessageText.text = msg;
+		}
+
+
+		private void OnAbilityClick (int shipIndex, Ability ability) {
+
+
+
+
+
+		}
+
+
+		private void PlayAudio (int index) {
+			if (index >= 0 && index < m_Game.AudioSources.Length) {
+				m_Game.AudioSources[index].Play(0);
 			}
 		}
 

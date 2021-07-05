@@ -62,6 +62,9 @@ TextureImporter:
   - first:
       213: 645411862609229670
     second: Overlap
+  - first:
+      213: 2160946167482080428
+    second: Hit
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -154,10 +157,10 @@ TextureImporter:
       name: Overlap
       rect:
         serializedVersion: 2
-        x: 1
-        y: 1
-        width: 4
-        height: 4
+        x: 2
+        y: 2
+        width: 2
+        height: 2
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -167,6 +170,27 @@ TextureImporter:
       bones: []
       spriteID: 66775a46ba6f4f800800000000000000
       internalID: 645411862609229670
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hit
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 2
+        width: 2
+        height: 2
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cacd28317193dfd10800000000000000
+      internalID: 2160946167482080428
       vertices: []
       indices: 
       edges: []

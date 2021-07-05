@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Misc
-  m_Shader: {fileID: 4800000, guid: 5fa01f2cdddf2494aa76c7eb884164c4, type: 3}
+  m_Name: Grey
+  m_Shader: {fileID: 4800000, guid: 9bc9d07d1d24694429461bb8e82e4143, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -40,7 +40,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: fc635b97dd39b8e478667241261b71e7, type: 3}
+        m_Texture: {fileID: 2800000, guid: 3408ea58f1c7ca649b4aa2ec8e883792, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:

@@ -62,6 +62,9 @@ TextureImporter:
   - first:
       213: 645411862609229670
     second: Stone
+  - first:
+      213: -3276122099754389042
+    second: Ship Block
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -159,7 +162,7 @@ TextureImporter:
         width: 120
         height: 120
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -167,6 +170,27 @@ TextureImporter:
       bones: []
       spriteID: 66775a46ba6f4f800800000000000000
       internalID: 645411862609229670
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ship Block
+      rect:
+        serializedVersion: 2
+        x: 120
+        y: 0
+        width: 120
+        height: 120
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ec13553de40e882d0800000000000000
+      internalID: -3276122099754389042
       vertices: []
       indices: 
       edges: []

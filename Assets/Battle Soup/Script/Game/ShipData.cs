@@ -41,6 +41,15 @@ namespace BattleSoup {
 		}
 
 
+		public static Ship[] GetShips (ShipData[] ships) {
+			var result = new Ship[ships.Length];
+			for (int i = 0; i < ships.Length; i++) {
+				result[i] = ships[i].Ship;
+			}
+			return result;
+		}
+
+
 
 	}
 }
