@@ -20,6 +20,7 @@ namespace BattleSoup {
 		public delegate ShipData[] ShipDatasHandler ();
 		public delegate List<ShipPosition> ShipPositionsHandler ();
 		public delegate int IntHandler ();
+		public delegate bool BoolIntHandler (int index);
 
 
 		#endregion
@@ -35,6 +36,8 @@ namespace BattleSoup {
 		public MapDataHandler GetMap { get; set; } = null;
 		public ShipDatasHandler GetShips { get; set; } = null;
 		public ShipPositionsHandler GetPositions { get; set; } = null;
+		public BoolIntHandler CheckShipAlive { get; set; } = null;
+
 
 		// Ser
 		[SerializeField] MapRenderer m_MapRenderer = null;
@@ -61,7 +64,7 @@ namespace BattleSoup {
 			var map = GetMap();
 
 			// Renderer
-			m_MapRenderer.LoadMap(map, GetShips(), GetPositions());
+			m_MapRenderer.LoadMap(map);
 			m_MapRenderer.GridCountX = m_MapRenderer.GridCountY = map.Size;
 			m_SonarRenderer.GridCountX = m_SonarRenderer.GridCountY = map.Size;
 			m_ShipsRenderer.GridCountX = m_ShipsRenderer.GridCountY = map.Size;
@@ -72,12 +75,15 @@ namespace BattleSoup {
 		}
 
 
-		public void RefreshShipRenderer () {
+		public void RefreshShipRenderer (bool sunkOnly = false) {
 			var ships = GetShips();
 			var positions = GetPositions();
 			m_ShipsRenderer.ClearBlock();
 			for (int i = 0; i < ships.Length; i++) {
-				m_ShipsRenderer.AddShip(ships[i], positions[i]);
+				if (sunkOnly && CheckShipAlive(i)) { continue; }
+				m_ShipsRenderer.AddShip(
+					ships[i], positions[i], Color.HSVToRGB((float)i / ships.Length, 0.618f, 0.618f)
+				);
 			}
 			m_ShipsRenderer.SetVerticesDirty();
 		}
@@ -89,8 +95,11 @@ namespace BattleSoup {
 			int size = map.Size;
 			for (int i = 0; i < size; i++) {
 				for (int j = 0; j < size; j++) {
-					if (GetTile(i, j).HasFlag(Tile.HittedShip)) {
+					var tile = GetTile(i, j);
+					if (tile == Tile.HittedShip) {
 						m_HitRenderer.AddBlock(i, j, 0);
+					} else if (tile == Tile.RevealedWater) {
+						m_HitRenderer.AddBlock(i, j, 1);
 					}
 				}
 			}
@@ -107,28 +116,6 @@ namespace BattleSoup {
 			m_SonarRenderer.SetVerticesDirty();
 			m_ShipsRenderer.SetVerticesDirty();
 			m_HitRenderer.SetVerticesDirty();
-		}
-
-
-		public bool CheckShipAlive (int index) {
-			var ships = GetShips();
-			var positions = GetPositions();
-			index = Mathf.Clamp(index, 0, ships.Length - 1);
-			var body = ships[index].Ship.Body;
-			var sPos = positions[index];
-			var map = GetMap();
-			foreach (var v in body) {
-				var pos = new Vector2Int(
-					sPos.Pivot.x + (sPos.Flip ? v.y : v.x),
-					sPos.Pivot.y + (sPos.Flip ? v.x : v.y)
-				);
-				if (pos.x >= 0 && pos.x < map.Size && pos.y >= 0 && pos.y < map.Size) {
-					if (!GetTile(pos.x, pos.y).HasFlag(Tile.HittedShip)) {
-						return true;
-					}
-				}
-			}
-			return false;
 		}
 
 

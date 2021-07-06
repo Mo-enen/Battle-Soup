@@ -65,7 +65,6 @@ namespace BattleSoup {
 			public BattleSoupUI BattleSoupUIA;
 			public BattleSoupUI BattleSoupUIB;
 			public Grabber AbilityShip;
-			public AudioSource[] AudioSources;
 		}
 
 

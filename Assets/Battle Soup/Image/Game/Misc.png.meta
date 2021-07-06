@@ -65,6 +65,9 @@ TextureImporter:
   - first:
       213: 2160946167482080428
     second: Hit
+  - first:
+      213: 4925447068233826214
+    second: Reveal Water
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -191,6 +194,27 @@ TextureImporter:
       bones: []
       spriteID: cacd28317193dfd10800000000000000
       internalID: 2160946167482080428
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Reveal Water
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 2
+        width: 2
+        height: 2
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6aff01e2304ba5440800000000000000
+      internalID: 4925447068233826214
       vertices: []
       indices: 
       edges: []

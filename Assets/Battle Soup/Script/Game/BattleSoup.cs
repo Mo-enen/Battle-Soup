@@ -117,14 +117,20 @@ namespace BattleSoup {
 
 
 				// Map >> PositionShip/Playing
-				case GameState.Map:
+				case GameState.Map: {
 					if (!RefreshMapButton()) { break; }
 					if (CurrentBattleMode == BattleMode.PvA) {
 						// Map >> PositionShip
-						if (!m_Game.ShipPositionUI.Init(
-							GetSelectingMap(Group.A),
-							GetSelectingShips(Group.A)
-						)) { break; }
+						var map = GetSelectingMap(Group.A);
+						if (map == null) { break; }
+						var ships = GetSelectingShips(Group.A);
+						if (ships == null) { break; }
+						var positions = new List<ShipPosition>();
+						for (int i = 0; i < 36; i++) {
+							if (GetRandomShipPositions(ships, map, positions)) { break; }
+						}
+						if (positions.Count == 0) { break; }
+						m_Game.ShipPositionUI.Init(map, ships, positions);
 						m_Game.Game.gameObject.SetActive(false);
 						RefreshShipPositionButton();
 						RefreshPanelUI(GameState.PositionShip);
@@ -142,12 +148,15 @@ namespace BattleSoup {
 						m_Game.Game.gameObject.SetActive(true);
 						m_Game.BattleSoupUIA.Init();
 						m_Game.BattleSoupUIB.Init();
+						m_Game.BattleSoupUIA.RefreshShipRenderer(CurrentBattleMode == BattleMode.AvA);
+						m_Game.BattleSoupUIB.RefreshShipRenderer(true);
 						RefreshBattleInfoUI();
 						ReloadAbilityUI();
 						RefreshPanelUI(GameState.Playing);
 						CurrentState = GameState.Playing;
 					}
 					break;
+				}
 
 
 				// PositionShips >> Playing
@@ -166,6 +175,8 @@ namespace BattleSoup {
 					m_Game.Game.gameObject.SetActive(true);
 					m_Game.BattleSoupUIA.Init();
 					m_Game.BattleSoupUIB.Init();
+					m_Game.BattleSoupUIA.RefreshShipRenderer(CurrentBattleMode == BattleMode.AvA);
+					m_Game.BattleSoupUIB.RefreshShipRenderer(true);
 					RefreshBattleInfoUI();
 					ReloadAbilityUI();
 					RefreshPanelUI(GameState.Playing);
@@ -236,8 +247,33 @@ namespace BattleSoup {
 
 
 		public void UI_RefreshAbilityUI () {
-			RefreshAbilityUI(m_UI.AbilityContainerA, m_Game.BattleSoupUIA, Group.A);
-			RefreshAbilityUI(m_UI.AbilityContainerB, m_Game.BattleSoupUIB, Group.B);
+			RefreshAbilityUI(m_UI.AbilityContainerA, Group.A);
+			RefreshAbilityUI(m_UI.AbilityContainerB, Group.B);
+			// Func
+			void RefreshAbilityUI (RectTransform container, Group group) {
+				int count = container.childCount;
+				for (int i = 0; i < count; i++) {
+					int cooldown = m_Game.Game.GetCooldown(group, i);
+					var ability = m_Game.Game.GetAbility(group, i);
+
+					var grabber = container.GetChild(i).GetComponent<Grabber>();
+					var btn = grabber.Grab<Button>();
+					btn.interactable = ability.HasActive && cooldown <= 0;
+
+					var cooldownTxt = grabber.Grab<Text>("Cooldown");
+					if (cooldownTxt.gameObject.activeSelf) {
+						cooldownTxt.text = cooldown > 0 ? cooldown.ToString() : "";
+					}
+
+					grabber.Grab<GreyImage>("Icon").SetGrey(
+						ability.HasActive && !btn.interactable
+					);
+					grabber.Grab<RectTransform>("Red Panel").gameObject.SetActive(
+						!m_Game.Game.CheckShipAlive(i, group)
+					);
+
+				}
+			}
 		}
 
 

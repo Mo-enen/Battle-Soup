@@ -30,8 +30,13 @@ MonoBehaviour:
       - X: 0
         Y: 0
         Type: 1
-        Trigger: 2
+        Trigger: 3
         AvailableTarget: 1
-      Type: 2
+      HasActive: 0
+      HasPassive: 1
       Cooldown: 0
       BreakOnMiss: 0
+      ResetCooldownOnHit: 0
+      CopyOwnLastUsed: 0
+      CopyOpponentLastUsed: 0
+    TerminateHP: 0

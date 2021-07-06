@@ -17,8 +17,8 @@ MonoBehaviour:
   m_Sprite: {fileID: -2861580921918571484, guid: 4ee4eafbb0c3b474a91a63e6bbf8d883, type: 3}
   m_Ship:
     Body:
-    - X: 0
-      Y: 0
+    - x: 0
+      y: 0
     Ability:
       Attacks:
       - X: 0
@@ -26,6 +26,16 @@ MonoBehaviour:
         Type: 2
         Trigger: 0
         AvailableTarget: 16
-      Type: 1
+      - X: 0
+        Y: 0
+        Type: 5
+        Trigger: 3
+        AvailableTarget: 1
+      HasActive: 1
+      HasPassive: 1
       Cooldown: 5
       BreakOnMiss: 0
+      ResetCooldownOnHit: 0
+      CopyOwnLastUsed: 0
+      CopyOpponentLastUsed: 0
+    TerminateHP: 0

@@ -29,17 +29,22 @@ MonoBehaviour:
         Y: 0
         Type: 0
         Trigger: 0
-        AvailableTarget: 0
+        AvailableTarget: 17
       - X: 0
         Y: 0
         Type: 0
         Trigger: 0
-        AvailableTarget: 0
+        AvailableTarget: 17
       - X: 0
         Y: 0
         Type: 0
         Trigger: 0
-        AvailableTarget: 0
-      Type: 1
+        AvailableTarget: 17
+      HasActive: 1
+      HasPassive: 0
       Cooldown: 5
       BreakOnMiss: 0
+      ResetCooldownOnHit: 1
+      CopyOwnLastUsed: 0
+      CopyOpponentLastUsed: 0
+    TerminateHP: 0

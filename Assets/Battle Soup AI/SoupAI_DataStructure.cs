@@ -12,23 +12,14 @@ namespace BattleSoupAI {
 
 
 
-	public enum AbilityType {
-		None = 0,
-		Active = 1,
-		Passive = 2,
-		CopyOwnLastUsed = 3,
-		CopyOpponentLastUsed = 4,
-	}
-
-
-
 	public enum AttackType {
-		DoNothing = -1,
 		HitTile = 0,
 		RevealTile = 1,
 		HitWholeShip = 2,
 		RevealWholeShip = 3,
 		Sonar = 4,
+		RevealOwnTile = 5,
+		RevealSelf = 6,
 	}
 
 
@@ -37,6 +28,7 @@ namespace BattleSoupAI {
 		Picked = 0,
 		TiedUp = 1,
 		Random = 2,
+		PassiveRandom = 3,
 	}
 
 
@@ -55,9 +47,12 @@ namespace BattleSoupAI {
 	[System.Serializable]
 	public struct Ability {
 		public List<Attack> Attacks;
-		public AbilityType Type;
 		public int Cooldown;
+		public bool HasActive;
+		public bool HasPassive;
 		public bool BreakOnMiss;
+		public bool ResetCooldownOnHit;
+		public bool CopyOpponentLastUsed;
 	}
 
 
@@ -85,26 +80,13 @@ namespace BattleSoupAI {
 
 	[System.Flags]
 	public enum Tile {
-
 		None = 0,
-
 		GeneralWater = 1 << 0,
 		GeneralStone = 1 << 1,
 		RevealedWater = 1 << 2,
 		RevealedStone = 1 << 3,
 		RevealedShip = 1 << 4,
 		HittedShip = 1 << 5,
-
-		Water = RevealedWater | GeneralWater,
-		Stone = RevealedStone | GeneralStone,
-		Ship = RevealedShip | HittedShip,
-
-		Revealed = RevealedWater | RevealedStone | RevealedShip,
-		General = GeneralWater | GeneralStone,
-		Hit = HittedShip,
-
-		All = GeneralWater | GeneralStone | RevealedWater | RevealedStone | RevealedShip | HittedShip,
-
 	}
 
 
@@ -124,6 +106,7 @@ namespace BattleSoupAI {
 
 		public Int2[] Body;
 		public Ability Ability;
+		public int TerminateHP;
 
 
 		public (Int2 min, Int2 max) GetBounds (ShipPosition pos) {
@@ -152,8 +135,6 @@ namespace BattleSoupAI {
 			}
 			return false;
 		}
-
-
 
 
 	}

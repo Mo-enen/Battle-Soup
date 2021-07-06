@@ -65,14 +65,106 @@ namespace BattleSoup {
 			error = "";
 			ships = GetSelectingShips(group);
 			map = GetSelectingMap(group);
-			positions = SoupAI.GetShipPosition(
-				map.Size, map.Stones, ShipData.GetShips(ships)
-			);
+			//positions = SoupAI.GetShipPosition(
+			//	map.Size, map.Stones, ShipData.GetShips(ships)
+			//);
+			positions = new List<ShipPosition>();
+			for (int i = 0; i < 36; i++) {
+				if (GetRandomShipPositions(ships, map, positions)) { break; }
+			}
 			if (positions == null || positions.Count == 0) {
 				error = "Failed to position AI ships.";
 				return false;
 			}
 			return true;
+		}
+
+
+		private bool GetRandomShipPositions (ShipData[] ships, MapData map, List<ShipPosition> result) {
+
+			if (ships == null || ships.Length == 0 || map == null || map.Size <= 0) { return false; }
+			bool success = true;
+			int mapSize = map.Size;
+
+			// Get Hash
+			var hash = new HashSet<Int2>();
+			foreach (var stone in map.Stones) {
+				if (!hash.Contains(stone)) {
+					hash.Add(stone);
+				}
+			}
+
+			// Get Result
+			result.Clear();
+			var random = new System.Random(System.DateTime.Now.Millisecond);
+			foreach (var ship in ships) {
+				random = new System.Random(random.Next());
+				var sPos = new ShipPosition();
+				var basicPivot = new Int2(random.Next(0, mapSize), random.Next(0, mapSize));
+				bool shipSuccess = false;
+				// Try Fix Overlap
+				for (int j = 0; j < mapSize; j++) {
+					for (int i = 0; i < mapSize; i++) {
+						sPos.Pivot = new Int2(
+							(basicPivot.x + i) % mapSize,
+							(basicPivot.y + j) % mapSize
+						);
+						sPos.Flip = false;
+						if (PositionAvailable(ship.Ship, sPos)) {
+							AddShipIntoHash(ship.Ship, sPos);
+							shipSuccess = true;
+							i = mapSize;
+							j = mapSize;
+							break;
+						}
+						sPos.Flip = true;
+						if (PositionAvailable(ship.Ship, sPos)) {
+							AddShipIntoHash(ship.Ship, sPos);
+							shipSuccess = true;
+							i = mapSize;
+							j = mapSize;
+							break;
+						}
+					}
+				}
+				if (!shipSuccess) { success = false; }
+				result.Add(sPos);
+			}
+			if (!success) {
+				result.Clear();
+			}
+			return success;
+			// Func
+			bool PositionAvailable (Ship _ship, ShipPosition _pos) {
+				// Border Check
+				var (min, max) = _ship.GetBounds(_pos);
+				if (_pos.Pivot.x < -min.x || _pos.Pivot.x > mapSize - max.x - 1 ||
+					_pos.Pivot.y < -min.y || _pos.Pivot.y > mapSize - max.y - 1
+				) {
+					return false;
+				}
+				// Overlap Check
+				foreach (var v in _ship.Body) {
+					if (hash.Contains(new Int2(
+						_pos.Pivot.x + (_pos.Flip ? v.y : v.x),
+						_pos.Pivot.y + (_pos.Flip ? v.x : v.y)
+					))) {
+						return false;
+					}
+				}
+				return true;
+			}
+			void AddShipIntoHash (Ship _ship, ShipPosition _pos) {
+				foreach (var v in _ship.Body) {
+					var shipPosition = new Int2(
+						_pos.Pivot.x + (_pos.Flip ? v.y : v.x),
+						_pos.Pivot.y + (_pos.Flip ? v.x : v.y)
+					);
+					if (!hash.Contains(shipPosition)) {
+						hash.Add(shipPosition);
+					}
+				}
+			}
 		}
 
 
@@ -231,21 +323,21 @@ namespace BattleSoup {
 					rt.name = ship.name;
 
 					var btn = grabber.Grab<Button>();
-					btn.interactable = ship.Ship.Ability.Type == AbilityType.Active && ship.Ship.Ability.Cooldown <= 0;
+					btn.interactable = ship.Ship.Ability.HasActive && ship.Ship.Ability.Cooldown <= 0;
 					if (
 						CurrentBattleMode == BattleMode.PvA &&
 						group == Group.A &&
-						ship.Ship.Ability.Type == AbilityType.Active
+						ship.Ship.Ability.HasActive
 					) {
-						btn.onClick.AddListener(() => OnAbilityClick(i, ship.Ship.Ability));
+						btn.onClick.AddListener(() => m_Game.Game.OnAbilityClick(i, ship.Ship.Ability));
 					}
 
 					var icon = grabber.Grab<GreyImage>("Icon");
 					icon.sprite = ship.Sprite;
-					icon.SetGrey(ship.Ship.Ability.Type == AbilityType.Active && !btn.interactable);
+					icon.SetGrey(ship.Ship.Ability.HasActive && !btn.interactable);
 
 					var cooldown = grabber.Grab<Text>("Cooldown");
-					cooldown.gameObject.SetActive(ship.Ship.Ability.Type == AbilityType.Active);
+					cooldown.gameObject.SetActive(ship.Ship.Ability.HasActive);
 					cooldown.text = ship.Ship.Ability.Cooldown.ToString();
 
 					grabber.Grab<RectTransform>("Red Panel").gameObject.SetActive(false);
@@ -256,52 +348,10 @@ namespace BattleSoup {
 		}
 
 
-		private void RefreshAbilityUI (RectTransform container, BattleSoupUI soup, Group group) {
-			int count = container.childCount;
-			for (int i = 0; i < count; i++) {
-				int cooldown = m_Game.Game.GetCooldown(group, i);
-				var ability = m_Game.Game.GetAbility(group, i);
-
-				var grabber = container.GetChild(i).GetComponent<Grabber>();
-				var btn = grabber.Grab<Button>();
-				btn.interactable = ability.Type == AbilityType.Active && cooldown <= 0;
-
-				var cooldownTxt = grabber.Grab<Text>("Cooldown");
-				if (cooldownTxt.gameObject.activeSelf) {
-					cooldownTxt.text = cooldown > 0 ? cooldown.ToString() : "";
-				}
-
-				grabber.Grab<GreyImage>("Icon").SetGrey(
-					ability.Type == AbilityType.Active && !btn.interactable
-				);
-				grabber.Grab<RectTransform>("Red Panel").gameObject.SetActive(
-					!soup.CheckShipAlive(i)
-				);
-
-			}
-		}
-
-
 		// Misc
 		private void ShowMessage (string msg) {
 			m_UI.MessageRoot.gameObject.SetActive(true);
 			m_UI.MessageText.text = msg;
-		}
-
-
-		private void OnAbilityClick (int shipIndex, Ability ability) {
-
-
-
-
-
-		}
-
-
-		private void PlayAudio (int index) {
-			if (index >= 0 && index < m_Game.AudioSources.Length) {
-				m_Game.AudioSources[index].Play(0);
-			}
 		}
 
 

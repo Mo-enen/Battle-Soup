@@ -21,12 +21,15 @@ namespace BattleSoup {
 			public int Y = 0;
 			public int ID = -1;
 			public Color Color = Color.white;
+			public float Scale = 1f;
 			public Block (int x, int y, int id) : this(x, y, id, Color.white) { }
-			public Block (int x, int y, int id, Color color) {
+			public Block (int x, int y, int id, float scale) : this(x, y, id, Color.white, scale) { }
+			public Block (int x, int y, int id, Color color, float scale = 1f) {
 				X = x;
 				Y = y;
 				ID = id;
 				Color = color;
+				Scale = scale;
 			}
 		}
 
@@ -89,7 +92,6 @@ namespace BattleSoup {
 			raycastPadding = new Vector4(0, 0, 0, 0);
 			raycastTarget = false;
 			maskable = false;
-			color = Color.white;
 			sprite = null;
 		}
 
@@ -99,17 +101,17 @@ namespace BattleSoup {
 			var rect = GetPixelAdjustedRect();
 			float gridSizeX = rect.width / m_GridCountX;
 			float gridSizeY = rect.height / m_GridCountY;
-			float scaleGapX = (gridSizeX - gridSizeX * m_BlockScale) / 2f;
-			float scaleGapY = (gridSizeY - gridSizeY * m_BlockScale) / 2f;
 			foreach (var block in Blocks) {
 				if (block.ID < 0 || block.ID >= m_Blocks.Length) { continue; }
-				SetCachePos(block.X, block.Y);
+				SetCachePos(block.X, block.Y, block.Scale * m_BlockScale);
 				SetCacheUV(m_Blocks[block.ID]);
 				SetColor(block.Color * color);
 				toFill.AddUIVertexQuad(CacheVertices);
 			}
 			// Func
-			void SetCachePos (int x, int y) {
+			void SetCachePos (int x, int y, float scale) {
+				float scaleGapX = (gridSizeX - gridSizeX * scale) / 2f;
+				float scaleGapY = (gridSizeY - gridSizeY * scale) / 2f;
 				CacheVertices[0].position = new Vector2(
 					rect.xMin + x * gridSizeX + scaleGapX,
 					rect.yMin + y * gridSizeY + scaleGapY
@@ -159,6 +161,8 @@ namespace BattleSoup {
 
 		public void AddBlock (int x, int y, int id) => Blocks.Add(new Block(x, y, id));
 		public void AddBlock (int x, int y, int id, Color color) => Blocks.Add(new Block(x, y, id, color));
+		public void AddBlock (int x, int y, int id, float scale) => Blocks.Add(new Block(x, y, id, scale));
+		public void AddBlock (int x, int y, int id, Color color, float scale) => Blocks.Add(new Block(x, y, id, color, scale));
 
 
 		public void ClearBlock () => Blocks.Clear();

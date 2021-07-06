@@ -18,6 +18,18 @@ namespace BattleSoup {
 		[SerializeField] Int2[] m_Stones = new Int2[0];
 
 
+		// API
+		public bool HasStone (int x, int y) {
+			for (int i = 0; i < m_Stones.Length; i++) {
+				var stone = m_Stones[i];
+				if (stone.x == x && stone.y == y) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+
 	}
 }
 

@@ -116,9 +116,9 @@ namespace BattleSoup {
 		#region --- API ---
 
 
-		public bool Init (MapData map, ShipData[] ships) {
+		public void Init (MapData map, ShipData[] ships, List<ShipPosition> positions) {
 
-			if (map == null || map.Size <= 0 || ships == null || ships.Length == 0) { return false; }
+			if (map == null || map.Size <= 0 || ships == null || ships.Length == 0) { return; }
 
 			// Ship
 			_Ships = ships;
@@ -130,9 +130,8 @@ namespace BattleSoup {
 			m_MapRenderer.LoadMap(map);
 
 			// Pos
-			for (int i = 0; i < 5; i++) {
-				if (GetRandomShipPositions(_Ships, map, _Positions)) { break; }
-			}
+			_Positions.Clear();
+			_Positions.AddRange(positions);
 			RefreshShipRenderer();
 			RefreshOverlapRenderer();
 			ClampAllShipsInSoup();
@@ -141,7 +140,6 @@ namespace BattleSoup {
 			m_OverlapRenderer.GridCountX = map.Size;
 			m_OverlapRenderer.GridCountY = map.Size;
 
-			return true;
 		}
 
 
@@ -227,7 +225,9 @@ namespace BattleSoup {
 			}
 			m_ShipRenderer.ClearBlock();
 			for (int i = 0; i < _Ships.Length; i++) {
-				m_ShipRenderer.AddShip(_Ships[i], _Positions[i]);
+				m_ShipRenderer.AddShip(
+					_Ships[i], _Positions[i], Color.HSVToRGB((float)i / _Ships.Length, 0.618f, 0.618f)
+				);
 			}
 			m_ShipRenderer.SetVerticesDirty();
 		}
@@ -261,89 +261,6 @@ namespace BattleSoup {
 		}
 
 
-		private bool GetRandomShipPositions (ShipData[] ships, MapData map, List<ShipPosition> result) {
-
-			if (ships == null || ships.Length == 0 || map == null || map.Size <= 0) { return false; }
-			bool success = true;
-			int mapSize = map.Size;
-
-			// Get Hash
-			var hash = new HashSet<Int2>();
-			foreach (var stone in map.Stones) {
-				if (!hash.Contains(stone)) {
-					hash.Add(stone);
-				}
-			}
-
-			// Get Result
-			result.Clear();
-			var random = new System.Random(System.DateTime.Now.Millisecond);
-			foreach (var ship in ships) {
-				random = new System.Random(random.Next());
-				var sPos = new ShipPosition();
-				var basicPivot = new Int2(random.Next(0, mapSize), random.Next(0, mapSize));
-				bool shipSuccess = false;
-				// Try Fix Overlap
-				for (int j = 0; j < mapSize; j++) {
-					for (int i = 0; i < mapSize; i++) {
-						sPos.Pivot = new Int2(
-							(basicPivot.x + i) % mapSize,
-							(basicPivot.y + j) % mapSize
-						);
-						sPos.Flip = false;
-						if (PositionAvailable(ship.Ship, sPos)) {
-							AddShipIntoHash(ship.Ship, sPos);
-							shipSuccess = true;
-							i = mapSize;
-							j = mapSize;
-							break;
-						}
-						sPos.Flip = true;
-						if (PositionAvailable(ship.Ship, sPos)) {
-							AddShipIntoHash(ship.Ship, sPos);
-							shipSuccess = true;
-							i = mapSize;
-							j = mapSize;
-							break;
-						}
-					}
-				}
-				if (!shipSuccess) { success = false; }
-				result.Add(sPos);
-			}
-			return success;
-			// Func
-			bool PositionAvailable (Ship _ship, ShipPosition _pos) {
-				// Border Check
-				var (min, max) = _ship.GetBounds(_pos);
-				if (_pos.Pivot.x < -min.x || _pos.Pivot.x > mapSize - max.x - 1 ||
-					_pos.Pivot.y < -min.y || _pos.Pivot.y > mapSize - max.y - 1
-				) {
-					return false;
-				}
-				// Overlap Check
-				foreach (var v in _ship.Body) {
-					if (hash.Contains(new Int2(
-						_pos.Pivot.x + (_pos.Flip ? v.y : v.x),
-						_pos.Pivot.y + (_pos.Flip ? v.x : v.y)
-					))) {
-						return false;
-					}
-				}
-				return true;
-			}
-			void AddShipIntoHash (Ship _ship, ShipPosition _pos) {
-				foreach (var v in _ship.Body) {
-					var shipPosition = new Int2(
-						_pos.Pivot.x + (_pos.Flip ? v.y : v.x),
-						_pos.Pivot.y + (_pos.Flip ? v.x : v.y)
-					);
-					if (!hash.Contains(shipPosition)) {
-						hash.Add(shipPosition);
-					}
-				}
-			}
-		}
 
 
 		#endregion

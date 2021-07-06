@@ -34,22 +34,27 @@ MonoBehaviour:
         Y: 0
         Type: 1
         Trigger: 1
-        AvailableTarget: 28
+        AvailableTarget: 2147483647
       - X: 0
         Y: 1
         Type: 1
         Trigger: 1
-        AvailableTarget: 28
+        AvailableTarget: 2147483647
       - X: -1
         Y: 0
         Type: 1
         Trigger: 1
-        AvailableTarget: 28
+        AvailableTarget: 2147483647
       - X: 0
         Y: -1
         Type: 1
         Trigger: 1
-        AvailableTarget: 28
-      Type: 1
+        AvailableTarget: 2147483647
+      HasActive: 1
+      HasPassive: 0
       Cooldown: 3
       BreakOnMiss: 0
+      ResetCooldownOnHit: 0
+      CopyOwnLastUsed: 0
+      CopyOpponentLastUsed: 0
+    TerminateHP: 0

@@ -25,7 +25,7 @@ namespace BattleSoup {
 
 
 		// API
-		public void LoadMap (MapData map, ShipData[] ships = null, List<ShipPosition> positions = null) {
+		public void LoadMap (MapData map) {
 			ClearBlock();
 			if (map != null) {
 				GridCountX = map.Size;
@@ -34,23 +34,6 @@ namespace BattleSoup {
 				m_Grid.Y = map.Size;
 				foreach (var stone in map.Stones) {
 					AddBlock(stone.x, stone.y, 0);
-				}
-			}
-			// Ship
-			if (ships != null && positions != null) {
-				for (int i = 0; i < ships.Length; i++) {
-					var ship = ships[i];
-					var sPos = positions[i];
-					foreach (var v in ship.Ship.Body) {
-						var pos = new Vector2Int(
-							sPos.Pivot.x + (sPos.Flip ? v.y : v.x),
-							sPos.Pivot.y + (sPos.Flip ? v.x : v.y)
-						);
-						AddBlock(
-							pos.x, pos.y, 1,
-							Color.HSVToRGB((float)i / ships.Length, 0.618f, 0.618f)
-						);
-					}
 				}
 			}
 			SetVerticesDirty();
