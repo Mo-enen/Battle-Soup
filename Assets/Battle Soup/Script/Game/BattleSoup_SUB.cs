@@ -55,6 +55,7 @@ namespace BattleSoup {
 			public RectTransform MapPanel;
 			public RectTransform ShipPositionPanel;
 			public RectTransform BattleZonePanel;
+			public RectTransform QuitGameWindow;
 		}
 
 

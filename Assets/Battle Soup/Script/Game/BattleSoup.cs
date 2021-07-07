@@ -30,6 +30,7 @@ namespace BattleSoup {
 		private Toggle[] m_ShipsToggleB = null;
 		private Toggle[] m_MapsToggleA = null;
 		private Toggle[] m_MapsToggleB = null;
+		private bool QuitGameForReal = false;
 
 		// Saving
 		private readonly SavingString SelectedFleetA = new SavingString("BattleSoupDemo.Demo.SelectedFleetA", "Coracle+KillerSquid+SeaTurtle+Whale");
@@ -58,6 +59,13 @@ namespace BattleSoup {
 			m_ShipsToggleB = m_UI.ShipsToggleContainerB.GetComponentsInChildren<Toggle>(true);
 			m_MapsToggleA = m_UI.MapsToggleContainerA.GetComponentsInChildren<Toggle>(true);
 			m_MapsToggleB = m_UI.MapsToggleContainerB.GetComponentsInChildren<Toggle>(true);
+			// Quit Game Confirm
+			Application.wantsToQuit += () => {
+				if (!QuitGameForReal) {
+					m_Panel.QuitGameWindow.gameObject.SetActive(true);
+				}
+				return QuitGameForReal;
+			};
 		}
 
 
@@ -258,7 +266,7 @@ namespace BattleSoup {
 
 					var grabber = container.GetChild(i).GetComponent<Grabber>();
 					var btn = grabber.Grab<Button>();
-					btn.interactable = ability.HasActive && cooldown <= 0;
+					btn.interactable = m_Game.Game.CheckShipAlive(i, group) && ability.HasActive && cooldown <= 0;
 
 					var cooldownTxt = grabber.Grab<Text>("Cooldown");
 					if (cooldownTxt.gameObject.activeSelf) {
@@ -278,6 +286,12 @@ namespace BattleSoup {
 
 
 		public void UI_RefreshBattleInfoUI () => RefreshBattleInfoUI();
+
+
+		public void UI_QuitGame () {
+			QuitGameForReal = true;
+			Application.Quit();
+		}
 
 
 		#endregion

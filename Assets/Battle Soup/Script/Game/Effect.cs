@@ -13,7 +13,6 @@ namespace BattleSoup {
 
 
 
-
 		// API
 		public void UI_SpawnParticle_WaterReveal (Vector3 pos) => SpawnParticle(0, pos);
 		public void UI_SpawnParticle_ShipReveal (Vector3 pos) => SpawnParticle(1, pos);
