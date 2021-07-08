@@ -37,6 +37,7 @@ namespace BattleSoup {
 		private readonly SavingString SelectedFleetB = new SavingString("BattleSoupDemo.Demo.SelectedFleetB", "Coracle+KillerSquid+SeaTurtle+Whale");
 		private readonly SavingInt SelectedMapA = new SavingInt("BattleSoupDemo.Demo.SelectedMapA", 0);
 		private readonly SavingInt SelectedMapB = new SavingInt("BattleSoupDemo.Demo.SelectedMapB", 0);
+		private readonly SavingBool UseSound = new SavingBool("BattleSoupDemo.Demo.UseSound", true);
 
 
 		#endregion
@@ -61,11 +62,19 @@ namespace BattleSoup {
 			m_MapsToggleB = m_UI.MapsToggleContainerB.GetComponentsInChildren<Toggle>(true);
 			// Quit Game Confirm
 			Application.wantsToQuit += () => {
+#if UNITY_EDITOR
+				QuitGameForReal = true;
+				return QuitGameForReal;
+#else
 				if (!QuitGameForReal) {
 					m_Panel.QuitGameWindow.gameObject.SetActive(true);
 				}
 				return QuitGameForReal;
+#endif
 			};
+			// Sound
+			AudioListener.volume = UseSound.Value ? 1f : 0f;
+			m_UI.SoundTG.SetIsOnWithoutNotify(UseSound.Value);
 		}
 
 
@@ -286,6 +295,12 @@ namespace BattleSoup {
 
 
 		public void UI_RefreshBattleInfoUI () => RefreshBattleInfoUI();
+
+
+		public void UI_SoundToggle (bool isOn) {
+			UseSound.Value = isOn;
+			AudioListener.volume = isOn ? 1f : 0f;
+		}
 
 
 		public void UI_QuitGame () {

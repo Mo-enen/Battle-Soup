@@ -100,6 +100,8 @@ namespace BattleSoup {
 						m_HitRenderer.AddBlock(i, j, 0);
 					} else if (tile == Tile.RevealedWater) {
 						m_HitRenderer.AddBlock(i, j, 1);
+					} else if (tile == Tile.RevealedShip) {
+						m_HitRenderer.AddBlock(i, j, 2);
 					}
 				}
 			}

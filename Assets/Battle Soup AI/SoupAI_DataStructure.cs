@@ -18,12 +18,12 @@ namespace BattleSoupAI {
 		HitWholeShip = 2,
 		RevealWholeShip = 3,
 		Sonar = 4,
-		RevealOwnTile = 5,
+		RevealOwnUnoccupiedTile = 5,
 		RevealSelf = 6,
 	}
 
 
-
+	 
 	public enum AttackTrigger {
 		Picked = 0,
 		TiedUp = 1,

@@ -91,6 +91,7 @@ namespace BattleSoup {
 			public Text MessageText;
 			public RectTransform TurnArrowA;
 			public RectTransform TurnArrowB;
+			public Toggle SoundTG;
 			public Image[] BattleAvatarA;
 			public Image[] BattleAvatarB;
 		}

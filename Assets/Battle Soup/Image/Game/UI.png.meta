@@ -20,6 +20,12 @@ TextureImporter:
   - first:
       213: 8160775752198118580
     second: Mouse Right
+  - first:
+      213: 7448113381798972013
+    second: Win Face
+  - first:
+      213: 7843416716369364892
+    second: Lose Face
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -201,7 +207,7 @@ TextureImporter:
         width: 49
         height: 76
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -219,7 +225,28 @@ TextureImporter:
         serializedVersion: 2
         x: 50
         y: 71
-        width: 49
+        width: 48
+        height: 76
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4bcd3691f46e04170800000000000000
+      internalID: 8160775752198118580
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Win Face
+      rect:
+        serializedVersion: 2
+        x: 99
+        y: 70
+        width: 76
         height: 76
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -228,8 +255,29 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 4bcd3691f46e04170800000000000000
-      internalID: 8160775752198118580
+      spriteID: d6a06f0b8a30d5760800000000000000
+      internalID: 7448113381798972013
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Lose Face
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 35
+        width: 76
+        height: 76
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c978e8482f969dc60800000000000000
+      internalID: 7843416716369364892
       vertices: []
       indices: 
       edges: []

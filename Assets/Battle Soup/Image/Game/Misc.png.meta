@@ -68,6 +68,9 @@ TextureImporter:
   - first:
       213: 4925447068233826214
     second: Reveal Water
+  - first:
+      213: 5107282872573515666
+    second: Revealed Ship
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -207,7 +210,7 @@ TextureImporter:
         width: 2
         height: 2
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -215,6 +218,27 @@ TextureImporter:
       bones: []
       spriteID: 6aff01e2304ba5440800000000000000
       internalID: 4925447068233826214
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Revealed Ship
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 1
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2975e2b86b6b0e640800000000000000
+      internalID: 5107282872573515666
       vertices: []
       indices: 
       edges: []
