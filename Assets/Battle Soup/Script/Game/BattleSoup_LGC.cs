@@ -206,7 +206,7 @@ namespace BattleSoup {
 			return null;
 		}
 
-
+		 
 		// Refresh UI
 		private bool RefreshShipButton () {
 

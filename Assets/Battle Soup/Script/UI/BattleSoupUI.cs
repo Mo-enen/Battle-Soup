@@ -19,6 +19,7 @@ namespace BattleSoup {
 		public delegate MapData MapDataHandler ();
 		public delegate ShipData[] ShipDatasHandler ();
 		public delegate List<ShipPosition> ShipPositionsHandler ();
+		public delegate List<SonarPosition> SonarPositionListHandler ();
 		public delegate int IntHandler ();
 		public delegate bool BoolIntHandler (int index);
 
@@ -36,6 +37,7 @@ namespace BattleSoup {
 		public MapDataHandler GetMap { get; set; } = null;
 		public ShipDatasHandler GetShips { get; set; } = null;
 		public ShipPositionsHandler GetPositions { get; set; } = null;
+		public SonarPositionListHandler GetSonars { get; set; } = null;
 		public BoolIntHandler CheckShipAlive { get; set; } = null;
 
 
@@ -44,6 +46,7 @@ namespace BattleSoup {
 		[SerializeField] BlocksRenderer m_SonarRenderer = null;
 		[SerializeField] ShipRenderer m_ShipsRenderer = null;
 		[SerializeField] BlocksRenderer m_HitRenderer = null;
+		[SerializeField] SoupHighlightUI m_Highlight = null;
 
 
 		#endregion
@@ -109,6 +112,20 @@ namespace BattleSoup {
 		}
 
 
+		public void RefreshSonarRenderer () {
+			m_SonarRenderer.ClearBlock();
+			var sonars = GetSonars();
+			for (int i = 0; i < sonars.Count; i++) {
+				var sonar = sonars[i];
+				m_SonarRenderer.AddBlock(
+					sonar.x, sonar.y,
+					Mathf.Clamp(sonar.number - 1, 0, m_SonarRenderer.BlockSpriteCount - 1)
+				);
+			}
+			m_SonarRenderer.SetVerticesDirty();
+		}
+
+
 		public void Clear () {
 			m_MapRenderer.ClearBlock();
 			m_SonarRenderer.ClearBlock();
@@ -127,6 +144,9 @@ namespace BattleSoup {
 			pos = new Vector2Int(Mathf.FloorToInt(pos01.x * map.Size), Mathf.FloorToInt(pos01.y * map.Size));
 			return pos01.x > 0f && pos01.x < 1f && pos01.y > 0f && pos01.y < 1f;
 		}
+
+
+		public void Blink (int x, int y, Color color, Sprite sprite) => m_Highlight.Blink(x, y, color, sprite);
 
 
 		#endregion

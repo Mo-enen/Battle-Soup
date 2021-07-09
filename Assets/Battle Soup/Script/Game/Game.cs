@@ -23,24 +23,19 @@ namespace BattleSoup {
 		private class GameData {
 
 			public MapData Map = null;
-			public ShipData[] Ships = null;
+			public ShipData[] ShipDatas = null;
+			public Ship[] Ships = null;
 			public Tile[,] Tiles = null;
 			public bool[] ShipsAlive = null;
 			public readonly List<ShipPosition> Positions = new List<ShipPosition>();
 			public readonly List<int> Cooldowns = new List<int>();
-
-			public void Clear () {
-				Map = null;
-				Ships = null;
-				Tiles = null;
-				Positions.Clear();
-				Cooldowns.Clear();
-			}
+			public readonly List<SonarPosition> Sonars = new List<SonarPosition>();
 
 			public void Init (MapData map, ShipData[] ships, List<ShipPosition> positions) {
 
 				Map = map;
-				Ships = ships;
+				ShipDatas = ships;
+				Ships = ShipData.GetShips(ships);
 
 				// Pos
 				if (positions.Count < ships.Length) {
@@ -67,11 +62,22 @@ namespace BattleSoup {
 				}
 
 				// Ships Alive
-				ShipsAlive = new bool[Ships.Length];
+				ShipsAlive = new bool[ShipDatas.Length];
 				for (int i = 0; i < ShipsAlive.Length; i++) {
 					ShipsAlive[i] = true;
 				}
 
+			}
+
+			public void Clear () {
+				Map = null;
+				ShipDatas = null;
+				Ships = null;
+				Tiles = null;
+				ShipsAlive = null;
+				Positions.Clear();
+				Cooldowns.Clear();
+				Sonars.Clear();
 			}
 
 		}
@@ -97,6 +103,7 @@ namespace BattleSoup {
 		[SerializeField] VoidVector3Event m_OnShipSunk = null;
 		[SerializeField] VoidVector3Event m_OnWaterRevealed = null;
 		[SerializeField] VoidVector3Event m_OnShipRevealed = null;
+		[SerializeField] VoidVector3Event m_OnSonar = null;
 		[SerializeField] VoidStringEvent m_ShowMessage = null;
 
 		// Data
@@ -138,7 +145,7 @@ namespace BattleSoup {
 							// Normal Attack
 							if (AttackTile(DEFAULT_ATTACK, pos.x, pos.y, -1, Group.B)) {
 
-								
+
 
 								DelayUpdate(0.1f);
 								SwitchTurn();
@@ -163,17 +170,33 @@ namespace BattleSoup {
 					}
 				} else {
 					// Robot A
-					// ///////////////////	Test ////////////////////
-					DelayUpdate(0.1f);
+					if (SoupAI.Analyse(
+						DataA.Tiles, DataB.Tiles,
+						DataA.Ships, DataB.Ships,
+						DataA.Positions,
+						out _, out _, out _
+					)) {
+
+
+
+					}
 					SwitchTurn();
-					// ///////////////////	Test ////////////////////
+					DelayUpdate(0.1f);
 				}
 			} else {
 				// B Turn
-				// ///////////////////	Test ////////////////////
-				DelayUpdate(0.1f);
+				if (SoupAI.Analyse(
+					DataB.Tiles, DataA.Tiles,
+					DataB.Ships, DataA.Ships,
+					DataB.Positions,
+					out _, out _, out _
+				)) {
+
+
+
+				}
 				SwitchTurn();
-				// ///////////////////	Test ////////////////////
+				DelayUpdate(0.1f);
 			}
 		}
 
@@ -196,23 +219,25 @@ namespace BattleSoup {
 		}
 
 
-		public void Clear () {
-			DataA.Clear();
-			DataB.Clear();
-		}
-
-
 		public void SetupDelegate () {
 			m_SoupA.GetTile = (x, y) => DataA.Tiles[x, y];
 			m_SoupB.GetTile = (x, y) => DataB.Tiles[x, y];
 			m_SoupA.GetMap = () => DataA.Map;
 			m_SoupB.GetMap = () => DataB.Map;
-			m_SoupA.GetShips = () => DataA.Ships;
-			m_SoupB.GetShips = () => DataB.Ships;
+			m_SoupA.GetShips = () => DataA.ShipDatas;
+			m_SoupB.GetShips = () => DataB.ShipDatas;
 			m_SoupA.GetPositions = () => DataA.Positions;
 			m_SoupB.GetPositions = () => DataB.Positions;
 			m_SoupA.CheckShipAlive = (index) => CheckShipAlive(index, Group.A);
 			m_SoupB.CheckShipAlive = (index) => CheckShipAlive(index, Group.B);
+			m_SoupA.GetSonars = () => DataA.Sonars;
+			m_SoupB.GetSonars = () => DataB.Sonars;
+		}
+
+
+		public void UI_Clear () {
+			DataA.Clear();
+			DataB.Clear();
 		}
 
 
@@ -228,7 +253,7 @@ namespace BattleSoup {
 
 
 		public Ability GetAbility (Group group, int index) {
-			var ships = group == Group.A ? DataA.Ships : DataB.Ships;
+			var ships = group == Group.A ? DataA.ShipDatas : DataB.ShipDatas;
 			return ships[Mathf.Clamp(index, 0, ships.Length - 1)].Ship.Ability;
 		}
 
@@ -295,7 +320,7 @@ namespace BattleSoup {
 
 			// Func
 			bool AllShipsSunk (Group group) {
-				int count = (group == Group.A ? DataA.Ships.Length : DataB.Ships.Length);
+				int count = (group == Group.A ? DataA.ShipDatas.Length : DataB.ShipDatas.Length);
 				for (int i = 0; i < count; i++) {
 					if (CheckShipAlive(i, group)) {
 						return false;
@@ -317,7 +342,7 @@ namespace BattleSoup {
 			}
 			// Func
 			bool CheckShipAlive (int _index) {
-				var ships = data.Ships;
+				var ships = data.ShipDatas;
 				var positions = data.Positions;
 				var map = data.Map;
 				var tiles = data.Tiles;
@@ -370,6 +395,7 @@ namespace BattleSoup {
 			bool useOwn = attack.Type == AttackType.RevealOwnUnoccupiedTile;
 			bool needRefreshShip = false;
 			bool needRefreshHit = false;
+			bool needRefreshSonar = false;
 
 			if (attack.Type != AttackType.RevealSelf) {
 				// Pos
@@ -384,7 +410,7 @@ namespace BattleSoup {
 							ownData.Tiles,
 							out x, out y,
 							(_x, _y) => !ShipData.Contains(
-								_x, _y, ownData.Ships, ownData.Positions, out _)
+								_x, _y, ownData.ShipDatas, ownData.Positions, out _)
 							)
 						) { return false; }
 					}
@@ -415,7 +441,9 @@ namespace BattleSoup {
 					needRefreshHit = true;
 					break;
 				case AttackType.Sonar:
-
+					SonarTile(x, y, group, data);
+					needRefreshHit = true;
+					needRefreshSonar = true;
 					break;
 				case AttackType.RevealOwnUnoccupiedTile:
 					RevealTile(x, y, ownGroup, ownData, false);
@@ -435,6 +463,9 @@ namespace BattleSoup {
 			if (needRefreshShip) {
 				soup.RefreshShipRenderer(group != Group.A || CurrentBattleMode == BattleMode.AvA);
 			}
+			if (needRefreshSonar) {
+				soup.RefreshSonarRenderer();
+			}
 
 			return true;
 		}
@@ -443,7 +474,7 @@ namespace BattleSoup {
 		private bool HitTile (int x, int y, Group group, GameData data, bool hitWholeShip) {
 			bool needRefresh = false;
 			var wPos = GetWorldPosition(x, y, group);
-			if (ShipData.Contains(x, y, data.Ships, data.Positions, out int _shipIndex)) {
+			if (ShipData.Contains(x, y, data.ShipDatas, data.Positions, out int _shipIndex)) {
 				// Hit Ship
 				if (!hitWholeShip) {
 					// Just Tile
@@ -459,7 +490,7 @@ namespace BattleSoup {
 					}
 				} else {
 					// Whole Ship
-					var ship = data.Ships[_shipIndex];
+					var ship = data.ShipDatas[_shipIndex];
 					var sPos = data.Positions[_shipIndex];
 					foreach (var v in ship.Ship.Body) {
 						int _x = sPos.Pivot.x + (sPos.Flip ? v.y : v.x);
@@ -486,15 +517,17 @@ namespace BattleSoup {
 		}
 
 
-		private void RevealTile (int x, int y, Group group, GameData data, bool revealWholeShip) {
+		private void RevealTile (int x, int y, Group group, GameData data, bool revealWholeShip, bool useCallback = true) {
 			var wPos = GetWorldPosition(x, y, group);
 			var tile = data.Tiles[x, y];
-			if (ShipData.Contains(x, y, data.Ships, data.Positions, out int _shipIndex)) {
+			if (ShipData.Contains(x, y, data.ShipDatas, data.Positions, out int _shipIndex)) {
 				if (!revealWholeShip) {
 					// Just Tile
 					if (tile != Tile.HittedShip && tile != Tile.RevealedShip) {
 						data.Tiles[x, y] = Tile.RevealedShip;
-						m_OnShipRevealed.Invoke(wPos);
+						if (useCallback) {
+							m_OnShipRevealed.Invoke(wPos);
+						}
 					}
 				} else {
 					// Whole Ship
@@ -504,20 +537,24 @@ namespace BattleSoup {
 				// Stone
 				if (tile != Tile.RevealedStone) {
 					data.Tiles[x, y] = Tile.RevealedStone;
-					m_OnWaterRevealed.Invoke(wPos);
+					if (useCallback) {
+						m_OnWaterRevealed.Invoke(wPos);
+					}
 				}
 			} else {
 				// Just Water
 				if (tile != Tile.RevealedWater) {
 					data.Tiles[x, y] = Tile.RevealedWater;
-					m_OnWaterRevealed.Invoke(wPos);
+					if (useCallback) {
+						m_OnWaterRevealed.Invoke(wPos);
+					}
 				}
 			}
 		}
 
 
 		private void RevealWholeShip (GameData data, int shipIndex, Group group) {
-			var ship = data.Ships[shipIndex];
+			var ship = data.ShipDatas[shipIndex];
 			var sPos = data.Positions[shipIndex];
 			foreach (var v in ship.Ship.Body) {
 				int _x = sPos.Pivot.x + (sPos.Flip ? v.y : v.x);
@@ -530,8 +567,39 @@ namespace BattleSoup {
 		}
 
 
-
-
+		private void SonarTile (int x, int y, Group group, GameData data) {
+			if (ShipData.Contains(x, y, data.ShipDatas, data.Positions, out _)) {
+				// Hit When Has Ship
+				HitTile(x, y, group, data, false);
+			} else {
+				// Sonar Reveal When No Ship
+				var wPos = GetWorldPosition(x, y, group);
+				int mapSize = data.Map.Size;
+				int minDis = ShipData.FindNearestShipDistance(
+					x, y, data.ShipDatas, data.Positions, out var _pos
+				);
+				if (minDis == 0) {
+					if (data.Tiles[_pos.x, _pos.y] != Tile.HittedShip) {
+						HitTile(x, y, group, data, false);
+					}
+				} else if (minDis > 0) {
+					int l = x - minDis + 1;
+					int r = x + minDis - 1;
+					int d = y - minDis + 1;
+					int u = y + minDis - 1;
+					for (int i = l; i <= r; i++) {
+						for (int j = d; j <= u; j++) {
+							if (i < 0 || i >= mapSize || j < 0 || j >= mapSize) { continue; }
+							if (Mathf.Abs(i - x) + Mathf.Abs(j - y) < minDis) {
+								RevealTile(i, j, group, data, false, false);
+							}
+						}
+					}
+					data.Sonars.Add(new SonarPosition(x, y, minDis));
+				}
+				m_OnSonar.Invoke(wPos);
+			}
+		}
 
 
 		#endregion

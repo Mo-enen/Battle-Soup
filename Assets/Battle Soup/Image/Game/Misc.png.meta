@@ -165,8 +165,8 @@ TextureImporter:
         serializedVersion: 2
         x: 2
         y: 2
-        width: 2
-        height: 2
+        width: 56
+        height: 56
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -184,10 +184,10 @@ TextureImporter:
       name: Hit
       rect:
         serializedVersion: 2
-        x: 7
+        x: 62
         y: 2
-        width: 2
-        height: 2
+        width: 56
+        height: 56
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -205,10 +205,10 @@ TextureImporter:
       name: Reveal Water
       rect:
         serializedVersion: 2
-        x: 12
-        y: 2
-        width: 2
-        height: 2
+        x: 2
+        y: 62
+        width: 56
+        height: 56
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -226,12 +226,12 @@ TextureImporter:
       name: Revealed Ship
       rect:
         serializedVersion: 2
-        x: 16
-        y: 1
-        width: 6
-        height: 6
+        x: 62
+        y: 62
+        width: 56
+        height: 56
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []

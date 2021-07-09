@@ -62,6 +62,7 @@ namespace BattleSoup {
 				}
 			}
 		}
+		public int BlockSpriteCount => m_Blocks.Length;
 
 		// Ser
 		[SerializeField] int m_GridCountX = 8;

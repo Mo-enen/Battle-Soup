@@ -23,7 +23,7 @@ namespace BattleSoupAI {
 	}
 
 
-	 
+
 	public enum AttackTrigger {
 		Picked = 0,
 		TiedUp = 1,
@@ -73,6 +73,20 @@ namespace BattleSoupAI {
 		public Int2 (int x, int y) {
 			this.x = x;
 			this.y = y;
+		}
+	}
+
+
+
+	[System.Serializable]
+	public struct SonarPosition {
+		public int x;
+		public int y;
+		public int number;
+		public SonarPosition (int x, int y, int number) {
+			this.x = x;
+			this.y = y;
+			this.number = number;
 		}
 	}
 
