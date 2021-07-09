@@ -166,7 +166,11 @@ namespace BattleSoup {
 		public void AddBlock (int x, int y, int id, Color color, float scale) => Blocks.Add(new Block(x, y, id, color, scale));
 
 
-		public void ClearBlock () => Blocks.Clear();
+		public void ClearBlock () {
+			if (Blocks.Count > 0) {
+				Blocks.Clear();
+			}
+		}
 
 
 		#endregion

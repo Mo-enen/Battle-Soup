@@ -46,14 +46,71 @@ namespace BattleSoupAI {
 
 	[System.Serializable]
 	public struct Ability {
+
+		// Api
+		public bool HasActive {
+			get {
+				if (!_HasActive.HasValue) {
+					_HasActive = false;
+					foreach (var att in Attacks) {
+						if (att.Trigger == AttackTrigger.Picked || att.Trigger == AttackTrigger.Random) {
+							_HasActive = true;
+							break;
+						}
+					}
+				}
+				return _HasActive.Value;
+			}
+		}
+		public bool HasPassive {
+			get {
+				if (!_HasPassive.HasValue) {
+					_HasPassive = false;
+					foreach (var att in Attacks) {
+						if (att.Trigger == AttackTrigger.PassiveRandom) {
+							_HasPassive = true;
+							break;
+						}
+					}
+				}
+				return _HasPassive.Value;
+			}
+		}
+		public bool NeedAim {
+			get {
+				if (!_NeedAim.HasValue) {
+					_NeedAim = false;
+					int count = 0;
+					foreach (var att in Attacks) {
+						if (
+							(att.Trigger == AttackTrigger.Picked || att.Trigger == AttackTrigger.TiedUp) &&
+							(att.Type == AttackType.HitTile || att.Type == AttackType.HitWholeShip || att.Type == AttackType.Sonar)
+						) {
+							count++;
+							if (count > 1) {
+								_NeedAim = true;
+								break;
+							}
+						}
+					}
+				}
+				return _NeedAim.Value;
+			}
+		}
+
+		// Api-Ser
 		public List<Attack> Attacks;
 		public int Cooldown;
 		public bool BreakOnSunk;
 		public bool BreakOnMiss;
 		public bool ResetCooldownOnHit;
 		public bool CopyOpponentLastUsed;
-		public bool HasActive;
-		public bool HasPassive;
+
+		// Data
+		private bool? _HasActive;
+		private bool? _HasPassive;
+		private bool? _NeedAim;
+
 	}
 
 

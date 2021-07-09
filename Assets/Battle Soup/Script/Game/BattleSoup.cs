@@ -264,6 +264,13 @@ namespace BattleSoup {
 
 
 		public void UI_RefreshAbilityUI () {
+			Sprite aIcon = null;
+			if (m_Game.Game.AbilityShipIndex >= 0) {
+				var ship = m_Game.Game.GetShipData(m_Game.Game.CurrentTurn, m_Game.Game.AbilityShipIndex);
+				aIcon = ship.Sprite;
+			}
+			m_Game.BattleSoupUIA.SetAbilityAimIcon(m_Game.Game.CurrentTurn == Group.B ? aIcon : null);
+			m_Game.BattleSoupUIB.SetAbilityAimIcon(m_Game.Game.CurrentTurn == Group.B ? null : aIcon);
 			RefreshAbilityUI(m_UI.AbilityContainerA, Group.A);
 			RefreshAbilityUI(m_UI.AbilityContainerB, Group.B);
 			// Func

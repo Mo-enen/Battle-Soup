@@ -43,6 +43,7 @@ namespace BattleSoup {
 				if (positions.Count < ships.Length) {
 					positions.AddRange(new ShipPosition[ships.Length - positions.Count]);
 				}
+				Positions.Clear();
 				Positions.AddRange(positions);
 
 				// Tiles
@@ -161,6 +162,8 @@ namespace BattleSoup {
 
 		private void Update () {
 
+			Update_Aim();
+
 			if (Time.time < AllowUpdateTime) { return; }
 
 			if (CurrentTurn == Group.A) {
@@ -224,6 +227,20 @@ namespace BattleSoup {
 		}
 
 
+		private void Update_Aim () {
+			if (
+				CurrentTurn == Group.A &&
+				CurrentBattleMode == BattleMode.PvA &&
+				AbilityShipIndex >= 0
+			) {
+				m_SoupB.RefreshAimRenderer();
+			} else {
+				m_SoupB.ClearAimRenderer();
+			}
+			m_SoupA.ClearAimRenderer();
+		}
+
+
 		#endregion
 
 
@@ -257,6 +274,12 @@ namespace BattleSoup {
 			m_SoupB.CheckShipAlive = (index) => CheckShipAlive(index, Group.B);
 			m_SoupA.GetSonars = () => DataA.Sonars;
 			m_SoupB.GetSonars = () => DataB.Sonars;
+			m_SoupA.GetCurrentAbility = m_SoupB.GetCurrentAbility = () => {
+				if (AbilityShipIndex >= 0) {
+					return (CurrentTurn == Group.A ? DataA : DataB).Ships[AbilityShipIndex].Ability;
+				}
+				return null;
+			};
 		}
 
 
@@ -268,6 +291,12 @@ namespace BattleSoup {
 
 		// Ship
 		public bool CheckShipAlive (int index, Group group) => (group == Group.A ? DataA : DataB).ShipsAlive[index];
+
+
+		public ShipData GetShipData (Group group, int index) {
+			var ships = group == Group.A ? DataA.ShipDatas : DataB.ShipDatas;
+			return ships[Mathf.Clamp(index, 0, ships.Length - 1)];
+		}
 
 
 		// Ability
@@ -296,9 +325,6 @@ namespace BattleSoup {
 				m_RefreshUI.Invoke();
 			}
 		}
-
-
-
 
 
 		#endregion

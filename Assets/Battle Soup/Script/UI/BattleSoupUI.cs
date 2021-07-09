@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using BattleSoupAI;
 using Moenen.Standard;
 
@@ -22,6 +23,7 @@ namespace BattleSoup {
 		public delegate List<SonarPosition> SonarPositionListHandler ();
 		public delegate int IntHandler ();
 		public delegate bool BoolIntHandler (int index);
+		public delegate Ability? AbilityHandler ();
 
 
 		#endregion
@@ -39,7 +41,7 @@ namespace BattleSoup {
 		public ShipPositionsHandler GetPositions { get; set; } = null;
 		public SonarPositionListHandler GetSonars { get; set; } = null;
 		public BoolIntHandler CheckShipAlive { get; set; } = null;
-
+		public AbilityHandler GetCurrentAbility { get; set; } = null;
 
 		// Ser
 		[SerializeField] MapRenderer m_MapRenderer = null;
@@ -47,6 +49,11 @@ namespace BattleSoup {
 		[SerializeField] ShipRenderer m_ShipsRenderer = null;
 		[SerializeField] BlocksRenderer m_HitRenderer = null;
 		[SerializeField] SoupHighlightUI m_Highlight = null;
+		[SerializeField] BlocksRenderer m_AimRenderer = null;
+		[SerializeField] Image m_AbilityIcon = null;
+
+		// Data
+		private Vector2Int? PrevMousePosForAim = null;
 
 
 		#endregion
@@ -72,6 +79,7 @@ namespace BattleSoup {
 			m_SonarRenderer.GridCountX = m_SonarRenderer.GridCountY = map.Size;
 			m_ShipsRenderer.GridCountX = m_ShipsRenderer.GridCountY = map.Size;
 			m_HitRenderer.GridCountX = m_HitRenderer.GridCountY = map.Size;
+			m_AimRenderer.GridCountX = m_AimRenderer.GridCountY = map.Size;
 
 			RefreshShipRenderer();
 			RefreshHitRenderer();
@@ -126,6 +134,12 @@ namespace BattleSoup {
 		}
 
 
+		public void SetAbilityAimIcon (Sprite icon) {
+			m_AbilityIcon.gameObject.SetActive(icon != null);
+			m_AbilityIcon.sprite = icon;
+		}
+
+
 		public void Clear () {
 			m_MapRenderer.ClearBlock();
 			m_SonarRenderer.ClearBlock();
@@ -147,6 +161,41 @@ namespace BattleSoup {
 
 
 		public void Blink (int x, int y, Color color, Sprite sprite) => m_Highlight.Blink(x, y, color, sprite);
+
+
+		public void RefreshAimRenderer () {
+			var ability = GetCurrentAbility();
+			bool success = false;
+			if (ability.HasValue) {
+				if (ability.Value.NeedAim && GetMapPositionInside(Input.mousePosition, out var pos)) {
+					if (!PrevMousePosForAim.HasValue || PrevMousePosForAim.Value != pos) {
+						PrevMousePosForAim = pos;
+						m_AimRenderer.ClearBlock();
+						foreach (var att in ability.Value.Attacks) {
+							if (att.Trigger == AttackTrigger.Picked || att.Trigger == AttackTrigger.TiedUp) {
+								m_AimRenderer.AddBlock(pos.x + att.X, pos.y + att.Y, 0);
+							}
+						}
+					}
+					success = true;
+				}
+				m_AimRenderer.SetVerticesDirty();
+			}
+			if (!success) {
+				m_AimRenderer.ClearBlock();
+				if (PrevMousePosForAim.HasValue) {
+					PrevMousePosForAim = null;
+					m_AimRenderer.SetVerticesDirty();
+				}
+			}
+		}
+
+
+		public void ClearAimRenderer () {
+			m_AimRenderer.ClearBlock();
+			m_AimRenderer.SetVerticesDirty();
+			PrevMousePosForAim = null;
+		}
 
 
 		#endregion

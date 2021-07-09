@@ -71,6 +71,9 @@ TextureImporter:
   - first:
       213: 5107282872573515666
     second: Revealed Ship
+  - first:
+      213: 522795827424058390
+    second: Target
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -239,6 +242,27 @@ TextureImporter:
       bones: []
       spriteID: 2975e2b86b6b0e640800000000000000
       internalID: 5107282872573515666
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Target
+      rect:
+        serializedVersion: 2
+        x: 120
+        y: 1
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 61cdaaff808514700800000000000000
+      internalID: 522795827424058390
       vertices: []
       indices: 
       edges: []
