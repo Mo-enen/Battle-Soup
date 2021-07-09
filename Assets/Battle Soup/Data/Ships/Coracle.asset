@@ -31,11 +31,11 @@ MonoBehaviour:
         Type: 5
         Trigger: 3
         AvailableTarget: 1
-      HasActive: 1
-      HasPassive: 1
       Cooldown: 5
+      BreakOnSunk: 0
       BreakOnMiss: 0
       ResetCooldownOnHit: 0
-      CopyOwnLastUsed: 0
       CopyOpponentLastUsed: 0
+      HasActive: 1
+      HasPassive: 1
     TerminateHP: 0

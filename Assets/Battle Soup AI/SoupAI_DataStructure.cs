@@ -48,11 +48,12 @@ namespace BattleSoupAI {
 	public struct Ability {
 		public List<Attack> Attacks;
 		public int Cooldown;
-		public bool HasActive;
-		public bool HasPassive;
+		public bool BreakOnSunk;
 		public bool BreakOnMiss;
 		public bool ResetCooldownOnHit;
 		public bool CopyOpponentLastUsed;
+		public bool HasActive;
+		public bool HasPassive;
 	}
 
 

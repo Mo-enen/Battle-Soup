@@ -206,7 +206,7 @@ namespace BattleSoup {
 			return null;
 		}
 
-		 
+
 		// Refresh UI
 		private bool RefreshShipButton () {
 
@@ -329,7 +329,8 @@ namespace BattleSoup {
 						group == Group.A &&
 						ship.Ship.Ability.HasActive
 					) {
-						btn.onClick.AddListener(() => m_Game.Game.OnAbilityClick(i, ship.Ship.Ability));
+						int _index = i;
+						btn.onClick.AddListener(() => m_Game.Game.OnAbilityClick(_index));
 					}
 
 					var icon = grabber.Grab<GreyImage>("Icon");

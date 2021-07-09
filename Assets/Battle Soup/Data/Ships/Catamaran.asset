@@ -70,11 +70,11 @@ MonoBehaviour:
         Type: 0
         Trigger: 1
         AvailableTarget: 2147483647
-      HasActive: 1
-      HasPassive: 0
       Cooldown: 7
+      BreakOnSunk: 0
       BreakOnMiss: 0
       ResetCooldownOnHit: 0
-      CopyOwnLastUsed: 0
       CopyOpponentLastUsed: 0
+      HasActive: 1
+      HasPassive: 0
     TerminateHP: 0

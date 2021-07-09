@@ -409,7 +409,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Map: {fileID: 1822351878}
   m_Highlight: {fileID: 949731894}
-  m_BlinkColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &19230292
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1172,7 +1171,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_PixelsPerUnitMultiplier: 3
 --- !u!222 &76981876
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -12707,7 +12706,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_PixelsPerUnitMultiplier: 3
 --- !u!222 &949731896
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -13001,7 +13000,7 @@ MonoBehaviour:
   m_SoupB: {fileID: 1021806984}
   m_FaceWin: {fileID: 190526903}
   m_FaceLose: {fileID: 2136786978}
-  m_OnTurnSwitched:
+  m_RefreshUI:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1410421773}
@@ -14586,8 +14585,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 383795425}
   m_HandleRect: {fileID: 383795424}
   m_Direction: 2
-  m_Value: 1
-  m_Size: 0.95757115
+  m_Value: 0
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -27757,7 +27756,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Map: {fileID: 722711847}
   m_Highlight: {fileID: 76981874}
-  m_BlinkColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &2010443041
 MonoBehaviour:
   m_ObjectHideFlags: 0

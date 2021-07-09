@@ -288,6 +288,9 @@ namespace BattleSoup {
 					grabber.Grab<RectTransform>("Red Panel").gameObject.SetActive(
 						!m_Game.Game.CheckShipAlive(i, group)
 					);
+					grabber.Grab<RectTransform>("Highlight").gameObject.SetActive(
+						m_Game.Game.CurrentTurn == group && m_Game.Game.AbilityShipIndex == i
+					);
 
 				}
 			}
