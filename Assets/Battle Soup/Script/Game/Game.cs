@@ -86,7 +86,7 @@ namespace BattleSoup {
 		}
 
 
-		private struct AbilityPerformData {
+		private class AbilityPerformData {
 			public int AbilityAttackIndex;
 			public bool WaitForPicking;
 			public bool PickedPerformed;
@@ -129,6 +129,7 @@ namespace BattleSoup {
 		[SerializeField] BattleSoupUI m_SoupB = null;
 		[SerializeField] RectTransform m_FaceWin = null;
 		[SerializeField] RectTransform m_FaceLose = null;
+		[SerializeField] Toggle m_CheatToggle = null;
 		[SerializeField] VoidEvent m_RefreshUI = null;
 		[SerializeField] VoidVector3Event m_OnShipHitted = null;
 		[SerializeField] VoidVector3Event m_OnShipSunk = null;
@@ -149,7 +150,7 @@ namespace BattleSoup {
 			Type = AttackType.HitTile,
 		};
 		private BattleMode CurrentBattleMode = BattleMode.PvA;
-		private AbilityPerformData AbilityData = new AbilityPerformData();
+		private readonly AbilityPerformData AbilityData = new AbilityPerformData();
 		private float AllowUpdateTime = 0f;
 
 
@@ -162,7 +163,6 @@ namespace BattleSoup {
 
 
 		private void Update () {
-			Debug.Log(Time.time + "\t" + AbilityData.AbilityAttackIndex);
 			Update_Aim();
 			Update_Turn();
 		}
@@ -280,6 +280,7 @@ namespace BattleSoup {
 			DataB.Clear();
 			DataA.Init(mapA, shipsA, positionsA);
 			DataB.Init(mapB, shipsB, positionsB);
+			m_CheatToggle.isOn = false;
 		}
 
 
@@ -303,6 +304,7 @@ namespace BattleSoup {
 				return null;
 			};
 			m_SoupA.GetCurrentAbilityDirection = m_SoupB.GetCurrentAbilityDirection = () => AbilityDirection;
+			m_SoupA.GetCheating = m_SoupB.GetCheating = () => m_CheatToggle.isOn;
 		}
 
 
@@ -498,14 +500,18 @@ namespace BattleSoup {
 			var opData = CurrentTurn == Group.A ? DataB : DataA;
 			var ability = data.Ships[AbilityShipIndex].Ability;
 			if (ability.Attacks == null || ability.Attacks.Count == 0) { return false; }
-			int attIndex = Mathf.Clamp(aData.AbilityAttackIndex, 0, ability.Attacks.Count - 1);
 
 			// Perform Attack
-			for (int i = attIndex; i < ability.Attacks.Count; i++) {
-				var attack = ability.Attacks[i];
-				aData.AbilityAttackIndex = i;
+			for (
+				aData.AbilityAttackIndex = Mathf.Clamp(aData.AbilityAttackIndex, 0, ability.Attacks.Count - 1);
+				aData.AbilityAttackIndex < ability.Attacks.Count;
+				aData.AbilityAttackIndex++
+			) {
+				var attack = ability.Attacks[aData.AbilityAttackIndex];
 				AttackResult result = AttackResult.None;
 				switch (attack.Trigger) {
+
+
 					case AttackTrigger.Picked:
 						if (!aData.PickedPerformed) {
 							// Check Target
@@ -527,6 +533,8 @@ namespace BattleSoup {
 							aData.WaitForPicking = true;
 							return false;
 						}
+
+
 					case AttackTrigger.TiedUp:
 						if (!aData.DoTiedup) { break; }
 						result = AttackTile(
@@ -536,6 +544,8 @@ namespace BattleSoup {
 								AbilityDirection
 						);
 						break;
+
+
 					case AttackTrigger.Random:
 						result = AttackTile(
 							attack, x, y,
@@ -544,6 +554,8 @@ namespace BattleSoup {
 								AbilityDirection
 						);
 						break;
+
+
 				}
 
 				// Break Check
@@ -664,7 +676,7 @@ namespace BattleSoup {
 				soup.RefreshHitRenderer();
 			}
 			if (needRefreshShip) {
-				soup.RefreshShipRenderer(targetGroup != Group.A || CurrentBattleMode == BattleMode.AvA);
+				soup.RefreshShipRenderer();
 			}
 			if (needRefreshSonar) {
 				soup.RefreshSonarRenderer();

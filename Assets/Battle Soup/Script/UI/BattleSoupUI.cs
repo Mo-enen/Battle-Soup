@@ -23,6 +23,7 @@ namespace BattleSoup {
 		public delegate List<SonarPosition> SonarPositionListHandler ();
 		public delegate int IntHandler ();
 		public delegate bool BoolIntHandler (int index);
+		public delegate bool BoolHandler ();
 		public delegate Ability? AbilityHandler ();
 		public delegate AbilityDirection AbilityDirectionHandler ();
 
@@ -44,6 +45,7 @@ namespace BattleSoup {
 		public BoolIntHandler CheckShipAlive { get; set; } = null;
 		public AbilityHandler GetCurrentAbility { get; set; } = null;
 		public AbilityDirectionHandler GetCurrentAbilityDirection { get; set; } = null;
+		public BoolHandler GetCheating { get; set; } = null;
 
 		// Ser
 		[SerializeField] MapRenderer m_MapRenderer = null;
@@ -58,6 +60,7 @@ namespace BattleSoup {
 		// Data
 		private Vector2Int? PrevMousePosForAim = null;
 		private AbilityDirection PrevAbilityDirection = AbilityDirection.Up;
+		private bool SunkOnly = false;
 
 
 		#endregion
@@ -68,7 +71,7 @@ namespace BattleSoup {
 		#region --- API ---
 
 
-		public void Init () {
+		public void Init (bool sunkOnly) {
 
 			m_MapRenderer.ClearBlock();
 			m_HitRenderer.ClearBlock();
@@ -84,18 +87,20 @@ namespace BattleSoup {
 			m_ShipsRenderer.GridCountX = m_ShipsRenderer.GridCountY = map.Size;
 			m_HitRenderer.GridCountX = m_HitRenderer.GridCountY = map.Size;
 			m_AimRenderer.GridCountX = m_AimRenderer.GridCountY = map.Size;
+			SunkOnly = sunkOnly;
 
 			RefreshShipRenderer();
 			RefreshHitRenderer();
 		}
 
 
-		public void RefreshShipRenderer (bool sunkOnly = false) {
+		public void RefreshShipRenderer () {
 			var ships = GetShips();
 			var positions = GetPositions();
+			bool cheating = GetCheating();
 			m_ShipsRenderer.ClearBlock();
 			for (int i = 0; i < ships.Length; i++) {
-				if (sunkOnly && CheckShipAlive(i)) { continue; }
+				if (!cheating && SunkOnly && CheckShipAlive(i)) { continue; }
 				m_ShipsRenderer.AddShip(
 					ships[i], positions[i], Color.HSVToRGB((float)i / ships.Length, 0.618f, 0.618f)
 				);

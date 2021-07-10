@@ -31,6 +31,7 @@ namespace BattleSoup {
 		private Toggle[] m_MapsToggleA = null;
 		private Toggle[] m_MapsToggleB = null;
 		private bool QuitGameForReal = false;
+		private bool Cheated = false;
 
 		// Saving
 		private readonly SavingString SelectedFleetA = new SavingString("BattleSoupDemo.Demo.SelectedFleetA", "Coracle+KillerSquid+SeaTurtle+Whale");
@@ -163,12 +164,14 @@ namespace BattleSoup {
 						}
 						m_Game.Game.Init(CurrentBattleMode, mapA, mapB, shipsA, shipsB, positionsA, positionsB);
 						m_Game.Game.gameObject.SetActive(true);
-						m_Game.BattleSoupUIA.Init();
-						m_Game.BattleSoupUIB.Init();
-						m_Game.BattleSoupUIA.RefreshShipRenderer(CurrentBattleMode == BattleMode.AvA);
-						m_Game.BattleSoupUIB.RefreshShipRenderer(true);
+						m_Game.BattleSoupUIA.Init(CurrentBattleMode == BattleMode.AvA);
+						m_Game.BattleSoupUIB.Init(true);
+						m_Game.BattleSoupUIA.RefreshShipRenderer();
+						m_Game.BattleSoupUIB.RefreshShipRenderer();
+						Cheated = false;
 						RefreshBattleInfoUI();
 						ReloadAbilityUI();
+						UI_RefreshAbilityUI();
 						RefreshPanelUI(GameState.Playing);
 						CurrentState = GameState.Playing;
 					}
@@ -183,19 +186,16 @@ namespace BattleSoup {
 						ShowMessage(error);
 						break;
 					}
-					m_Game.Game.Init(
-						CurrentBattleMode,
-						m_Game.ShipPositionUI.Map, mapB,
-						m_Game.ShipPositionUI.Ships, shipsB,
-						m_Game.ShipPositionUI.Positions, positionsB
-					);
+					m_Game.Game.Init(CurrentBattleMode, m_Game.ShipPositionUI.Map, mapB, m_Game.ShipPositionUI.Ships, shipsB, m_Game.ShipPositionUI.Positions, positionsB);
 					m_Game.Game.gameObject.SetActive(true);
-					m_Game.BattleSoupUIA.Init();
-					m_Game.BattleSoupUIB.Init();
-					m_Game.BattleSoupUIA.RefreshShipRenderer(CurrentBattleMode == BattleMode.AvA);
-					m_Game.BattleSoupUIB.RefreshShipRenderer(true);
+					m_Game.BattleSoupUIA.Init(CurrentBattleMode == BattleMode.AvA);
+					m_Game.BattleSoupUIB.Init(true);
+					m_Game.BattleSoupUIA.RefreshShipRenderer();
+					m_Game.BattleSoupUIB.RefreshShipRenderer();
+					Cheated = false;
 					RefreshBattleInfoUI();
 					ReloadAbilityUI();
+					UI_RefreshAbilityUI();
 					RefreshPanelUI(GameState.Playing);
 					CurrentState = GameState.Playing;
 					break;
@@ -311,6 +311,9 @@ namespace BattleSoup {
 			UseSound.Value = isOn;
 			AudioListener.volume = isOn ? 1f : 0f;
 		}
+
+
+		public void UI_SetCheat () => Cheated = true;
 
 
 		public void UI_QuitGame () {
