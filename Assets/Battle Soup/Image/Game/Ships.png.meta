@@ -34,7 +34,7 @@ TextureImporter:
     second: Killer Squid
   - first:
       213: 6467883412860480186
-    second: Long Sub
+    second: LongSub
   - first:
       213: 1204441200860591639
     second: Longboat
@@ -361,7 +361,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Long Sub
+      name: LongSub
       rect:
         serializedVersion: 2
         x: 242

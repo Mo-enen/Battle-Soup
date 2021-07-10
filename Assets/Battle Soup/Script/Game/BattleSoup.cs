@@ -76,6 +76,8 @@ namespace BattleSoup {
 			// Sound
 			AudioListener.volume = UseSound.Value ? 1f : 0f;
 			m_UI.SoundTG.SetIsOnWithoutNotify(UseSound.Value);
+			// System
+			Application.targetFrameRate = 30;
 		}
 
 
@@ -125,6 +127,8 @@ namespace BattleSoup {
 				// Ship >> Map
 				case GameState.Ship:
 					if (!RefreshShipButton()) { break; }
+					SaveShipSelectionToSaving(Group.A);
+					SaveShipSelectionToSaving(Group.B);
 					m_Game.Game.gameObject.SetActive(false);
 					m_UI.MapLabelA.text = CurrentBattleMode == BattleMode.PvA ? "My Map" : "Robot-A Map";
 					m_UI.MapLabelB.text = CurrentBattleMode == BattleMode.PvA ? "Opponent Map" : "Robot-B Map";
@@ -137,6 +141,8 @@ namespace BattleSoup {
 				// Map >> PositionShip/Playing
 				case GameState.Map: {
 					if (!RefreshMapButton()) { break; }
+					SaveMapSelectionToSaving(Group.A);
+					SaveMapSelectionToSaving(Group.B);
 					if (CurrentBattleMode == BattleMode.PvA) {
 						// Map >> PositionShip
 						var map = GetSelectingMap(Group.A);
@@ -243,16 +249,10 @@ namespace BattleSoup {
 		}
 
 
-		public void UI_ShipChanged (int group) {
-			SaveShipSelectionToSaving(group == 0 ? Group.A : Group.B);
-			RefreshShipButton();
-		}
+		public void UI_ShipChanged () => RefreshShipButton();
 
 
-		public void UI_MapChanged (int group) {
-			SaveMapSelectionToSaving(group == 0 ? Group.A : Group.B);
-			RefreshMapButton();
-		}
+		public void UI_MapChanged () => RefreshMapButton();
 
 
 		public void UI_PositionShipChanged () {

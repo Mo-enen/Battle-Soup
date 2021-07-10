@@ -43,6 +43,7 @@ namespace BattleSoup {
 		public ShipPositionsHandler GetPositions { get; set; } = null;
 		public SonarPositionListHandler GetSonars { get; set; } = null;
 		public BoolIntHandler CheckShipAlive { get; set; } = null;
+		public BoolIntHandler CheckShipSuperRevealed { get; set; } = null;
 		public AbilityHandler GetCurrentAbility { get; set; } = null;
 		public AbilityDirectionHandler GetCurrentAbilityDirection { get; set; } = null;
 		public BoolHandler GetCheating { get; set; } = null;
@@ -100,10 +101,11 @@ namespace BattleSoup {
 			bool cheating = GetCheating();
 			m_ShipsRenderer.ClearBlock();
 			for (int i = 0; i < ships.Length; i++) {
-				if (!cheating && SunkOnly && CheckShipAlive(i)) { continue; }
-				m_ShipsRenderer.AddShip(
-					ships[i], positions[i], Color.HSVToRGB((float)i / ships.Length, 0.618f, 0.618f)
-				);
+				bool superRevealed = CheckShipSuperRevealed(i);
+				if (!cheating && !superRevealed && SunkOnly && CheckShipAlive(i)) { continue; }
+				var color = Color.HSVToRGB((float)i / ships.Length, 0.618f, 0.618f);
+				color.a = superRevealed ? 0.618f : 1f;
+				m_ShipsRenderer.AddShip(ships[i], positions[i], color, !superRevealed);
 			}
 			m_ShipsRenderer.SetVerticesDirty();
 		}

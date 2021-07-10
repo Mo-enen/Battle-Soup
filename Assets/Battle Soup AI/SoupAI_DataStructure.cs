@@ -206,9 +206,9 @@ namespace BattleSoupAI {
 	public struct Ship {
 
 
+		public int TerminateHP;
 		public Int2[] Body;
 		public Ability Ability;
-		public int TerminateHP;
 
 
 		public (Int2 min, Int2 max) GetBounds (ShipPosition pos) {

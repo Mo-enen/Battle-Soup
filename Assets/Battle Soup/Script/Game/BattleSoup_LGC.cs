@@ -172,13 +172,11 @@ namespace BattleSoup {
 		private void LoadMapSelectionFromSaving (Group group) {
 			var savingIndex = group == Group.A ? SelectedMapA : SelectedMapB;
 			var toggles = group == Group.A ? m_MapsToggleA : m_MapsToggleB;
-			if (savingIndex.Value >= 0 && savingIndex.Value < toggles.Length) {
-				toggles[savingIndex.Value].SetIsOnWithoutNotify(true);
-			} else {
-				toggles[0].SetIsOnWithoutNotify(true);
+			for (int i = 0; i < toggles.Length; i++) {
+				toggles[i].SetIsOnWithoutNotify(i == savingIndex.Value);
 			}
 		}
-
+		
 
 		private void SaveMapSelectionToSaving (Group group) {
 			var savingIndex = group == Group.A ? SelectedMapA : SelectedMapB;

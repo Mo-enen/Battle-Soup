@@ -27,6 +27,7 @@ namespace BattleSoup {
 			public Ship[] Ships = null;
 			public Tile[,] Tiles = null;
 			public bool[] ShipsAlive = null;
+			public bool[] SuperRevealed = null;
 			public readonly List<ShipPosition> Positions = new List<ShipPosition>();
 			public readonly List<int> Cooldowns = new List<int>();
 			public readonly List<SonarPosition> Sonars = new List<SonarPosition>();
@@ -69,6 +70,9 @@ namespace BattleSoup {
 				for (int i = 0; i < ShipsAlive.Length; i++) {
 					ShipsAlive[i] = true;
 				}
+
+				// Super Revealed
+				SuperRevealed = new bool[ShipDatas.Length];
 
 			}
 
@@ -305,6 +309,8 @@ namespace BattleSoup {
 			};
 			m_SoupA.GetCurrentAbilityDirection = m_SoupB.GetCurrentAbilityDirection = () => AbilityDirection;
 			m_SoupA.GetCheating = m_SoupB.GetCheating = () => m_CheatToggle.isOn;
+			m_SoupA.CheckShipSuperRevealed = (index) => DataA.SuperRevealed[index];
+			m_SoupB.CheckShipSuperRevealed = (index) => DataB.SuperRevealed[index];
 		}
 
 
@@ -338,7 +344,12 @@ namespace BattleSoup {
 
 
 		public void OnAbilityClick (int shipIndex) {
-			if (!gameObject.activeSelf || CurrentBattleMode != BattleMode.PvA || CurrentTurn != Group.A) { return; }
+			if (
+				!gameObject.activeSelf ||
+				CurrentBattleMode != BattleMode.PvA ||
+				CurrentTurn != Group.A ||
+				AbilityShipIndex >= 0
+			) { return; }
 			AbilityShipIndex = shipIndex;
 			AbilityData.AbilityAttackIndex = 0;
 			AbilityData.WaitForPicking = true;
@@ -430,13 +441,15 @@ namespace BattleSoup {
 			}
 			// Func
 			bool CheckShipAlive (int _index) {
-				var ships = data.ShipDatas;
+				var ships = data.Ships;
 				var positions = data.Positions;
 				var map = data.Map;
 				var tiles = data.Tiles;
 				_index = Mathf.Clamp(_index, 0, ships.Length - 1);
-				var body = ships[_index].Ship.Body;
+				var ship = ships[_index];
+				var body = ship.Body;
 				var sPos = positions[_index];
+				int aliveTile = 0;
 				foreach (var v in body) {
 					var pos = new Vector2Int(
 						sPos.Pivot.x + (sPos.Flip ? v.y : v.x),
@@ -444,7 +457,10 @@ namespace BattleSoup {
 					);
 					if (pos.x >= 0 && pos.x < map.Size && pos.y >= 0 && pos.y < map.Size) {
 						if (tiles[pos.x, pos.y] != Tile.HittedShip) {
-							return true;
+							aliveTile++;
+							if (aliveTile > ship.TerminateHP) {
+								return true;
+							}
 						}
 					}
 				}
@@ -646,6 +662,9 @@ namespace BattleSoup {
 					RevealTile(x, y, targetGroup, data, attack.Type == AttackType.RevealWholeShip, true, out var revealShip);
 					needRefreshHit = true;
 					result = revealShip ? AttackResult.RevealShip : AttackResult.Miss;
+					if (attack.Type == AttackType.RevealWholeShip) {
+						needRefreshShip = true;
+					}
 					break;
 				}
 				case AttackType.Sonar: {
@@ -686,51 +705,66 @@ namespace BattleSoup {
 		}
 
 
-		private void HitTile (int x, int y, Group group, GameData data, bool hitWholeShip, out bool hitShip, out bool sunkShip) {
+		private void HitTile (int x, int y, Group targetGroup, GameData targetData, bool hitWholeShip, out bool hitShip, out bool sunkShip) {
 			sunkShip = false;
 			hitShip = false;
-			var wPos = GetWorldPosition(x, y, group);
-			if (ShipData.Contains(x, y, data.ShipDatas, data.Positions, out int _shipIndex)) {
+			var wPos = GetWorldPosition(x, y, targetGroup);
+			if (ShipData.Contains(x, y, targetData.ShipDatas, targetData.Positions, out int _shipIndex)) {
 				// Hit Ship
 				if (!hitWholeShip) {
 					// Just Tile
-					data.Tiles[x, y] = Tile.HittedShip;
-					RefreshShipsAlive(_shipIndex, group);
-					if (data.ShipsAlive[_shipIndex]) {
+					targetData.Tiles[x, y] = Tile.HittedShip;
+					RefreshShipsAlive(_shipIndex, targetGroup);
+					if (targetData.ShipsAlive[_shipIndex]) {
 						// No Sunk
 						m_OnShipHitted.Invoke(wPos);
 					} else {
 						// Sunk
 						sunkShip = true;
+						SetTilesToHit(targetData.Ships[_shipIndex], targetData.Positions[_shipIndex]);
 						m_OnShipSunk.Invoke(wPos);
+					}
+					if (targetData.Ships[_shipIndex].Ability.ResetCooldownOnHit) {
+						// Reset Cooldown On Hit
+						targetData.Cooldowns[_shipIndex] = 0;
 					}
 				} else {
 					// Whole Ship
-					var ship = data.ShipDatas[_shipIndex];
-					var sPos = data.Positions[_shipIndex];
+					var ship = targetData.ShipDatas[_shipIndex];
+					var sPos = targetData.Positions[_shipIndex];
 					foreach (var v in ship.Ship.Body) {
 						int _x = sPos.Pivot.x + (sPos.Flip ? v.y : v.x);
 						int _y = sPos.Pivot.y + (sPos.Flip ? v.x : v.y);
-						if (data.Tiles[_x, _y] != Tile.HittedShip) {
-							data.Tiles[_x, _y] = Tile.HittedShip;
-							m_OnShipHitted.Invoke(GetWorldPosition(_x, _y, group));
+						if (targetData.Tiles[_x, _y] != Tile.HittedShip) {
+							targetData.Tiles[_x, _y] = Tile.HittedShip;
+							m_OnShipHitted.Invoke(GetWorldPosition(_x, _y, targetGroup));
 						}
 					}
-					RefreshShipsAlive(_shipIndex, group);
+					RefreshShipsAlive(_shipIndex, targetGroup);
 					sunkShip = true;
+					SetTilesToHit(targetData.Ships[_shipIndex], targetData.Positions[_shipIndex]);
 					m_OnShipSunk.Invoke(wPos);
 				}
 				hitShip = true;
-			} else if (data.Map.HasStone(x, y)) {
+			} else if (targetData.Map.HasStone(x, y)) {
 				// Hit Stone
-				data.Tiles[x, y] = Tile.RevealedStone;
+				targetData.Tiles[x, y] = Tile.RevealedStone;
 				m_OnWaterRevealed.Invoke(wPos);
 				hitShip = false;
 			} else {
 				// Hit Water
-				data.Tiles[x, y] = Tile.RevealedWater;
+				targetData.Tiles[x, y] = Tile.RevealedWater;
 				m_OnWaterRevealed.Invoke(wPos);
 				hitShip = false;
+			}
+			// Func
+			void SetTilesToHit (Ship ship, ShipPosition position) {
+				foreach (var v in ship.Body) {
+					targetData.Tiles[
+						position.Pivot.x + (position.Flip ? v.y : v.x),
+						position.Pivot.y + (position.Flip ? v.x : v.y)
+					] = Tile.HittedShip;
+				}
 			}
 		}
 
@@ -777,6 +811,7 @@ namespace BattleSoup {
 		private void RevealWholeShip (GameData data, int shipIndex, Group group) {
 			var ship = data.ShipDatas[shipIndex];
 			var sPos = data.Positions[shipIndex];
+			data.SuperRevealed[shipIndex] = true;
 			foreach (var v in ship.Ship.Body) {
 				int _x = sPos.Pivot.x + (sPos.Flip ? v.y : v.x);
 				int _y = sPos.Pivot.y + (sPos.Flip ? v.x : v.y);
