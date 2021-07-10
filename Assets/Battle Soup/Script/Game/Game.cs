@@ -194,11 +194,11 @@ namespace BattleSoup {
 
 
 
-								for (int i = 0; i < DataB.Map.Size; i++) {
-									for (int j = 0; j < DataB.Map.Size; j++) {
-										RevealTile(i, j, Group.B, DataB, false, true, out _);
-									}
-								}
+								//for (int i = 0; i < DataB.Map.Size; i++) {
+								//	for (int j = 0; j < DataB.Map.Size; j++) {
+								//		RevealTile(i, j, Group.B, DataB, false, true, out _);
+								//	}
+								//}
 
 
 
