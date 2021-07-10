@@ -424,7 +424,7 @@ namespace BattleSoup.Editor {
 				// Label
 				rt.GetComponent<Toggle>().isOn = false;
 				rt.Find("Label").GetComponent<Text>().text = $"{map.Size}×{map.Size}";
-				rt.Find("Thumbnail").GetComponent<MapRenderer>().LoadMap(map);
+				rt.Find("Thumbnail").GetComponent<MapRenderer>().SetMap(map);
 				var grid = rt.Find("Grid").GetComponent<VectorGrid>();
 				grid.X = map.Size;
 				grid.Y = map.Size;

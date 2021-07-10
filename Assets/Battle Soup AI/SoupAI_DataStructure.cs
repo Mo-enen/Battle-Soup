@@ -40,6 +40,27 @@ namespace BattleSoupAI {
 		public AttackType Type;
 		public AttackTrigger Trigger;
 		public Tile AvailableTarget;
+		public (int x, int y) GetPosition (int targetX, int targetY, AbilityDirection direction) {
+			switch (direction) {
+				case AbilityDirection.Up:
+					targetX += X;
+					targetY += Y;
+					break;
+				case AbilityDirection.Right:
+					targetX += Y;
+					targetY -= X;
+					break;
+				case AbilityDirection.Down:
+					targetX -= X;
+					targetY -= Y;
+					break;
+				case AbilityDirection.Left:
+					targetX -= Y;
+					targetY += X;
+					break;
+			}
+			return (targetX, targetY);
+		}
 	}
 
 
@@ -111,6 +132,15 @@ namespace BattleSoupAI {
 		private bool? _HasPassive;
 		private bool? _NeedAim;
 
+	}
+
+
+
+	public enum AbilityDirection {
+		Up = 0,
+		Right = 1,
+		Down = 2,
+		Left = 3,
 	}
 
 

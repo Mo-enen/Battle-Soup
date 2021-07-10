@@ -14,6 +14,8 @@ namespace BattleSoup {
 		[SerializeField] VectorGrid m_Grid = null;
 
 
+
+
 		// MSG
 		protected override void OnEnable () {
 			base.OnEnable();
@@ -37,6 +39,12 @@ namespace BattleSoup {
 				}
 			}
 			SetVerticesDirty();
+		}
+
+
+		public void SetMap (MapData map) {
+			m_Map = map;
+			LoadMap(map);
 		}
 
 

@@ -24,6 +24,7 @@ namespace BattleSoup {
 		public delegate int IntHandler ();
 		public delegate bool BoolIntHandler (int index);
 		public delegate Ability? AbilityHandler ();
+		public delegate AbilityDirection AbilityDirectionHandler ();
 
 
 		#endregion
@@ -42,6 +43,7 @@ namespace BattleSoup {
 		public SonarPositionListHandler GetSonars { get; set; } = null;
 		public BoolIntHandler CheckShipAlive { get; set; } = null;
 		public AbilityHandler GetCurrentAbility { get; set; } = null;
+		public AbilityDirectionHandler GetCurrentAbilityDirection { get; set; } = null;
 
 		// Ser
 		[SerializeField] MapRenderer m_MapRenderer = null;
@@ -51,9 +53,11 @@ namespace BattleSoup {
 		[SerializeField] SoupHighlightUI m_Highlight = null;
 		[SerializeField] BlocksRenderer m_AimRenderer = null;
 		[SerializeField] Image m_AbilityIcon = null;
+		[SerializeField] RectTransform m_AbilityAimHint = null;
 
 		// Data
 		private Vector2Int? PrevMousePosForAim = null;
+		private AbilityDirection PrevAbilityDirection = AbilityDirection.Up;
 
 
 		#endregion
@@ -165,15 +169,21 @@ namespace BattleSoup {
 
 		public void RefreshAimRenderer () {
 			var ability = GetCurrentAbility();
+			var dir = GetCurrentAbilityDirection();
 			bool success = false;
 			if (ability.HasValue) {
 				if (ability.Value.NeedAim && GetMapPositionInside(Input.mousePosition, out var pos)) {
-					if (!PrevMousePosForAim.HasValue || PrevMousePosForAim.Value != pos) {
+					if (!PrevMousePosForAim.HasValue || PrevMousePosForAim.Value != pos || PrevAbilityDirection != dir) {
+						var map = GetMap();
 						PrevMousePosForAim = pos;
+						PrevAbilityDirection = dir;
 						m_AimRenderer.ClearBlock();
 						foreach (var att in ability.Value.Attacks) {
 							if (att.Trigger == AttackTrigger.Picked || att.Trigger == AttackTrigger.TiedUp) {
-								m_AimRenderer.AddBlock(pos.x + att.X, pos.y + att.Y, 0);
+								var (x, y) = att.GetPosition(pos.x, pos.y, dir);
+								if (x >= 0 && x < map.Size && y >= 0 && y < map.Size) {
+									m_AimRenderer.AddBlock(x, y, 0);
+								}
 							}
 						}
 					}
@@ -188,6 +198,9 @@ namespace BattleSoup {
 					m_AimRenderer.SetVerticesDirty();
 				}
 			}
+			if (m_AbilityAimHint != null) {
+				m_AbilityAimHint.gameObject.SetActive(success);
+			}
 		}
 
 
@@ -199,17 +212,6 @@ namespace BattleSoup {
 
 
 		#endregion
-
-
-
-
-		#region --- LGC ---
-
-
-
-
-		#endregion
-
 
 
 
