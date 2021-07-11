@@ -87,7 +87,7 @@ namespace Moenen.Standard {
 		}
 
 
-		public static DirectoryInfo[] GetDirectsIn (string path, bool topOnly) {
+		public static DirectoryInfo[] GetFoldersIn (string path, bool topOnly) {
 			var allDirs = new List<DirectoryInfo>();
 			if (PathIsDirectory(path)) {
 				allDirs.AddRange(new DirectoryInfo(path).GetDirectories("*", topOnly ? SearchOption.TopDirectoryOnly : SearchOption.AllDirectories));
@@ -110,7 +110,7 @@ namespace Moenen.Standard {
 		}
 
 
-		public static bool CopyDirectory (string from, string to, bool copySubDirs, bool ignoreHidden) {
+		public static bool CopyFolder (string from, string to, bool copySubDirs, bool ignoreHidden) {
 
 			// Get the subdirectories for the specified directory.
 			DirectoryInfo dir = new DirectoryInfo(from);
@@ -142,7 +142,7 @@ namespace Moenen.Standard {
 					try {
 						string temppath = Path.Combine(to, subdir.Name);
 						if (!ignoreHidden || (subdir.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) {
-							CopyDirectory(subdir.FullName, temppath, copySubDirs, ignoreHidden);
+							CopyFolder(subdir.FullName, temppath, copySubDirs, ignoreHidden);
 						}
 					} catch { }
 				}
@@ -151,7 +151,7 @@ namespace Moenen.Standard {
 		}
 
 
-		public static void DeleteDirectory (string path) {
+		public static void DeleteFolder (string path) {
 			if (DirectoryExists(path)) {
 				Directory.Delete(path, true);
 			}
@@ -209,7 +209,7 @@ namespace Moenen.Standard {
 		}
 
 
-		public static bool MoveDirectory (string from, string to) {
+		public static bool MoveFolder (string from, string to) {
 			if (from != to && DirectoryExists(from)) {
 				try {
 					Directory.Move(from, to);

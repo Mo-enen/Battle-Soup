@@ -14,6 +14,39 @@ namespace BattleSoup {
 
 
 		// Ship
+		private void ReloadShipToggle (Group group) {
+
+			var container = group == Group.A ? m_UI.ShipsToggleContainerA : m_UI.ShipsToggleContainerB;
+			var ships = m_Game.Asset.ShipDatas;
+
+			// Clear UI
+			var template = container.GetChild(0) as RectTransform;
+			template.SetParent(null);
+			int childCount = container.childCount;
+			for (int i = 0; i < childCount; i++) {
+				DestroyImmediate(container.GetChild(0).gameObject, false);
+			}
+
+			// Create UI
+			foreach (var ship in ships) {
+				var rt = Instantiate(template.gameObject, container).transform as RectTransform;
+				rt.anchoredPosition3D = rt.anchoredPosition;
+				rt.localScale = Vector3.one;
+				rt.localRotation = Quaternion.identity;
+				rt.SetAsLastSibling();
+				rt.gameObject.name = ship.DisplayName;
+				// Label
+				rt.Find("Label").GetComponent<Text>().text = ship.DisplayName;
+				rt.GetComponent<Toggle>().isOn = false;
+				rt.Find("Thumbnail").GetComponent<Image>().sprite = ship.Sprite;
+			}
+
+			// Final
+			DestroyImmediate(template.gameObject, false);
+
+		}
+
+
 		private void LoadShipSelectionFromSaving (Group group) {
 			var savingHash = new HashSet<string>();
 			string fleetStr = group == Group.A ? SelectedFleetA.Value : SelectedFleetB.Value;
@@ -45,14 +78,15 @@ namespace BattleSoup {
 
 		private ShipData[] GetSelectingShips (Group group) {
 			var result = new List<ShipData>();
-			var hash = new HashSet<string>();
-			foreach (var tg in group == Group.A ? m_ShipsToggleA : m_ShipsToggleB) {
-				if (tg.isOn) {
-					hash.TryAdd(tg.name);
+			var hash = new HashSet<int>();
+			var toggles = group == Group.A ? m_ShipsToggleA : m_ShipsToggleB;
+			for (int i = 0; i < toggles.Length; i++) {
+				if (toggles[i].isOn) {
+					hash.TryAdd(i);
 				}
 			}
-			foreach (var ship in m_Resource.Ships) {
-				if (hash.Contains(ship.name)) {
+			foreach (var ship in m_Game.Asset.ShipDatas) {
+				if (hash.Contains(ship.GlobalID)) {
 					result.Add(ship);
 				}
 			}
@@ -169,6 +203,41 @@ namespace BattleSoup {
 
 
 		// Map
+		private void ReloadMapToggle (Group group) {
+
+			var container = group == Group.A ? m_UI.MapsToggleContainerA : m_UI.MapsToggleContainerB;
+			var maps = m_Game.Asset.MapDatas;
+
+			// Clear UI
+			var template = container.GetChild(0) as RectTransform;
+			template.SetParent(null);
+			int childCount = container.childCount;
+			for (int i = 0; i < childCount; i++) {
+				DestroyImmediate(container.GetChild(0).gameObject, false);
+			}
+
+			// Create UI
+			foreach (var map in maps) {
+				var rt = Instantiate(template.gameObject, container).transform as RectTransform;
+				rt.anchoredPosition3D = rt.anchoredPosition;
+				rt.localScale = Vector3.one;
+				rt.localRotation = Quaternion.identity;
+				rt.SetAsLastSibling();
+				rt.gameObject.name = $"Map {rt.GetSiblingIndex()}";
+				// Label
+				rt.GetComponent<Toggle>().isOn = false;
+				rt.Find("Label").GetComponent<Text>().text = $"{map.Size}¡Á{map.Size}";
+				rt.Find("Thumbnail").GetComponent<MapRenderer>().LoadMap(map);
+				var grid = rt.Find("Grid").GetComponent<VectorGrid>();
+				grid.X = map.Size;
+				grid.Y = map.Size;
+			}
+
+			// Final
+			DestroyImmediate(template.gameObject, false);
+		}
+
+
 		private void LoadMapSelectionFromSaving (Group group) {
 			var savingIndex = group == Group.A ? SelectedMapA : SelectedMapB;
 			var toggles = group == Group.A ? m_MapsToggleA : m_MapsToggleB;
@@ -192,13 +261,11 @@ namespace BattleSoup {
 
 
 		private MapData GetSelectingMap (Group group) {
-			foreach (var tg in group == Group.A ? m_MapsToggleA : m_MapsToggleB) {
-				if (tg.isOn) {
-					foreach (var map in m_Resource.Maps) {
-						if (map.name == tg.name) {
-							return map;
-						}
-					}
+			var toggles = group == Group.A ? m_MapsToggleA : m_MapsToggleB;
+			for (int i = 0; i < toggles.Length; i++) {
+				var tg = toggles[i];
+				if (tg.isOn && i < m_Game.Asset.MapDatas.Count) {
+					return m_Game.Asset.MapDatas[i];
 				}
 			}
 			return null;
@@ -318,7 +385,7 @@ namespace BattleSoup {
 					rt.localRotation = Quaternion.identity;
 					rt.localScale = Vector3.one;
 					rt.SetAsLastSibling();
-					rt.name = ship.name;
+					rt.name = ship.DisplayName;
 
 					var btn = grabber.Grab<Button>();
 					btn.interactable = ship.Ship.Ability.HasActive && ship.Ship.Ability.Cooldown <= 0;
@@ -353,6 +420,29 @@ namespace BattleSoup {
 		private void ShowMessage (string msg) {
 			m_UI.MessageRoot.gameObject.SetActive(true);
 			m_UI.MessageText.text = msg;
+		}
+
+
+		private void FixContainerVerticalSize (RectTransform containerA, RectTransform containerB) {
+			var rt = containerA.parent as RectTransform;
+			var gridA = containerA.GetComponent<GridLayoutGroup>();
+			var gridB = containerB.GetComponent<GridLayoutGroup>();
+			var fitterA = containerA.GetComponent<ContentSizeFitter>();
+			var fitterB = containerB.GetComponent<ContentSizeFitter>();
+			gridA.CalculateLayoutInputHorizontal();
+			gridA.CalculateLayoutInputVertical();
+			gridA.SetLayoutHorizontal();
+			gridA.SetLayoutVertical();
+			gridB.CalculateLayoutInputHorizontal();
+			gridB.CalculateLayoutInputVertical();
+			gridB.SetLayoutHorizontal();
+			gridB.SetLayoutVertical();
+			fitterA.SetLayoutVertical();
+			fitterB.SetLayoutVertical();
+			float height = Mathf.Max(containerA.rect.height, containerB.rect.height);
+			if (rt.rect.height < height) {
+				rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+			}
 		}
 
 

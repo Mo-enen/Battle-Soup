@@ -125,8 +125,8 @@ namespace BattleSoup {
 
 		// Api
 		public Group CurrentTurn { get; private set; } = Group.A;
-		public int AbilityShipIndex { get; private set; } = -1;
 		public AbilityDirection AbilityDirection { get; private set; } = AbilityDirection.Up;
+		public int AbilityShipIndex { get; private set; } = -1;
 		public int PrevUsedAbilityA { get; private set; } = -1;
 		public int PrevUsedAbilityB { get; private set; } = -1;
 		public bool Cheated { get; set; } = false;
@@ -149,6 +149,9 @@ namespace BattleSoup {
 		private readonly GameData DataA = new GameData();
 		private readonly GameData DataB = new GameData();
 		private readonly Vector3[] WorldCornerCaches = new Vector3[4];
+		private BattleMode CurrentBattleMode = BattleMode.PvA;
+		private readonly AbilityPerformData AbilityData = new AbilityPerformData();
+		private float AllowUpdateTime = 0f;
 		private readonly Attack DEFAULT_ATTACK = new Attack() {
 			X = 0,
 			Y = 0,
@@ -156,9 +159,6 @@ namespace BattleSoup {
 			Trigger = AttackTrigger.Picked,
 			Type = AttackType.HitTile,
 		};
-		private BattleMode CurrentBattleMode = BattleMode.PvA;
-		private readonly AbilityPerformData AbilityData = new AbilityPerformData();
-		private float AllowUpdateTime = 0f;
 
 
 		#endregion

@@ -62,6 +62,7 @@ namespace BattleSoup {
 		[System.Serializable]
 		public struct GameData {
 			public Game Game;
+			public Asset Asset;
 			public ShipPositionUI ShipPositionUI;
 			public BattleSoupUI BattleSoupUIA;
 			public BattleSoupUI BattleSoupUIB;
@@ -100,8 +101,6 @@ namespace BattleSoup {
 		[System.Serializable]
 		public struct ResourceData {
 			public Sprite[] BattleAvatars;
-			public ShipData[] Ships;
-			public MapData[] Maps;
 			public CursorData[] Cursors;
 		}
 

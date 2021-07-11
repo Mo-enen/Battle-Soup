@@ -6,22 +6,25 @@ using BattleSoupAI;
 
 
 namespace BattleSoup {
-	[CreateAssetMenu(fileName = "New Ship", menuName = "BattleSoup Ship", order = 101)]
-	public class ShipData : ScriptableObject {
+	[System.Serializable]
+	public class ShipData {
+
 
 
 		// Api
-		public string DisplayName => m_DisplayName;
-		public int GlobalID => m_GlobalID;
-		public Sprite Sprite => m_Sprite;
-		public Ship Ship => m_Ship;
-
-
+		public int GlobalID { get; set; } = 0;
+		public Sprite Sprite { get; set; } = null;
+		public string DisplayName {
+			get => m_DisplayName;
+			set => m_DisplayName = value;
+		}
+		public Ship Ship {
+			get => m_Ship;
+			set => m_Ship = value;
+		}
 
 		// Ser
 		[SerializeField] string m_DisplayName = "";
-		[SerializeField] int m_GlobalID = 0;
-		[SerializeField] Sprite m_Sprite = null;
 		[SerializeField] Ship m_Ship = default;
 
 
@@ -77,19 +80,3 @@ namespace BattleSoup {
 
 	}
 }
-
-
-
-#if UNITY_EDITOR
-namespace BattleSoup.Editor {
-	using UnityEditor;
-	[CustomEditor(typeof(ShipData))]
-	public class Ship_Inspector : Editor {
-		public override void OnInspectorGUI () {
-			serializedObject.Update();
-			DrawPropertiesExcluding(serializedObject, "m_Script");
-			serializedObject.ApplyModifiedProperties();
-		}
-	}
-}
-#endif

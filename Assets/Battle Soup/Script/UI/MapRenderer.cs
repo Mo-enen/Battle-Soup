@@ -10,19 +10,8 @@ namespace BattleSoup {
 
 
 		// Ser
-		[SerializeField] MapData m_Map = null;
 		[SerializeField] VectorGrid m_Grid = null;
 
-
-
-
-		// MSG
-		protected override void OnEnable () {
-			base.OnEnable();
-			if (m_Map != null) {
-				LoadMap(m_Map);
-			}
-		}
 
 
 
@@ -41,11 +30,6 @@ namespace BattleSoup {
 			SetVerticesDirty();
 		}
 
-
-		public void SetMap (MapData map) {
-			m_Map = map;
-			LoadMap(map);
-		}
 
 
 	}

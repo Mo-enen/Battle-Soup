@@ -132,10 +132,17 @@ namespace BattleSoup {
 			}
 			void SetCacheUV (Sprite sprite) {
 				if (sprite != null) {
-					CacheVertices[0].uv0 = sprite.uv[2];
-					CacheVertices[1].uv0 = sprite.uv[0];
-					CacheVertices[2].uv0 = sprite.uv[1];
-					CacheVertices[3].uv0 = sprite.uv[3];
+					var _rect = sprite.rect;
+					float _width = sprite.texture.width;
+					float _height = sprite.texture.height;
+					_rect.x /= _width;
+					_rect.y /= _height;
+					_rect.width /= _width;
+					_rect.height /= _height;
+					CacheVertices[0].uv0 = new Vector2(_rect.xMin, _rect.yMin);
+					CacheVertices[1].uv0 = new Vector2(_rect.xMin, _rect.yMax);
+					CacheVertices[2].uv0 = new Vector2(_rect.xMax, _rect.yMax);
+					CacheVertices[3].uv0 = new Vector2(_rect.xMax, _rect.yMin);
 				} else {
 					CacheVertices[0].uv0 = default;
 					CacheVertices[1].uv0 = default;
@@ -171,6 +178,9 @@ namespace BattleSoup {
 				Blocks.Clear();
 			}
 		}
+
+
+		public void SetSprites (Sprite[] sprites) => m_Blocks = sprites;
 
 
 		#endregion

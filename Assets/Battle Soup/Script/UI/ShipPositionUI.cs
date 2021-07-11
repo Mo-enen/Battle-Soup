@@ -9,7 +9,7 @@ using Moenen.Standard;
 
 
 namespace BattleSoup {
-	public class ShipPositionUI : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IDragHandler, IEndDragHandler {
+	public class ShipPositionUI : MonoBehaviour, IPointerDownHandler, IDragHandler, IEndDragHandler {
 
 
 
@@ -41,11 +41,11 @@ namespace BattleSoup {
 		// Data
 		private MapData _Map = null;
 		private ShipData[] _Ships = new ShipData[0];
+		private readonly List<ShipPosition> DefaultPositions = new List<ShipPosition>();
 		private readonly List<ShipPosition> _Positions = new List<ShipPosition>();
 		private int DraggingShipIndex = -1;
 		private Vector2Int DraggingOffset = default;
 		private Vector2Int DraggingPrev = default;
-
 
 
 		#endregion
@@ -56,15 +56,8 @@ namespace BattleSoup {
 		#region --- MSG ---
 
 
-		public void OnBeginDrag (PointerEventData eData) {
-			if (_Map == null || _Ships == null || eData.button != PointerEventData.InputButton.Left) { return; }
-			var pos = GetMapPos(eData.position, eData.pressEventCamera);
-			if (ShipData.Contains(pos.x, pos.y, _Ships, _Positions, out int index)) {
-				var sPos = _Positions[index];
-				DraggingShipIndex = index;
-				DraggingOffset = pos - new Vector2Int(sPos.Pivot.x, sPos.Pivot.y);
-				DraggingPrev = pos;
-			}
+		private void OnDisable () {
+			DefaultPositions.Clear();
 		}
 
 
@@ -94,16 +87,26 @@ namespace BattleSoup {
 
 
 		public void OnPointerDown (PointerEventData eData) {
-			if (eData.button != PointerEventData.InputButton.Right) { return; }
-			var pos = GetMapPos(eData.position, eData.pressEventCamera);
-			if (ShipData.Contains(pos.x, pos.y, _Ships, _Positions, out int index)) {
-				var sPos = _Positions[index];
-				sPos.Flip = !sPos.Flip;
-				_Positions[index] = sPos;
-				ClampAllShipsInSoup();
-				RefreshShipRenderer();
-				RefreshOverlapRenderer();
-				m_OnPositionChanged.Invoke();
+			if (eData.button == PointerEventData.InputButton.Left) {
+				if (_Map == null || _Ships == null || eData.button != PointerEventData.InputButton.Left) { return; }
+				var pos = GetMapPos(eData.position, eData.pressEventCamera);
+				if (ShipData.Contains(pos.x, pos.y, _Ships, _Positions, out int index)) {
+					var sPos = _Positions[index];
+					DraggingShipIndex = index;
+					DraggingOffset = pos - new Vector2Int(sPos.Pivot.x, sPos.Pivot.y);
+					DraggingPrev = pos;
+				}
+			} else if (eData.button == PointerEventData.InputButton.Right) {
+				var pos = GetMapPos(eData.position, eData.pressEventCamera);
+				if (ShipData.Contains(pos.x, pos.y, _Ships, _Positions, out int index)) {
+					var sPos = _Positions[index];
+					sPos.Flip = !sPos.Flip;
+					_Positions[index] = sPos;
+					//ClampAllShipsInSoup();
+					RefreshShipRenderer();
+					RefreshOverlapRenderer();
+					m_OnPositionChanged.Invoke();
+				}
 			}
 		}
 
@@ -132,6 +135,8 @@ namespace BattleSoup {
 			// Pos
 			_Positions.Clear();
 			_Positions.AddRange(positions);
+			DefaultPositions.Clear();
+			DefaultPositions.AddRange(positions);
 			RefreshShipRenderer();
 			RefreshOverlapRenderer();
 			ClampAllShipsInSoup();
@@ -208,6 +213,15 @@ namespace BattleSoup {
 
 			m_OverlapRenderer.SetVerticesDirty();
 			return success;
+		}
+
+
+		public void UI_ResetShipPositions () {
+			Positions.Clear();
+			Positions.AddRange(DefaultPositions);
+			RefreshOverlapRenderer();
+			RefreshShipRenderer();
+			m_OnPositionChanged.Invoke();
 		}
 
 
