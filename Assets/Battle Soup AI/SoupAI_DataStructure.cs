@@ -66,7 +66,7 @@ namespace BattleSoupAI {
 
 
 	[System.Serializable]
-	public struct Ability {
+	public class Ability {
 
 		// Api
 		public bool HasActive {
@@ -120,12 +120,12 @@ namespace BattleSoupAI {
 		}
 
 		// Api-Ser
-		public List<Attack> Attacks;
-		public int Cooldown;
-		public bool BreakOnSunk;
-		public bool BreakOnMiss;
-		public bool ResetCooldownOnHit;
-		public bool CopyOpponentLastUsed;
+		public List<Attack> Attacks = new List<Attack>();
+		public int Cooldown = 1;
+		public bool BreakOnSunk = false;
+		public bool BreakOnMiss = false;
+		public bool ResetCooldownOnHit = false;
+		public bool CopyOpponentLastUsed = false;
 
 		// Data
 		private bool? _HasActive;
@@ -216,13 +216,11 @@ namespace BattleSoupAI {
 
 
 	[System.Serializable]
-	public struct Ship {
+	public class Ship {
 
-
-		public int TerminateHP;
-		public Int2[] Body;
-		public Ability Ability;
-
+		public int TerminateHP = 0;
+		public Int2[] Body = new Int2[0];
+		public Ability Ability = new Ability();
 
 		public (Int2 min, Int2 max) GetBounds (ShipPosition pos) {
 			int minX = int.MaxValue;
@@ -240,7 +238,6 @@ namespace BattleSoupAI {
 				(new Int2(minX, minY), new Int2(maxX, maxY));
 		}
 
-
 		public bool Contains (int x, int y, ShipPosition pos) {
 			foreach (var v in Body) {
 				if (
@@ -250,7 +247,6 @@ namespace BattleSoupAI {
 			}
 			return false;
 		}
-
 
 	}
 

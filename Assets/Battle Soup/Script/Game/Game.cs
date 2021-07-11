@@ -129,13 +129,14 @@ namespace BattleSoup {
 		public AbilityDirection AbilityDirection { get; private set; } = AbilityDirection.Up;
 		public int PrevUsedAbilityA { get; private set; } = -1;
 		public int PrevUsedAbilityB { get; private set; } = -1;
+		public bool Cheated { get; set; } = false;
 
 		// Ser
 		[SerializeField] BattleSoupUI m_SoupA = null;
 		[SerializeField] BattleSoupUI m_SoupB = null;
-		[SerializeField] RectTransform m_FaceWin = null;
-		[SerializeField] RectTransform m_FaceLose = null;
+		[SerializeField] Image m_Face = null;
 		[SerializeField] Toggle m_CheatToggle = null;
+		[SerializeField] Sprite[] m_Faces = null;
 		[SerializeField] VoidEvent m_RefreshUI = null;
 		[SerializeField] VoidVector3Event m_OnShipHitted = null;
 		[SerializeField] VoidVector3Event m_OnShipSunk = null;
@@ -289,6 +290,7 @@ namespace BattleSoup {
 			m_CheatToggle.isOn = false;
 			PrevUsedAbilityA = -1;
 			PrevUsedAbilityB = -1;
+			Cheated = false;
 		}
 
 
@@ -386,25 +388,25 @@ namespace BattleSoup {
 			// Check Win
 			if (AllShipsSunk(Group.A)) {
 				if (CurrentBattleMode == BattleMode.PvA) {
-					m_FaceWin.gameObject.SetActive(false);
-					m_FaceLose.gameObject.SetActive(true);
-					m_ShowMessage.Invoke("You Lose");
+					m_Face.gameObject.SetActive(true);
+					m_Face.sprite = m_Faces[Cheated ? 3 : 1];
+					m_ShowMessage.Invoke(Cheated ? "You cheated but still lose.\nThat sucks..." : "You Lose");
 				} else {
-					m_FaceWin.gameObject.SetActive(false);
-					m_FaceLose.gameObject.SetActive(false);
+					m_Face.gameObject.SetActive(false);
+					m_Face.sprite = null;
 					m_ShowMessage.Invoke("Robot B Win");
 				}
 				gameObject.SetActive(false);
 				m_RefreshUI.Invoke();
 			} else if (AllShipsSunk(Group.B)) {
 				if (CurrentBattleMode == BattleMode.PvA) {
-					m_ShowMessage.Invoke("You Win");
-					m_FaceWin.gameObject.SetActive(true);
-					m_FaceLose.gameObject.SetActive(false);
+					m_Face.gameObject.SetActive(true);
+					m_Face.sprite = m_Faces[Cheated ? 2 : 0];
+					m_ShowMessage.Invoke(Cheated ? "You didn't win.\nBecause you cheated." : "You Win");
 				} else {
+					m_Face.gameObject.SetActive(false);
+					m_Face.sprite = null;
 					m_ShowMessage.Invoke("Robot A Win");
-					m_FaceWin.gameObject.SetActive(false);
-					m_FaceLose.gameObject.SetActive(false);
 				}
 				gameObject.SetActive(false);
 				m_RefreshUI.Invoke();

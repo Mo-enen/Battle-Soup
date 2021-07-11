@@ -24,7 +24,7 @@ namespace BattleSoup {
 		public delegate int IntHandler ();
 		public delegate bool BoolIntHandler (int index);
 		public delegate bool BoolHandler ();
-		public delegate Ability? AbilityHandler ();
+		public delegate Ability AbilityHandler ();
 		public delegate AbilityDirection AbilityDirectionHandler ();
 
 
@@ -178,14 +178,14 @@ namespace BattleSoup {
 			var ability = GetCurrentAbility();
 			var dir = GetCurrentAbilityDirection();
 			bool success = false;
-			if (ability.HasValue) {
-				if (ability.Value.NeedAim && GetMapPositionInside(Input.mousePosition, out var pos)) {
+			if (ability != null) {
+				if (ability.NeedAim && GetMapPositionInside(Input.mousePosition, out var pos)) {
 					if (!PrevMousePosForAim.HasValue || PrevMousePosForAim.Value != pos || PrevAbilityDirection != dir) {
 						var map = GetMap();
 						PrevMousePosForAim = pos;
 						PrevAbilityDirection = dir;
 						m_AimRenderer.ClearBlock();
-						foreach (var att in ability.Value.Attacks) {
+						foreach (var att in ability.Attacks) {
 							if (att.Trigger == AttackTrigger.Picked || att.Trigger == AttackTrigger.TiedUp) {
 								var (x, y) = att.GetPosition(pos.x, pos.y, dir);
 								if (x >= 0 && x < map.Size && y >= 0 && y < map.Size) {

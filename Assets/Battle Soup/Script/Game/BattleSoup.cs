@@ -31,7 +31,6 @@ namespace BattleSoup {
 		private Toggle[] m_MapsToggleA = null;
 		private Toggle[] m_MapsToggleB = null;
 		private bool QuitGameForReal = false;
-		private bool Cheated = false;
 
 		// Saving
 		private readonly SavingString SelectedFleetA = new SavingString("BattleSoupDemo.Demo.SelectedFleetA", "Coracle+KillerSquid+SeaTurtle+Whale");
@@ -176,7 +175,6 @@ namespace BattleSoup {
 						m_Game.BattleSoupUIB.Init(true);
 						m_Game.BattleSoupUIA.RefreshShipRenderer();
 						m_Game.BattleSoupUIB.RefreshShipRenderer();
-						Cheated = false;
 						RefreshBattleInfoUI();
 						ReloadAbilityUI();
 						UI_RefreshAbilityUI();
@@ -200,7 +198,6 @@ namespace BattleSoup {
 					m_Game.BattleSoupUIB.Init(true);
 					m_Game.BattleSoupUIA.RefreshShipRenderer();
 					m_Game.BattleSoupUIB.RefreshShipRenderer();
-					Cheated = false;
 					RefreshBattleInfoUI();
 					ReloadAbilityUI();
 					UI_RefreshAbilityUI();
@@ -324,7 +321,7 @@ namespace BattleSoup {
 		}
 
 
-		public void UI_SetCheat () => Cheated = true;
+		public void UI_SetCheat () => m_Game.Game.Cheated = true;
 
 
 		public void UI_QuitGame () {

@@ -271,7 +271,7 @@ namespace BattleSoup {
 				avatar.sprite = m_Resource.BattleAvatars[(int)CurrentBattleMode];
 			}
 			foreach (var avatar in m_UI.BattleAvatarB) {
-				avatar.sprite = m_Resource.BattleAvatars[CurrentBattleMode == BattleMode.AvA || !Cheated ? 1 : 2];
+				avatar.sprite = m_Resource.BattleAvatars[CurrentBattleMode == BattleMode.AvA || !m_Game.Game.Cheated ? 1 : 2];
 			}
 			// Arrow
 			m_UI.TurnArrowA.gameObject.SetActive(m_Game.Game.CurrentTurn == Group.A);
