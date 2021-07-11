@@ -127,6 +127,8 @@ namespace BattleSoup {
 		public Group CurrentTurn { get; private set; } = Group.A;
 		public int AbilityShipIndex { get; private set; } = -1;
 		public AbilityDirection AbilityDirection { get; private set; } = AbilityDirection.Up;
+		public int PrevUsedAbilityA { get; private set; } = -1;
+		public int PrevUsedAbilityB { get; private set; } = -1;
 
 		// Ser
 		[SerializeField] BattleSoupUI m_SoupA = null;
@@ -285,6 +287,8 @@ namespace BattleSoup {
 			DataA.Init(mapA, shipsA, positionsA);
 			DataB.Init(mapB, shipsB, positionsB);
 			m_CheatToggle.isOn = false;
+			PrevUsedAbilityA = -1;
+			PrevUsedAbilityB = -1;
 		}
 
 
@@ -412,6 +416,10 @@ namespace BattleSoup {
 			for (int i = 0; i < cooldowns.Count; i++) {
 				cooldowns[i] = Mathf.Max(cooldowns[i] - 1, 0);
 			}
+
+			// Copy From Opponent
+			RefreshCopyFromOpponent(Group.A);
+			RefreshCopyFromOpponent(Group.B);
 
 			// Turn Change
 			CurrentTurn = CurrentTurn == Group.A ? Group.B : Group.A;
@@ -582,6 +590,15 @@ namespace BattleSoup {
 
 			}
 
+			// Prev Use
+			if (ability.HasActive) {
+				if (CurrentTurn == Group.A) {
+					PrevUsedAbilityA = AbilityShipIndex;
+				} else {
+					PrevUsedAbilityB = AbilityShipIndex;
+				}
+			}
+
 			// Final
 			data.Cooldowns[AbilityShipIndex] = ability.Cooldown;
 			aData.Clear();
@@ -593,6 +610,24 @@ namespace BattleSoup {
 			AbilityShipIndex = -1;
 			AbilityData.Clear();
 			m_RefreshUI.Invoke();
+		}
+
+
+		private void RefreshCopyFromOpponent (Group group) {
+			int prevOpponentUseIndex = group == Group.A ? PrevUsedAbilityB : PrevUsedAbilityA;
+			var data = group == Group.A ? DataA : DataB;
+			var opData = group == Group.A ? DataB : DataA;
+			for (int i = 0; i < data.Ships.Length; i++) {
+				var ability = data.Ships[i].Ability;
+				if (ability.CopyOpponentLastUsed) {
+					if (prevOpponentUseIndex >= 0) {
+						ability.CopyFrom(opData.Ships[prevOpponentUseIndex].Ability);
+					} else {
+						ability.CopyFromNull();
+					}
+					data.Ships[i].Ability = ability;
+				}
+			}
 		}
 
 
@@ -815,7 +850,8 @@ namespace BattleSoup {
 			foreach (var v in ship.Ship.Body) {
 				int _x = sPos.Pivot.x + (sPos.Flip ? v.y : v.x);
 				int _y = sPos.Pivot.y + (sPos.Flip ? v.x : v.y);
-				if (data.Tiles[_x, _y] != Tile.RevealedShip) {
+				var tile = data.Tiles[_x, _y];
+				if (tile != Tile.RevealedShip && tile != Tile.HittedShip) {
 					data.Tiles[_x, _y] = Tile.RevealedShip;
 					m_OnShipRevealed.Invoke(GetWorldPosition(_x, _y, group));
 				}

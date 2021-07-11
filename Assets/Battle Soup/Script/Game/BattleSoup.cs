@@ -78,6 +78,8 @@ namespace BattleSoup {
 			m_UI.SoundTG.SetIsOnWithoutNotify(UseSound.Value);
 			// System
 			Application.targetFrameRate = 30;
+			Util.CreateFolder(Util.GetRuntimeBuiltRootPath());
+
 		}
 
 
@@ -276,9 +278,11 @@ namespace BattleSoup {
 			// Func
 			void RefreshAbilityUI (RectTransform container, Group group) {
 				int count = container.childCount;
+				var opGroup = group == Group.A ? Group.B : Group.A;
 				for (int i = 0; i < count; i++) {
 					int cooldown = m_Game.Game.GetCooldown(group, i);
 					var ability = m_Game.Game.GetAbility(group, i);
+					int opPrevUseIndex = group == Group.A ? m_Game.Game.PrevUsedAbilityB : m_Game.Game.PrevUsedAbilityA;
 
 					var grabber = container.GetChild(i).GetComponent<Grabber>();
 					var btn = grabber.Grab<Button>();
@@ -298,6 +302,13 @@ namespace BattleSoup {
 					grabber.Grab<RectTransform>("Highlight").gameObject.SetActive(
 						m_Game.Game.CurrentTurn == group && m_Game.Game.AbilityShipIndex == i
 					);
+
+					var copy = grabber.Grab<Image>("Copy");
+					bool copyActive = ability.CopyOpponentLastUsed && opPrevUseIndex >= 0;
+					copy.gameObject.SetActive(copyActive);
+					if (copyActive) {
+						copy.sprite = m_Game.Game.GetShipData(opGroup, opPrevUseIndex).Sprite;
+					}
 
 				}
 			}

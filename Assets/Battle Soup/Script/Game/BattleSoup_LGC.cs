@@ -176,7 +176,7 @@ namespace BattleSoup {
 				toggles[i].SetIsOnWithoutNotify(i == savingIndex.Value);
 			}
 		}
-		
+
 
 		private void SaveMapSelectionToSaving (Group group) {
 			var savingIndex = group == Group.A ? SelectedMapA : SelectedMapB;
@@ -340,6 +340,8 @@ namespace BattleSoup {
 					cooldown.text = ship.Ship.Ability.Cooldown.ToString();
 
 					grabber.Grab<RectTransform>("Red Panel").gameObject.SetActive(false);
+
+					grabber.Grab<Image>("Copy").gameObject.SetActive(false);
 
 				}
 			}

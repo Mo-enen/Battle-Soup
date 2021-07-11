@@ -132,6 +132,19 @@ namespace BattleSoupAI {
 		private bool? _HasPassive;
 		private bool? _NeedAim;
 
+		public void CopyFrom (Ability target) {
+			Attacks.Clear();
+			Attacks.AddRange(target.Attacks);
+			BreakOnSunk = target.BreakOnSunk;
+			BreakOnMiss = target.BreakOnMiss;
+		}
+
+		public void CopyFromNull () {
+			Attacks.Clear();
+			BreakOnSunk = false;
+			BreakOnMiss = false;
+		}
+
 	}
 
 
