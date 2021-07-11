@@ -1,0 +1,35 @@
+﻿{
+  "m_DisplayName": "Coracle",
+  "m_Ship": {
+    "TerminateHP": 0,
+    "Body": [
+      {
+        "x": 0,
+        "y": 0
+      }
+    ],
+    "Ability": {
+      "Attacks": [
+        {
+          "X": 0,
+          "Y": 0,
+          "Type": 2,
+          "Trigger": 0,
+          "AvailableTarget": 16
+        },
+        {
+          "X": 0,
+          "Y": 0,
+          "Type": 5,
+          "Trigger": 3,
+          "AvailableTarget": 1
+        }
+      ],
+      "Cooldown": 5,
+      "BreakOnSunk": false,
+      "BreakOnMiss": false,
+      "ResetCooldownOnHit": false,
+      "CopyOpponentLastUsed": false
+    }
+  }
+}
