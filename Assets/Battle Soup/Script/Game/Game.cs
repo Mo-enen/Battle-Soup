@@ -22,30 +22,28 @@ namespace BattleSoup {
 
 		private class GameData {
 
+			public SoupStrategy Strategy;
 			public MapData Map = null;
 			public ShipData[] ShipDatas = null;
 			public Ship[] Ships = null;
 			public Tile[,] Tiles = null;
+			public int[] Cooldowns = null;
 			public bool[] ShipsAlive = null;
 			public bool[] SuperRevealed = null;
-			public readonly List<ShipPosition> Positions = new List<ShipPosition>();
-			public readonly List<int> Cooldowns = new List<int>();
+			public ShipPosition[] Positions = null;
 			public readonly List<SonarPosition> Sonars = new List<SonarPosition>();
 
-			public void Init (MapData map, ShipData[] ships, List<ShipPosition> positions) {
+			public void Init (SoupStrategy strategy, MapData map, ShipData[] ships, ShipPosition[] positions) {
 
 				Map = map;
 				ShipDatas = ships;
+				Strategy = strategy;
 
 				// Ships
 				Ships = ShipData.GetShips(ships);
 
 				// Pos
-				if (positions.Count < ships.Length) {
-					positions.AddRange(new ShipPosition[ships.Length - positions.Count]);
-				}
-				Positions.Clear();
-				Positions.AddRange(positions);
+				Positions = positions;
 
 				// Tiles
 				Tiles = new Tile[map.Size, map.Size];
@@ -61,8 +59,9 @@ namespace BattleSoup {
 				}
 
 				// Cooldown
+				Cooldowns = new int[ships.Length];
 				for (int i = 0; i < ships.Length; i++) {
-					Cooldowns.Add(ships[i].Ship.Ability.Cooldown - 1);
+					Cooldowns[i] = ships[i].Ship.Ability.Cooldown - 1;
 				}
 
 				// Ships Alive
@@ -82,8 +81,8 @@ namespace BattleSoup {
 				Ships = null;
 				Tiles = null;
 				ShipsAlive = null;
-				Positions.Clear();
-				Cooldowns.Clear();
+				Cooldowns = null;
+				Positions = null;
 				Sonars.Clear();
 			}
 
@@ -169,6 +168,13 @@ namespace BattleSoup {
 		#region --- MSG ---
 
 
+		private void OnEnable () {
+			if (AllShipsSunk(Group.A) || AllShipsSunk(Group.B)) {
+				gameObject.SetActive(false);
+			}
+		}
+
+
 		private void Update () {
 			Update_Aim();
 			Update_Turn();
@@ -190,7 +196,7 @@ namespace BattleSoup {
 								// Ability Attack
 								AbilityData.PickedPerformed = false;
 								AbilityData.WaitForPicking = false;
-								if (PerformAbility(pos.x, pos.y)) {
+								if (PerformAbility(pos.x, pos.y, out _)) {
 									DelayUpdate(0.1f);
 									SwitchTurn();
 								} else {
@@ -198,21 +204,8 @@ namespace BattleSoup {
 									m_RefreshUI.Invoke();
 								}
 							} else if (AttackTile(DEFAULT_ATTACK, pos.x, pos.y, Group.B) != AttackResult.None) {
-
-
-
-								//for (int i = 0; i < DataB.Map.Size; i++) {
-								//	for (int j = 0; j < DataB.Map.Size; j++) {
-								//		RevealTile(i, j, Group.B, DataB, false, true, out _);
-								//	}
-								//}
-
-
-
-
-								// Passive Attack
-								PerformPassiveAttack();
 								// Normal Attack
+								PerformPassiveAttack();
 								DelayUpdate(0.1f);
 								SwitchTurn();
 							}
@@ -226,33 +219,64 @@ namespace BattleSoup {
 					}
 				} else {
 					// Robot A
-					if (SoupAI.Analyse(
-						DataA.Tiles, DataB.Tiles,
-						DataA.Ships, DataB.Ships,
-						DataA.Positions,
-						out _, out _, out _
-					)) {
-
-
-
-					}
-					SwitchTurn();
-					DelayUpdate(0.1f);
+					PerformRobotTurn(Group.A);
 				}
 			} else {
 				// B Turn
-				if (SoupAI.Analyse(
-					DataB.Tiles, DataA.Tiles,
-					DataB.Ships, DataA.Ships,
-					DataB.Positions,
-					out _, out _, out _
-				)) {
-
-
-
+				PerformRobotTurn(Group.B);
+			}
+			// Func
+			void PerformRobotTurn (Group group) {
+				var ownData = group == Group.A ? DataA : DataB;
+				var oppData = group == Group.A ? DataB : DataA;
+				var oppGroup = group == Group.A ? Group.B : Group.A;
+				var result = ownData.Strategy.Analyse(
+					new BattleInfo() {
+						Ships = ownData.Ships,
+						Tiles = ownData.Tiles,
+						Cooldowns = ownData.Cooldowns,
+					},
+					new BattleInfo() {
+						Ships = oppData.Ships,
+						Tiles = oppData.Tiles,
+						Cooldowns = oppData.Cooldowns,
+					},
+					ownData.Positions,
+					AbilityShipIndex
+				);
+				if (result.Success) {
+					if (result.AbilityIndex < 0) {
+						// Normal Attack
+						AttackTile(DEFAULT_ATTACK, result.TargetPosition.x, result.TargetPosition.y, oppGroup);
+						PerformPassiveAttack();
+						DelayUpdate(0.1f);
+						SwitchTurn();
+					} else {
+						bool combo = AbilityShipIndex >= 0;
+						if (AbilityShipIndex < 0) {
+							// First Trigger
+							if (!AbilityFirstTrigger(result.AbilityIndex)) {
+								combo = true;
+							}
+						}
+						if (combo) {
+							// Combo
+							AbilityDirection = result.AbilityDirection;
+							if (AbilityData.WaitForPicking) {
+								// Ability Attack
+								AbilityData.PickedPerformed = false;
+								AbilityData.WaitForPicking = false;
+								if (PerformAbility(result.TargetPosition.x, result.TargetPosition.y, out bool error) || error) {
+									DelayUpdate(0.1f);
+									SwitchTurn();
+								} else {
+									AbilityData.WaitForPicking = true;
+									m_RefreshUI.Invoke();
+								}
+							}
+						}
+					}
 				}
-				SwitchTurn();
-				DelayUpdate(0.1f);
 			}
 		}
 
@@ -279,18 +303,19 @@ namespace BattleSoup {
 		#region --- API ---
 
 
-		public void Init (BattleMode battleMode, MapData mapA, MapData mapB, ShipData[] shipsA, ShipData[] shipsB, List<ShipPosition> positionsA, List<ShipPosition> positionsB) {
+		public void Init (BattleMode battleMode, SoupStrategy strategyA, SoupStrategy strategyB, MapData mapA, MapData mapB, ShipData[] shipsA, ShipData[] shipsB, ShipPosition[] positionsA, ShipPosition[] positionsB) {
 			CurrentBattleMode = battleMode;
 			CurrentTurn = Random.value > 0.5f ? Group.A : Group.B;
 			AbilityData.Clear();
 			DataA.Clear();
 			DataB.Clear();
-			DataA.Init(mapA, shipsA, positionsA);
-			DataB.Init(mapB, shipsB, positionsB);
+			DataA.Init(strategyA, mapA, shipsA, positionsA);
+			DataB.Init(strategyB, mapB, shipsB, positionsB);
 			m_CheatToggle.isOn = false;
 			PrevUsedAbilityA = -1;
 			PrevUsedAbilityB = -1;
 			Cheated = false;
+			m_CheatToggle.gameObject.SetActive(true);
 		}
 
 
@@ -339,7 +364,7 @@ namespace BattleSoup {
 		// Ability
 		public int GetCooldown (Group group, int index) {
 			var cooldowns = group == Group.A ? DataA.Cooldowns : DataB.Cooldowns;
-			return cooldowns[Mathf.Clamp(index, 0, cooldowns.Count - 1)];
+			return cooldowns[Mathf.Clamp(index, 0, cooldowns.Length - 1)];
 		}
 
 
@@ -356,17 +381,7 @@ namespace BattleSoup {
 				CurrentTurn != Group.A ||
 				AbilityShipIndex >= 0
 			) { return; }
-			AbilityShipIndex = shipIndex;
-			AbilityData.AbilityAttackIndex = 0;
-			AbilityData.WaitForPicking = true;
-			AbilityData.PickedPerformed = true;
-			AbilityDirection = AbilityDirection.Up;
-			if (PerformAbility(0, 0)) {
-				DelayUpdate(0.1f);
-				SwitchTurn();
-			} else {
-				m_RefreshUI.Invoke();
-			}
+			AbilityFirstTrigger(shipIndex);
 		}
 
 
@@ -397,7 +412,10 @@ namespace BattleSoup {
 					m_ShowMessage.Invoke("Robot B Win");
 				}
 				gameObject.SetActive(false);
+				m_CheatToggle.gameObject.SetActive(false);
 				m_RefreshUI.Invoke();
+				RefreshAllSoupRenderers();
+				return;
 			} else if (AllShipsSunk(Group.B)) {
 				if (CurrentBattleMode == BattleMode.PvA) {
 					m_Face.gameObject.SetActive(true);
@@ -409,13 +427,15 @@ namespace BattleSoup {
 					m_ShowMessage.Invoke("Robot A Win");
 				}
 				gameObject.SetActive(false);
+				m_CheatToggle.gameObject.SetActive(false);
 				m_RefreshUI.Invoke();
+				RefreshAllSoupRenderers();
 				return;
 			}
 
 			// Cooldown
 			var cooldowns = CurrentTurn == Group.A ? DataA.Cooldowns : DataB.Cooldowns;
-			for (int i = 0; i < cooldowns.Count; i++) {
+			for (int i = 0; i < cooldowns.Length; i++) {
 				cooldowns[i] = Mathf.Max(cooldowns[i] - 1, 0);
 			}
 
@@ -423,20 +443,24 @@ namespace BattleSoup {
 			RefreshCopyFromOpponent(Group.A);
 			RefreshCopyFromOpponent(Group.B);
 
+			// Refresh
+			RefreshAllSoupRenderers();
+
 			// Turn Change
 			CurrentTurn = CurrentTurn == Group.A ? Group.B : Group.A;
 			m_RefreshUI.Invoke();
 
-			// Func
-			bool AllShipsSunk (Group group) {
-				int count = (group == Group.A ? DataA.ShipDatas.Length : DataB.ShipDatas.Length);
-				for (int i = 0; i < count; i++) {
-					if (CheckShipAlive(i, group)) {
-						return false;
-					}
+		}
+
+
+		private bool AllShipsSunk (Group group) {
+			int count = (group == Group.A ? DataA.ShipDatas.Length : DataB.ShipDatas.Length);
+			for (int i = 0; i < count; i++) {
+				if (CheckShipAlive(i, group)) {
+					return false;
 				}
-				return true;
 			}
+			return true;
 		}
 
 
@@ -496,6 +520,16 @@ namespace BattleSoup {
 		private void DelayUpdate (float second) => AllowUpdateTime = Time.time + second;
 
 
+		private void RefreshAllSoupRenderers () {
+			m_SoupA.RefreshHitRenderer();
+			m_SoupB.RefreshHitRenderer();
+			m_SoupA.RefreshShipRenderer();
+			m_SoupB.RefreshShipRenderer();
+			m_SoupA.RefreshSonarRenderer();
+			m_SoupB.RefreshSonarRenderer();
+		}
+
+
 		// Passive
 		private void PerformPassiveAttack () {
 			var data = CurrentTurn == Group.A ? DataA : DataB;
@@ -516,16 +550,18 @@ namespace BattleSoup {
 
 
 		// Ability
-		private bool PerformAbility (int x, int y) {
+		private bool PerformAbility (int x, int y, out bool error) {
 
+			error = false;
 			var aData = AbilityData;
-			if (AbilityShipIndex < 0) { return false; }
+			if (AbilityShipIndex < 0) { error = true; return false; }
+			if (!CheckShipAlive(AbilityShipIndex, CurrentTurn)) { error = true; return false; }
 
 			var opponentGroup = CurrentTurn == Group.A ? Group.B : Group.A;
 			var data = CurrentTurn == Group.A ? DataA : DataB;
 			var opData = CurrentTurn == Group.A ? DataB : DataA;
 			var ability = data.Ships[AbilityShipIndex].Ability;
-			if (ability.Attacks == null || ability.Attacks.Count == 0) { return false; }
+			if (ability.Attacks == null || ability.Attacks.Count == 0) { error = true; return false; }
 
 			// Perform Attack
 			for (
@@ -535,6 +571,7 @@ namespace BattleSoup {
 			) {
 				var attack = ability.Attacks[aData.AbilityAttackIndex];
 				AttackResult result = AttackResult.None;
+				bool isHit = attack.Type == AttackType.HitTile || attack.Type == AttackType.HitWholeShip;
 				switch (attack.Trigger) {
 
 
@@ -542,6 +579,7 @@ namespace BattleSoup {
 						if (!aData.PickedPerformed) {
 							// Check Target
 							if (!attack.AvailableTarget.HasFlag(opData.Tiles[x, y])) {
+								error = true;
 								return false;
 							}
 							result = AttackTile(
@@ -586,7 +624,7 @@ namespace BattleSoup {
 
 				// Break Check
 				if (
-					(ability.BreakOnMiss && result.HasFlag(AttackResult.Miss)) ||
+					(ability.BreakOnMiss && isHit && result.HasFlag(AttackResult.Miss)) ||
 					(ability.BreakOnSunk && result.HasFlag(AttackResult.SunkShip))
 				) { break; }
 
@@ -629,6 +667,24 @@ namespace BattleSoup {
 					}
 					data.Ships[i].Ability = ability;
 				}
+			}
+		}
+
+
+		private bool AbilityFirstTrigger (int shipIndex) {
+			AbilityShipIndex = shipIndex;
+			AbilityData.AbilityAttackIndex = 0;
+			AbilityData.WaitForPicking = true;
+			AbilityData.PickedPerformed = true;
+			AbilityDirection = AbilityDirection.Up;
+			if (PerformAbility(0, 0, out _)) {
+				DelayUpdate(0.1f);
+				SwitchTurn();
+				m_RefreshUI.Invoke();
+				return true;
+			} else {
+				m_RefreshUI.Invoke();
+				return false;
 			}
 		}
 
@@ -750,6 +806,7 @@ namespace BattleSoup {
 				// Hit Ship
 				if (!hitWholeShip) {
 					// Just Tile
+					bool prevAlive = CheckShipAlive(_shipIndex, targetGroup);
 					targetData.Tiles[x, y] = Tile.HittedShip;
 					RefreshShipsAlive(_shipIndex, targetGroup);
 					if (targetData.ShipsAlive[_shipIndex]) {
@@ -759,7 +816,11 @@ namespace BattleSoup {
 						// Sunk
 						sunkShip = true;
 						SetTilesToHit(targetData.Ships[_shipIndex], targetData.Positions[_shipIndex]);
-						m_OnShipSunk.Invoke(wPos);
+						if (prevAlive) {
+							m_OnShipSunk.Invoke(wPos);
+						} else {
+							m_OnShipHitted.Invoke(wPos);
+						}
 					}
 					if (targetData.Ships[_shipIndex].Ability.ResetCooldownOnHit) {
 						// Reset Cooldown On Hit

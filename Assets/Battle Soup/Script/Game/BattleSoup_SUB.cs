@@ -93,6 +93,11 @@ namespace BattleSoup {
 			public RectTransform TurnArrowA;
 			public RectTransform TurnArrowB;
 			public Toggle SoundTG;
+			public Dropdown StrategyDropA;
+			public Dropdown StrategyDropB;
+			public Text StrategyDescriptionA;
+			public Text StrategyDescriptionB;
+			public Button PositionShipResetButton;
 			public Image[] BattleAvatarA;
 			public Image[] BattleAvatarB;
 		}

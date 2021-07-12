@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using UIGadget;
@@ -24,6 +26,7 @@ namespace BattleSoup {
 		[SerializeField] ResourceData m_Resource = default;
 
 		// Data
+		private readonly List<SoupStrategy> Strategies = new List<SoupStrategy>();
 		private GameState CurrentState = GameState.BattleMode;
 		private BattleMode CurrentBattleMode = BattleMode.PvA;
 		private Toggle[] m_ShipsToggleA = null;
@@ -33,11 +36,13 @@ namespace BattleSoup {
 		private bool QuitGameForReal = false;
 
 		// Saving
-		private readonly SavingString SelectedFleetA = new SavingString("BattleSoupDemo.Demo.SelectedFleetA", "Coracle+KillerSquid+SeaTurtle+Whale");
-		private readonly SavingString SelectedFleetB = new SavingString("BattleSoupDemo.Demo.SelectedFleetB", "Coracle+KillerSquid+SeaTurtle+Whale");
-		private readonly SavingInt SelectedMapA = new SavingInt("BattleSoupDemo.Demo.SelectedMapA", 0);
-		private readonly SavingInt SelectedMapB = new SavingInt("BattleSoupDemo.Demo.SelectedMapB", 0);
-		private readonly SavingBool UseSound = new SavingBool("BattleSoupDemo.Demo.UseSound", true);
+		private readonly SavingString SelectedFleetA = new SavingString("BattleSoup.SelectedFleetA", "Coracle+KillerSquid+SeaTurtle+Whale");
+		private readonly SavingString SelectedFleetB = new SavingString("BattleSoup.SelectedFleetB", "Coracle+KillerSquid+SeaTurtle+Whale");
+		private readonly SavingInt SelectedMapA = new SavingInt("BattleSoup.SelectedMapA", 0);
+		private readonly SavingInt SelectedMapB = new SavingInt("BattleSoup.SelectedMapB", 0);
+		private readonly SavingBool UseSound = new SavingBool("BattleSoup.UseSound", true);
+		private readonly SavingInt StrategyIndexA = new SavingInt("BattleSoup.StrategyIndexA", 0);
+		private readonly SavingInt StrategyIndexB = new SavingInt("BattleSoup.StrategyIndexB", 0);
 
 
 		#endregion
@@ -49,12 +54,14 @@ namespace BattleSoup {
 
 
 		private void Awake () {
+
 			CursorUI.GetCursorTexture = (index) => (
 				index >= 0 ? m_Resource.Cursors[index].Cursor : null,
 				index >= 0 ? m_Resource.Cursors[index].Offset : Vector2.zero
 			);
 			m_Game.Game.gameObject.SetActive(false);
 			m_Game.Game.SetupDelegate();
+
 			// Quit Game Confirm
 			Application.wantsToQuit += () => {
 #if UNITY_EDITOR
@@ -67,12 +74,46 @@ namespace BattleSoup {
 				return QuitGameForReal;
 #endif
 			};
+
 			// Sound
 			AudioListener.volume = UseSound.Value ? 1f : 0f;
 			m_UI.SoundTG.SetIsOnWithoutNotify(UseSound.Value);
+
 			// System
 			Application.targetFrameRate = 30;
 			Util.CreateFolder(Util.GetRuntimeBuiltRootPath());
+
+			// Strategy
+			Strategies.Clear();
+			var assemblies = System.AppDomain.CurrentDomain.GetAssemblies();
+			foreach (var assembly in assemblies) {
+				var types = assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(SoupStrategy)));
+				if (types.Count() == 0) { continue; }
+				string assemblyName = assembly.GetName().Name;
+				foreach (var type in types) {
+					try {
+						if (type.IsAbstract) { continue; }
+						if (System.Activator.CreateInstance(type) is SoupStrategy strategy) {
+							Strategies.Add(strategy);
+						}
+					} catch { }
+				}
+			}
+
+			// Strategy UI
+			var sNames = new List<string>();
+			foreach (var st in Strategies) {
+				sNames.Add(st.FinalDisplayName);
+			}
+			m_UI.StrategyDropA.ClearOptions();
+			m_UI.StrategyDropA.AddOptions(sNames);
+			m_UI.StrategyDropB.ClearOptions();
+			m_UI.StrategyDropB.AddOptions(sNames);
+			StrategyIndexA.Value = Mathf.Clamp(StrategyIndexA.Value, 0, Strategies.Count - 1);
+			StrategyIndexB.Value = Mathf.Clamp(StrategyIndexB.Value, 0, Strategies.Count - 1);
+			m_UI.StrategyDropA.SetValueWithoutNotify(StrategyIndexA.Value);
+			m_UI.StrategyDropB.SetValueWithoutNotify(StrategyIndexB.Value);
+			RefreshStrategyUI();
 
 		}
 
@@ -105,7 +146,6 @@ namespace BattleSoup {
 
 
 		private void Update () => CursorUI.GlobalUpdate();
-
 
 
 		#endregion
@@ -147,48 +187,36 @@ namespace BattleSoup {
 					break;
 
 
-				// Map >> PositionShip/Playing
+				// Map >> PositionShip
 				case GameState.Map: {
 					if (!RefreshMapButton()) { break; }
 					SaveMapSelectionToSaving(Group.A);
 					SaveMapSelectionToSaving(Group.B);
 					if (CurrentBattleMode == BattleMode.PvA) {
-						// Map >> PositionShip
+						// PvA
 						var map = GetSelectingMap(Group.A);
 						if (map == null) { break; }
-						var ships = GetSelectingShips(Group.A);
-						if (ships == null) { break; }
-						var positions = new List<ShipPosition>();
+						var shipDatas = GetSelectingShips(Group.A);
+						if (shipDatas == null) { break; }
+						ShipPosition[] positions = null;
+						var ships = ShipData.GetShips(shipDatas);
 						for (int i = 0; i < 36; i++) {
-							if (GetRandomShipPositions(ships, map, positions)) { break; }
+							if (SoupStrategy.GetRandomShipPositions(map.Size, ships, map.Stones, out positions)) { break; }
 						}
-						if (positions.Count == 0) { break; }
-						m_Game.ShipPositionUI.Init(map, ships, positions);
-						m_Game.Game.gameObject.SetActive(false);
+						if (positions == null || positions.Length == 0) { break; }
+						m_Game.ShipPositionUI.gameObject.SetActive(true);
+						m_Game.ShipPositionUI.Init(map, shipDatas, positions);
 						RefreshShipPositionButton();
-						RefreshPanelUI(GameState.PositionShip);
-						CurrentState = GameState.PositionShip;
 					} else {
-						// Map >> Playing
-						if (
-							!SetupAIBattleSoup(Group.A, out var mapA, out var shipsA, out var positionsA, out string error) ||
-							!SetupAIBattleSoup(Group.B, out var mapB, out var shipsB, out var positionsB, out error)
-						) {
-							ShowMessage(error);
-							break;
-						}
-						m_Game.Game.Init(CurrentBattleMode, mapA, mapB, shipsA, shipsB, positionsA, positionsB);
-						m_Game.Game.gameObject.SetActive(true);
-						m_Game.BattleSoupUIA.Init(CurrentBattleMode == BattleMode.AvA);
-						m_Game.BattleSoupUIB.Init(true);
-						m_Game.BattleSoupUIA.RefreshShipRenderer();
-						m_Game.BattleSoupUIB.RefreshShipRenderer();
-						RefreshBattleInfoUI();
-						ReloadAbilityUI();
-						UI_RefreshAbilityUI();
-						RefreshPanelUI(GameState.Playing);
-						CurrentState = GameState.Playing;
+						// AvA
+						m_Game.ShipPositionUI.gameObject.SetActive(false);
 					}
+					m_UI.StrategyDropA.transform.parent.gameObject.SetActive(CurrentBattleMode == BattleMode.AvA);
+					m_UI.StrategyDropB.transform.parent.gameObject.SetActive(true);
+					m_UI.PositionShipResetButton.gameObject.SetActive(CurrentBattleMode == BattleMode.PvA);
+					m_Game.Game.gameObject.SetActive(false);
+					RefreshPanelUI(GameState.PositionShip);
+					CurrentState = GameState.PositionShip;
 					break;
 				}
 
@@ -200,7 +228,15 @@ namespace BattleSoup {
 						ShowMessage(error);
 						break;
 					}
-					m_Game.Game.Init(CurrentBattleMode, m_Game.ShipPositionUI.Map, mapB, m_Game.ShipPositionUI.Ships, shipsB, m_Game.ShipPositionUI.Positions, positionsB);
+					if (CurrentBattleMode == BattleMode.PvA) {
+						m_Game.Game.Init(CurrentBattleMode, Strategies[StrategyIndexA.Value], Strategies[StrategyIndexB.Value], m_Game.ShipPositionUI.Map, mapB, m_Game.ShipPositionUI.Ships, shipsB, m_Game.ShipPositionUI.Positions, positionsB);
+					} else {
+						if (!SetupAIBattleSoup(Group.A, out var mapA, out var shipsA, out var positionsA, out string errorA)) {
+							ShowMessage(errorA);
+							break;
+						}
+						m_Game.Game.Init(CurrentBattleMode, Strategies[StrategyIndexA.Value], Strategies[StrategyIndexB.Value], mapA, mapB, shipsA, shipsB, positionsA, positionsB);
+					}
 					m_Game.Game.gameObject.SetActive(true);
 					m_Game.BattleSoupUIA.Init(CurrentBattleMode == BattleMode.AvA);
 					m_Game.BattleSoupUIB.Init(true);
@@ -220,6 +256,8 @@ namespace BattleSoup {
 					m_Game.Game.gameObject.SetActive(false);
 					m_Game.BattleSoupUIA.Clear();
 					m_Game.BattleSoupUIB.Clear();
+					m_Game.Game.Cheated = false;
+					RefreshBattleInfoUI();
 					RefreshPanelUI(GameState.BattleMode);
 					CurrentState = GameState.BattleMode;
 					break;
@@ -242,6 +280,7 @@ namespace BattleSoup {
 					CurrentState = GameState.Map;
 					break;
 				case GameState.Playing:
+					m_Game.Game.Cheated = false;
 					RefreshPanelUI(GameState.BattleMode);
 					CurrentState = GameState.BattleMode;
 					break;
@@ -330,6 +369,18 @@ namespace BattleSoup {
 
 
 		public void UI_SetCheat () => m_Game.Game.Cheated = true;
+
+
+		public void UI_SetSelectingStrategyA (int index) {
+			StrategyIndexA.Value = Mathf.Clamp(index, 0, Strategies.Count - 1);
+			RefreshStrategyUI();
+		}
+
+
+		public void UI_SetSelectingStrategyB (int index) {
+			StrategyIndexB.Value = Mathf.Clamp(index, 0, Strategies.Count - 1);
+			RefreshStrategyUI();
+		}
 
 
 		public void UI_QuitGame () {

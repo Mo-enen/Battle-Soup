@@ -30,7 +30,7 @@ namespace BattleSoup {
 
 
 		// API
-		public static bool Contains (int x, int y, ShipData[] ships, List<ShipPosition> positions, out int index) {
+		public static bool Contains (int x, int y, ShipData[] ships, ShipPosition[] positions, out int index) {
 			for (int i = ships.Length - 1; i >= 0; i--) {
 				var ship = ships[i];
 				var sPos = positions[i];
@@ -44,7 +44,7 @@ namespace BattleSoup {
 		}
 
 
-		public static int FindNearestShipDistance (int x, int y, ShipData[] ships, List<ShipPosition> positions, out Vector2Int pos) {
+		public static int FindNearestShipDistance (int x, int y, ShipData[] ships, ShipPosition[] positions, out Vector2Int pos) {
 			pos = default;
 			if (ships == null || ships.Length == 0) { return -1; }
 			int minDistance = int.MaxValue;

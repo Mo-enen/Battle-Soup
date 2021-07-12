@@ -30,7 +30,7 @@ namespace BattleSoup {
 		// Api
 		public MapData Map => _Map;
 		public ShipData[] Ships => _Ships;
-		public List<ShipPosition> Positions => _Positions;
+		public ShipPosition[] Positions => _Positions;
 
 		// Ser
 		[SerializeField] MapRenderer m_MapRenderer = null;
@@ -41,8 +41,8 @@ namespace BattleSoup {
 		// Data
 		private MapData _Map = null;
 		private ShipData[] _Ships = new ShipData[0];
-		private readonly List<ShipPosition> DefaultPositions = new List<ShipPosition>();
-		private readonly List<ShipPosition> _Positions = new List<ShipPosition>();
+		private ShipPosition[] DefaultPositions = null;
+		private ShipPosition[] _Positions = null;
 		private int DraggingShipIndex = -1;
 		private Vector2Int DraggingOffset = default;
 		private Vector2Int DraggingPrev = default;
@@ -57,7 +57,7 @@ namespace BattleSoup {
 
 
 		private void OnDisable () {
-			DefaultPositions.Clear();
+			DefaultPositions = null;
 		}
 
 
@@ -119,9 +119,9 @@ namespace BattleSoup {
 		#region --- API ---
 
 
-		public void Init (MapData map, ShipData[] ships, List<ShipPosition> positions) {
+		public void Init (MapData map, ShipData[] ships, ShipPosition[] positions) {
 
-			if (map == null || map.Size <= 0 || ships == null || ships.Length == 0) { return; }
+			if (map == null || map.Size <= 0 || ships == null || ships.Length == 0 || positions == null || positions.Length != ships.Length) { return; }
 
 			// Ship
 			_Ships = ships;
@@ -133,10 +133,9 @@ namespace BattleSoup {
 			m_MapRenderer.LoadMap(map);
 
 			// Pos
-			_Positions.Clear();
-			_Positions.AddRange(positions);
-			DefaultPositions.Clear();
-			DefaultPositions.AddRange(positions);
+			_Positions = positions;
+			DefaultPositions = new ShipPosition[positions.Length];
+			System.Array.Copy(positions, DefaultPositions, positions.Length);
 			RefreshShipRenderer();
 			RefreshOverlapRenderer();
 			ClampAllShipsInSoup();
@@ -152,9 +151,6 @@ namespace BattleSoup {
 		public bool RefreshOverlapRenderer (out string error) {
 			error = "";
 			if (_Ships == null || _Ships.Length == 0 || _Map == null) { return true; }
-			if (_Positions.Count < _Ships.Length) {
-				_Positions.AddRange(new ShipPosition[_Ships.Length - _Positions.Count]);
-			}
 			m_OverlapRenderer.ClearBlock();
 
 			bool success = true;
@@ -217,8 +213,7 @@ namespace BattleSoup {
 
 
 		public void UI_ResetShipPositions () {
-			Positions.Clear();
-			Positions.AddRange(DefaultPositions);
+			_Positions = DefaultPositions;
 			RefreshOverlapRenderer();
 			RefreshShipRenderer();
 			m_OnPositionChanged.Invoke();
@@ -234,9 +229,6 @@ namespace BattleSoup {
 
 
 		private void RefreshShipRenderer () {
-			if (_Positions.Count < _Ships.Length) {
-				_Positions.AddRange(new ShipPosition[_Ships.Length - _Positions.Count]);
-			}
 			m_ShipRenderer.ClearBlock();
 			for (int i = 0; i < _Ships.Length; i++) {
 				m_ShipRenderer.AddShip(

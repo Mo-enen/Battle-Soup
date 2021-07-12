@@ -8,6 +8,55 @@ namespace BattleSoupAI {
 
 
 
+
+	#region --- Tile ---
+
+
+
+	[System.Serializable]
+	public struct Int2 {
+		public int x;
+		public int y;
+		public Int2 (int x, int y) {
+			this.x = x;
+			this.y = y;
+		}
+	}
+
+
+
+	[System.Serializable]
+	public struct SonarPosition {
+		public int x;
+		public int y;
+		public int number;
+		public SonarPosition (int x, int y, int number) {
+			this.x = x;
+			this.y = y;
+			this.number = number;
+		}
+	}
+
+
+
+	[System.Flags]
+	public enum Tile {
+		None = 0,
+		GeneralWater = 1 << 0,
+		GeneralStone = 1 << 1,
+		RevealedWater = 1 << 2,
+		RevealedStone = 1 << 3,
+		RevealedShip = 1 << 4,
+		HittedShip = 1 << 5,
+	}
+
+
+
+	#endregion
+
+
+
+
 	#region --- Ability ---
 
 
@@ -154,54 +203,6 @@ namespace BattleSoupAI {
 		Right = 1,
 		Down = 2,
 		Left = 3,
-	}
-
-
-
-	#endregion
-
-
-
-
-	#region --- Tile ---
-
-
-
-	[System.Serializable]
-	public struct Int2 {
-		public int x;
-		public int y;
-		public Int2 (int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
-	}
-
-
-
-	[System.Serializable]
-	public struct SonarPosition {
-		public int x;
-		public int y;
-		public int number;
-		public SonarPosition (int x, int y, int number) {
-			this.x = x;
-			this.y = y;
-			this.number = number;
-		}
-	}
-
-
-
-	[System.Flags]
-	public enum Tile {
-		None = 0,
-		GeneralWater = 1 << 0,
-		GeneralStone = 1 << 1,
-		RevealedWater = 1 << 2,
-		RevealedStone = 1 << 3,
-		RevealedShip = 1 << 4,
-		HittedShip = 1 << 5,
 	}
 
 

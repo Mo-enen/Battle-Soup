@@ -19,8 +19,8 @@ namespace BattleSoup {
 		public delegate Tile TileIntIntHandler (int x, int y);
 		public delegate MapData MapDataHandler ();
 		public delegate ShipData[] ShipDatasHandler ();
-		public delegate List<ShipPosition> ShipPositionsHandler ();
-		public delegate List<SonarPosition> SonarPositionListHandler ();
+		public delegate ShipPosition[] ShipPositionsHandler ();
+		public delegate List<SonarPosition> SonarPositionsHandler ();
 		public delegate int IntHandler ();
 		public delegate bool BoolIntHandler (int index);
 		public delegate bool BoolHandler ();
@@ -41,7 +41,7 @@ namespace BattleSoup {
 		public MapDataHandler GetMap { get; set; } = null;
 		public ShipDatasHandler GetShips { get; set; } = null;
 		public ShipPositionsHandler GetPositions { get; set; } = null;
-		public SonarPositionListHandler GetSonars { get; set; } = null;
+		public SonarPositionsHandler GetSonars { get; set; } = null;
 		public BoolIntHandler CheckShipAlive { get; set; } = null;
 		public BoolIntHandler CheckShipSuperRevealed { get; set; } = null;
 		public AbilityHandler GetCurrentAbility { get; set; } = null;
