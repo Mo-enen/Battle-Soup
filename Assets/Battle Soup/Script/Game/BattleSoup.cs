@@ -271,6 +271,7 @@ namespace BattleSoup {
 
 		public void UI_GotoPrevState () {
 			switch (CurrentState) {
+				case GameState.ShipEditor:
 				case GameState.Ship:
 					RefreshPanelUI(GameState.BattleMode);
 					CurrentState = GameState.BattleMode;
@@ -289,6 +290,13 @@ namespace BattleSoup {
 					CurrentState = GameState.BattleMode;
 					break;
 			}
+		}
+
+
+		public void UI_OpenShipEditor () {
+			m_Game.Game.gameObject.SetActive(false);
+			RefreshPanelUI(GameState.ShipEditor);
+			CurrentState = GameState.ShipEditor;
 		}
 
 

@@ -25,14 +25,14 @@
         {
           "X": 0,
           "Y": 0,
-          "Type": 1,
+          "Type": 4,
           "Trigger": 2,
           "AvailableTarget": 1
         },
         {
           "X": 0,
           "Y": 0,
-          "Type": 1,
+          "Type": 4,
           "Trigger": 2,
           "AvailableTarget": 1
         }

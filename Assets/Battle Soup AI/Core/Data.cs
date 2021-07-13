@@ -9,9 +9,6 @@ namespace BattleSoupAI {
 
 
 
-	#region --- Tile ---
-
-
 
 	[System.Serializable]
 	public struct Int2 {
@@ -50,9 +47,6 @@ namespace BattleSoupAI {
 		HittedShip = 1 << 5,
 	}
 
-
-
-	#endregion
 
 
 

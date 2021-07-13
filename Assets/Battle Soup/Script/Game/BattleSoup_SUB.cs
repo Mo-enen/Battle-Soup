@@ -41,6 +41,7 @@ namespace BattleSoup {
 			Map = 2,
 			PositionShip = 3,
 			Playing = 4,
+			ShipEditor = 5,
 		}
 
 
@@ -55,6 +56,7 @@ namespace BattleSoup {
 			public RectTransform MapPanel;
 			public RectTransform ShipPositionPanel;
 			public RectTransform BattleZonePanel;
+			public RectTransform ShipEditorPanel;
 			public RectTransform QuitGameWindow;
 		}
 

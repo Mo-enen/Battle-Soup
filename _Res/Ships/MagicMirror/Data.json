@@ -21,43 +21,7 @@
       }
     ],
     "Ability": {
-      "Attacks": [
-        {
-          "X": 0,
-          "Y": 0,
-          "Type": 0,
-          "Trigger": 0,
-          "AvailableTarget": 17
-        },
-        {
-          "X": 1,
-          "Y": 0,
-          "Type": 1,
-          "Trigger": 1,
-          "AvailableTarget": 2147483647
-        },
-        {
-          "X": -1,
-          "Y": 0,
-          "Type": 1,
-          "Trigger": 1,
-          "AvailableTarget": 2147483647
-        },
-        {
-          "X": 0,
-          "Y": 1,
-          "Type": 1,
-          "Trigger": 1,
-          "AvailableTarget": 2147483647
-        },
-        {
-          "X": 0,
-          "Y": -1,
-          "Type": 1,
-          "Trigger": 1,
-          "AvailableTarget": 2147483647
-        }
-      ],
+      "Attacks": [],
       "Cooldown": 5,
       "BreakOnSunk": false,
       "BreakOnMiss": false,

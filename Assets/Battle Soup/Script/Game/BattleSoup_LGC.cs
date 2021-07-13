@@ -266,6 +266,7 @@ namespace BattleSoup {
 			m_Panel.MapPanel.gameObject.SetActive(state == GameState.Map);
 			m_Panel.ShipPositionPanel.gameObject.SetActive(state == GameState.PositionShip);
 			m_Panel.BattleZonePanel.gameObject.SetActive(state == GameState.Playing);
+			m_Panel.ShipEditorPanel.gameObject.SetActive(state == GameState.ShipEditor);
 		}
 
 

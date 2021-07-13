@@ -38,6 +38,9 @@ TextureImporter:
   - first:
       213: 9094600903545770030
     second: Cheat Win Face
+  - first:
+      213: -4532114073746202998
+    second: Control Panel
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -298,8 +301,8 @@ TextureImporter:
       name: Icon Robot Angry
       rect:
         serializedVersion: 2
-        x: 188
-        y: 113
+        x: 253
+        y: 1
         width: 67
         height: 68
       alignment: 0
@@ -319,8 +322,8 @@ TextureImporter:
       name: Demon Face
       rect:
         serializedVersion: 2
-        x: 2
-        y: 148
+        x: 110
+        y: 147
         width: 54
         height: 55
       alignment: 0
@@ -340,10 +343,10 @@ TextureImporter:
       name: Cheat Lose Face
       rect:
         serializedVersion: 2
-        x: 57
-        y: 149
-        width: 63
-        height: 62
+        x: 321
+        y: 1
+        width: 77
+        height: 76
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -361,10 +364,10 @@ TextureImporter:
       name: Cheat Win Face
       rect:
         serializedVersion: 2
-        x: 121
-        y: 147
-        width: 66
-        height: 67
+        x: 399
+        y: 1
+        width: 74
+        height: 75
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
