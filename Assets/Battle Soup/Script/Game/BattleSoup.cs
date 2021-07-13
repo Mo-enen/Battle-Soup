@@ -61,6 +61,7 @@ namespace BattleSoup {
 			);
 			m_Game.Game.gameObject.SetActive(false);
 			m_Game.Game.SetupDelegate();
+			Game.GetShip = (key) => m_Game.Asset.GetShipData(key);
 
 			// Quit Game Confirm
 			Application.wantsToQuit += () => {
@@ -313,32 +314,48 @@ namespace BattleSoup {
 
 
 		public void UI_RefreshAbilityUI () {
+
+			// Aim Ship Icon
 			Sprite aIcon = null;
-			if (m_Game.Game.AbilityShipIndex >= 0) {
-				var ship = m_Game.Game.GetShipData(m_Game.Game.CurrentTurn, m_Game.Game.AbilityShipIndex);
-				aIcon = ship.Sprite;
+			var currentTurn = m_Game.Game.CurrentTurn;
+			if (m_Game.Game.AbilityShipIndex >= 0 && m_Game.Game.gameObject.activeSelf) {
+				var ship = m_Game.Game.GetShipData(currentTurn, m_Game.Game.AbilityShipIndex);
+				if (ship.Ship.Ability.CopyOpponentLastUsed) {
+					string oppKey = currentTurn == Group.A ? m_Game.Game.PrevUsedAbilityB : m_Game.Game.PrevUsedAbilityA;
+					if (!string.IsNullOrEmpty(oppKey)) {
+						var shipData = m_Game.Asset.GetShipData(oppKey);
+						if (shipData != null) {
+							aIcon = shipData.Sprite;
+						}
+					}
+				} else {
+					aIcon = ship.Sprite;
+				}
 			}
-			m_Game.BattleSoupUIA.SetAbilityAimIcon(m_Game.Game.CurrentTurn == Group.B ? aIcon : null);
-			m_Game.BattleSoupUIB.SetAbilityAimIcon(m_Game.Game.CurrentTurn == Group.B ? null : aIcon);
+
+			// Aim Icon
+			m_Game.BattleSoupUIA.SetAbilityAimIcon(currentTurn == Group.B ? aIcon : null);
+			m_Game.BattleSoupUIB.SetAbilityAimIcon(currentTurn == Group.B ? null : aIcon);
+
+			// Ability in Battle Info
 			RefreshAbilityUI(m_UI.AbilityContainerA, Group.A);
 			RefreshAbilityUI(m_UI.AbilityContainerB, Group.B);
+
 			// Func
 			void RefreshAbilityUI (RectTransform container, Group group) {
 				int count = container.childCount;
-				var opGroup = group == Group.A ? Group.B : Group.A;
 				for (int i = 0; i < count; i++) {
 
 					int cooldown = m_Game.Game.GetCooldown(group, i);
 					var ability = m_Game.Game.GetAbility(group, i);
-					int opPrevUseIndex = group == Group.A ? m_Game.Game.PrevUsedAbilityB : m_Game.Game.PrevUsedAbilityA;
+					string opPrevUseID = group == Group.A ? m_Game.Game.PrevUsedAbilityB : m_Game.Game.PrevUsedAbilityA;
 					bool alive = m_Game.Game.CheckShipAlive(i, group);
 
 					var grabber = container.GetChild(i).GetComponent<Grabber>();
 					var btn = grabber.Grab<Button>();
 					btn.interactable =
-						alive &&
-						ability.HasActive &&
-						cooldown <= 0;
+						alive && cooldown <= 0 &&
+						(ability.HasActive || (ability.CopyOpponentLastUsed && !string.IsNullOrEmpty(opPrevUseID)));
 
 					var cooldownTxt = grabber.Grab<Text>("Cooldown");
 					cooldownTxt.gameObject.SetActive(alive && (ability.CopyOpponentLastUsed || ability.HasActive));
@@ -351,14 +368,15 @@ namespace BattleSoup {
 						!m_Game.Game.CheckShipAlive(i, group)
 					);
 					grabber.Grab<RectTransform>("Highlight").gameObject.SetActive(
-						m_Game.Game.CurrentTurn == group && m_Game.Game.AbilityShipIndex == i
+						currentTurn == group && m_Game.Game.AbilityShipIndex == i
 					);
 
 					var copy = grabber.Grab<Image>("Copy");
-					bool copyActive = ability.CopyOpponentLastUsed && opPrevUseIndex >= 0;
+					bool copyActive = ability.CopyOpponentLastUsed && !string.IsNullOrEmpty(opPrevUseID);
 					copy.gameObject.SetActive(copyActive);
 					if (copyActive) {
-						copy.sprite = m_Game.Game.GetShipData(opGroup, opPrevUseIndex).Sprite;
+						var copyShipData = m_Game.Asset.GetShipData(opPrevUseID);
+						copy.sprite = copyShipData?.Sprite;
 					}
 
 				}

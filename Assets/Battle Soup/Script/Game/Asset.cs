@@ -15,7 +15,7 @@ namespace BattleSoup {
 
 
 		// Api
-		public List<ShipData> ShipDatas { get; } = new List<ShipData>();
+		public Dictionary<string, ShipData> ShipMap { get; } = new Dictionary<string, ShipData>();
 		public List<MapData> MapDatas { get; } = new List<MapData>();
 
 		// Ser
@@ -38,24 +38,28 @@ namespace BattleSoup {
 
 
 		private void Awake_Ship () {
-			ShipDatas.Clear();
+			ShipMap.Clear();
 			var iconList = new List<Texture2D>() { m_ShipBlockTexture };
 			string root = Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Ships");
 			var folders = Util.GetFoldersIn(root, true);
+			var shipList = new List<ShipData>();
 			for (int i = 0; i < folders.Length; i++) {
 				try {
 					var folder = folders[i];
+					string key = folder.Name;
+					if (ShipMap.ContainsKey(key)) { continue; }
 					string json = Util.FileToText(Util.CombinePaths(folder.FullName, "Data.json"));
 					if (string.IsNullOrEmpty(json)) { continue; }
 					var shipData = JsonUtility.FromJson<ShipData>(json);
 					if (shipData == null) { continue; }
-					shipData.GlobalID = ShipDatas.Count;
 					var iconByte = Util.FileToByte(Util.CombinePaths(folder.FullName, "Icon.png"));
 					if (iconByte == null || iconByte.Length == 0) { continue; }
 					var iconTexture = new Texture2D(1, 1);
 					if (!iconTexture.LoadImage(iconByte, false)) { continue; }
+					shipData.GlobalID = key;
 					iconList.Add(iconTexture);
-					ShipDatas.Add(shipData);
+					ShipMap.Add(key, shipData);
+					shipList.Add(shipData);
 				} catch { }
 			}
 			// Pack Texture
@@ -63,14 +67,15 @@ namespace BattleSoup {
 			var uvRects = shipTexture.PackTextures(iconList.ToArray(), 1);
 			float tWidth = shipTexture.width;
 			float tHeight = shipTexture.height;
-			var sprites = new Sprite[ShipDatas.Count + 1];
+			var sprites = new Sprite[ShipMap.Count + 1];
 			var uv0 = uvRects[0];
 			sprites[0] = Sprite.Create(shipTexture, new Rect(uv0.x * tWidth, uv0.y * tHeight, uv0.width * tWidth, uv0.height * tHeight), Vector2.one * 0.5f);
 			sprites[0].name = "(ship block)";
-			for (int i = 0; i < ShipDatas.Count; i++) {
-				var ship = ShipDatas[i];
+			for (int i = 0; i < shipList.Count; i++) {
+				var ship = shipList[i];
 				var uv = uvRects[i + 1];
 				var rect = new Rect(uv.x * tWidth, uv.y * tHeight, uv.width * tWidth, uv.height * tHeight);
+				ship.SpriteIndex = i;
 				ship.Sprite = Sprite.Create(shipTexture, rect, Vector2.one * 0.5f);
 				ship.Sprite.name = ship.DisplayName;
 				sprites[i + 1] = ship.Sprite;
@@ -121,26 +126,12 @@ namespace BattleSoup {
 		#region --- API ---
 
 
-
-
-		#endregion
-
-
-
-
-		#region --- LGC ---
-
-
-
-
-		#endregion
-
-
-
-
-		#region --- UTL ---
-
-
+		public ShipData GetShipData (string globalID) {
+			if (ShipMap.ContainsKey(globalID)) {
+				return ShipMap[globalID];
+			}
+			return null;
+		}
 
 
 		#endregion

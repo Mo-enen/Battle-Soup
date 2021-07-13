@@ -19,6 +19,7 @@ namespace BattleSoup {
 		public delegate Tile TileIntIntHandler (int x, int y);
 		public delegate MapData MapDataHandler ();
 		public delegate ShipData[] ShipDatasHandler ();
+		public delegate ShipData ShipDataHandler ();
 		public delegate ShipPosition[] ShipPositionsHandler ();
 		public delegate List<SonarPosition> SonarPositionsHandler ();
 		public delegate int IntHandler ();
@@ -26,6 +27,7 @@ namespace BattleSoup {
 		public delegate bool BoolHandler ();
 		public delegate Ability AbilityHandler ();
 		public delegate AbilityDirection AbilityDirectionHandler ();
+		public delegate string StringHandler ();
 
 
 		#endregion
@@ -47,6 +49,7 @@ namespace BattleSoup {
 		public AbilityHandler GetCurrentAbility { get; set; } = null;
 		public AbilityDirectionHandler GetCurrentAbilityDirection { get; set; } = null;
 		public BoolHandler GetCheating { get; set; } = null;
+		public ShipDataHandler GetOpponentPrevUseShip { get; set; } = null;
 
 		// Ser
 		[SerializeField] MapRenderer m_MapRenderer = null;
@@ -177,28 +180,37 @@ namespace BattleSoup {
 		public void RefreshAimRenderer () {
 			var ability = GetCurrentAbility();
 			var dir = GetCurrentAbilityDirection();
-			bool success = false;
+			bool inside = false;
 			if (ability != null) {
 				if (ability.NeedAim && GetMapPositionInside(Input.mousePosition, out var pos)) {
+					inside = true;
 					if (!PrevMousePosForAim.HasValue || PrevMousePosForAim.Value != pos || PrevAbilityDirection != dir) {
 						var map = GetMap();
 						PrevMousePosForAim = pos;
 						PrevAbilityDirection = dir;
 						m_AimRenderer.ClearBlock();
-						foreach (var att in ability.Attacks) {
+						var attacks = ability.Attacks;
+						if (ability.CopyOpponentLastUsed) {
+							var oppPrevShip = GetOpponentPrevUseShip();
+							if (oppPrevShip != null) {
+								attacks = oppPrevShip.Ship.Ability.Attacks;
+							}
+						}
+						foreach (var att in attacks) {
 							if (att.Trigger == AttackTrigger.Picked || att.Trigger == AttackTrigger.TiedUp) {
 								var (x, y) = att.GetPosition(pos.x, pos.y, dir);
 								if (x >= 0 && x < map.Size && y >= 0 && y < map.Size) {
-									m_AimRenderer.AddBlock(x, y, 0);
+									if (x != pos.x || y != pos.y) {
+										m_AimRenderer.AddBlock(x, y, 0);
+									}
 								}
 							}
 						}
 					}
-					success = true;
 				}
 				m_AimRenderer.SetVerticesDirty();
 			}
-			if (!success) {
+			if (!inside) {
 				m_AimRenderer.ClearBlock();
 				if (PrevMousePosForAim.HasValue) {
 					PrevMousePosForAim = null;
@@ -206,7 +218,7 @@ namespace BattleSoup {
 				}
 			}
 			if (m_AbilityAimHint != null) {
-				m_AbilityAimHint.gameObject.SetActive(success);
+				m_AbilityAimHint.gameObject.SetActive(inside);
 			}
 		}
 

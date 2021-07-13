@@ -17,7 +17,7 @@ namespace BattleSoup {
 		private void ReloadShipToggle (Group group) {
 
 			var container = group == Group.A ? m_UI.ShipsToggleContainerA : m_UI.ShipsToggleContainerB;
-			var ships = m_Game.Asset.ShipDatas;
+			var shipMap = m_Game.Asset.ShipMap;
 
 			// Clear UI
 			var template = container.GetChild(0) as RectTransform;
@@ -28,13 +28,14 @@ namespace BattleSoup {
 			}
 
 			// Create UI
-			foreach (var ship in ships) {
+			foreach (var pair in shipMap) {
+				var ship = pair.Value;
 				var rt = Instantiate(template.gameObject, container).transform as RectTransform;
 				rt.anchoredPosition3D = rt.anchoredPosition;
 				rt.localScale = Vector3.one;
 				rt.localRotation = Quaternion.identity;
 				rt.SetAsLastSibling();
-				rt.gameObject.name = ship.DisplayName;
+				rt.gameObject.name = pair.Key;
 				// Label
 				rt.Find("Label").GetComponent<Text>().text = ship.DisplayName;
 				rt.GetComponent<Toggle>().isOn = false;
@@ -78,16 +79,17 @@ namespace BattleSoup {
 
 		private ShipData[] GetSelectingShips (Group group) {
 			var result = new List<ShipData>();
-			var hash = new HashSet<int>();
+			var hash = new HashSet<string>();
 			var toggles = group == Group.A ? m_ShipsToggleA : m_ShipsToggleB;
 			for (int i = 0; i < toggles.Length; i++) {
-				if (toggles[i].isOn) {
-					hash.TryAdd(i);
+				var tg = toggles[i];
+				if (tg.isOn) {
+					hash.TryAdd(tg.name);
 				}
 			}
-			foreach (var ship in m_Game.Asset.ShipDatas) {
-				if (hash.Contains(ship.GlobalID)) {
-					result.Add(ship);
+			foreach (var pair in m_Game.Asset.ShipMap) {
+				if (hash.Contains(pair.Key)) {
+					result.Add(pair.Value);
 				}
 			}
 			result.Sort((a, b) => b.Ship.Body.Length.CompareTo(a.Ship.Body.Length));

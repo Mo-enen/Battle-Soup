@@ -149,17 +149,21 @@ namespace BattleSoupAI {
 		public bool NeedAim {
 			get {
 				if (!_NeedAim.HasValue) {
-					_NeedAim = false;
-					int count = 0;
-					foreach (var att in Attacks) {
-						if (
-							(att.Trigger == AttackTrigger.Picked || att.Trigger == AttackTrigger.TiedUp) &&
-							(att.Type == AttackType.HitTile || att.Type == AttackType.HitWholeShip || att.Type == AttackType.Sonar)
-						) {
-							count++;
-							if (count > 1) {
-								_NeedAim = true;
-								break;
+					if (CopyOpponentLastUsed) {
+						_NeedAim = true;
+					} else {
+						_NeedAim = false;
+						int count = 0;
+						foreach (var att in Attacks) {
+							if (
+								(att.Trigger == AttackTrigger.Picked || att.Trigger == AttackTrigger.TiedUp) &&
+								(att.Type == AttackType.HitTile || att.Type == AttackType.HitWholeShip || att.Type == AttackType.Sonar)
+							) {
+								count++;
+								if (count > 1) {
+									_NeedAim = true;
+									break;
+								}
 							}
 						}
 					}
@@ -167,7 +171,6 @@ namespace BattleSoupAI {
 				return _NeedAim.Value;
 			}
 		}
-		public int CopyIndex => _CopyIndex.HasValue ? _CopyIndex.Value : -1;
 
 		// Api-Ser
 		public List<Attack> Attacks = new List<Attack>();
@@ -181,29 +184,7 @@ namespace BattleSoupAI {
 		private bool? _HasActive;
 		private bool? _HasPassive;
 		private bool? _NeedAim;
-		private int? _CopyIndex;
 
-
-		public void CopyFrom (Ability target, int index) {
-			Attacks.Clear();
-			Attacks.AddRange(target.Attacks);
-			BreakOnSunk = target.BreakOnSunk;
-			BreakOnMiss = target.BreakOnMiss;
-			_HasActive = null;
-			_HasPassive = null;
-			_NeedAim = null;
-			_CopyIndex = index;
-		}
-
-		public void CopyFromNull () {
-			Attacks.Clear();
-			BreakOnSunk = false;
-			BreakOnMiss = false;
-			_HasActive = null;
-			_HasPassive = null;
-			_NeedAim = null;
-			_CopyIndex = null;
-		}
 
 	}
 

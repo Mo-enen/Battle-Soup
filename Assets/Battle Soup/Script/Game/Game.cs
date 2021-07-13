@@ -15,13 +15,15 @@ namespace BattleSoup {
 		#region --- SUB ---
 
 
+		public delegate ShipData ShipDataStringHandler (string key);
+
 		[System.Serializable] public class VoidVector3Event : UnityEvent<Vector3> { }
 		[System.Serializable] public class VoidEvent : UnityEvent { }
 		[System.Serializable] public class VoidStringEvent : UnityEvent<string> { }
 
 
-		[System.Serializable]
-		public class GameData {
+
+		private class GameData {
 
 			public SoupStrategy Strategy;
 			public MapData Map = null;
@@ -124,11 +126,12 @@ namespace BattleSoup {
 
 
 		// Api
+		public static ShipDataStringHandler GetShip { get; set; } = null;
 		public Group CurrentTurn { get; private set; } = Group.A;
 		public AbilityDirection AbilityDirection { get; private set; } = AbilityDirection.Up;
 		public int AbilityShipIndex { get; private set; } = -1;
-		public int PrevUsedAbilityA { get; private set; } = -1;
-		public int PrevUsedAbilityB { get; private set; } = -1;
+		public string PrevUsedAbilityA { get; private set; } = "";
+		public string PrevUsedAbilityB { get; private set; } = "";
 		public bool Cheated { get; set; } = false;
 
 		// Ser
@@ -146,8 +149,8 @@ namespace BattleSoup {
 		[SerializeField] VoidStringEvent m_ShowMessage = null;
 
 		// Data
-		public GameData DataA = new GameData();
-		public GameData DataB = new GameData();
+		private readonly GameData DataA = new GameData();
+		private readonly GameData DataB = new GameData();
 		private readonly Vector3[] WorldCornerCaches = new Vector3[4];
 		private BattleMode CurrentBattleMode = BattleMode.PvA;
 		private readonly AbilityPerformData AbilityData = new AbilityPerformData();
@@ -312,11 +315,9 @@ namespace BattleSoup {
 			DataB.Clear();
 			DataA.Init(strategyA, mapA, shipsA, positionsA);
 			DataB.Init(strategyB, mapB, shipsB, positionsB);
-			RefreshCopyFromOpponent(Group.A, -1);
-			RefreshCopyFromOpponent(Group.B, -1);
 			m_CheatToggle.isOn = false;
-			PrevUsedAbilityA = -1;
-			PrevUsedAbilityB = -1;
+			PrevUsedAbilityA = "";
+			PrevUsedAbilityB = "";
 			Cheated = false;
 			m_CheatToggle.gameObject.SetActive(true);
 		}
@@ -345,6 +346,8 @@ namespace BattleSoup {
 			m_SoupA.GetCheating = m_SoupB.GetCheating = () => m_CheatToggle.isOn;
 			m_SoupA.CheckShipSuperRevealed = (index) => DataA.SuperRevealed[index];
 			m_SoupB.CheckShipSuperRevealed = (index) => DataB.SuperRevealed[index];
+			m_SoupA.GetOpponentPrevUseShip = () => GetShip(PrevUsedAbilityB);
+			m_SoupB.GetOpponentPrevUseShip = () => GetShip(PrevUsedAbilityA);
 		}
 
 
@@ -559,17 +562,27 @@ namespace BattleSoup {
 			var opponentGroup = CurrentTurn == Group.A ? Group.B : Group.A;
 			var data = CurrentTurn == Group.A ? DataA : DataB;
 			var opData = CurrentTurn == Group.A ? DataB : DataA;
-			var ability = data.Ships[AbilityShipIndex].Ability;
+			var selfAbility = data.Ships[AbilityShipIndex].Ability;
+			var performAbility = selfAbility;
+			string performID = data.ShipDatas[AbilityShipIndex].GlobalID;
+			if (selfAbility.CopyOpponentLastUsed) {
+				string oppPrevUseAbilityKey = opponentGroup == Group.A ? PrevUsedAbilityA : PrevUsedAbilityB;
+				var aShip = GetShip(oppPrevUseAbilityKey);
+				if (aShip != null) {
+					performAbility = aShip.Ship.Ability;
+					performID = aShip.GlobalID;
+				}
+			}
 
-			if (ability.Attacks == null || ability.Attacks.Count == 0) { error = true; return false; }
+			if (performAbility.Attacks == null || performAbility.Attacks.Count == 0) { error = true; return false; }
 
 			// Perform Attack
 			for (
-				aData.AbilityAttackIndex = Mathf.Clamp(aData.AbilityAttackIndex, 0, ability.Attacks.Count - 1);
-				aData.AbilityAttackIndex < ability.Attacks.Count;
+				aData.AbilityAttackIndex = Mathf.Clamp(aData.AbilityAttackIndex, 0, performAbility.Attacks.Count - 1);
+				aData.AbilityAttackIndex < performAbility.Attacks.Count;
 				aData.AbilityAttackIndex++
 			) {
-				var attack = ability.Attacks[aData.AbilityAttackIndex];
+				var attack = performAbility.Attacks[aData.AbilityAttackIndex];
 				AttackResult result = AttackResult.None;
 				bool isHit = attack.Type == AttackType.HitTile || attack.Type == AttackType.HitWholeShip;
 				switch (attack.Trigger) {
@@ -624,24 +637,23 @@ namespace BattleSoup {
 
 				// Break Check
 				if (
-					(ability.BreakOnMiss && isHit && result.HasFlag(AttackResult.Miss)) ||
-					(ability.BreakOnSunk && result.HasFlag(AttackResult.SunkShip))
+					(performAbility.BreakOnMiss && isHit && result.HasFlag(AttackResult.Miss)) ||
+					(performAbility.BreakOnSunk && result.HasFlag(AttackResult.SunkShip))
 				) { break; }
 
 			}
 
 			// Prev Use
-			if (ability.HasActive) {
-				RefreshCopyFromOpponent(opponentGroup, AbilityShipIndex);
+			if (performAbility.HasActive) {
 				if (CurrentTurn == Group.A) {
-					PrevUsedAbilityA = AbilityShipIndex;
+					PrevUsedAbilityA = performID;
 				} else {
-					PrevUsedAbilityB = AbilityShipIndex;
+					PrevUsedAbilityB = performID;
 				}
 			}
 
 			// Final
-			data.Cooldowns[AbilityShipIndex] = ability.Cooldown;
+			data.Cooldowns[AbilityShipIndex] = selfAbility.Cooldown;
 			aData.Clear();
 			return true;
 		}
@@ -651,23 +663,6 @@ namespace BattleSoup {
 			AbilityShipIndex = -1;
 			AbilityData.Clear();
 			m_RefreshUI.Invoke();
-		}
-
-
-		private void RefreshCopyFromOpponent (Group ownGroup, int opponentIndex) {
-			var data = ownGroup == Group.A ? DataA : DataB;
-			var opData = ownGroup == Group.A ? DataB : DataA;
-			for (int i = 0; i < data.Ships.Length; i++) {
-				var ability = data.Ships[i].Ability;
-				if (ability.CopyOpponentLastUsed) {
-					if (opponentIndex >= 0) {
-						ability.CopyFrom(opData.Ships[opponentIndex].Ability, opponentIndex);
-					} else {
-						ability.CopyFromNull();
-					}
-					data.Ships[i].Ability = ability;
-				}
-			}
 		}
 
 
