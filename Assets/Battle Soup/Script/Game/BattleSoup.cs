@@ -203,7 +203,10 @@ namespace BattleSoup {
 						for (int i = 0; i < 36; i++) {
 							if (SoupStrategy.GetRandomShipPositions(map.Size, ships, map.Stones, out positions)) { break; }
 						}
-						if (positions == null || positions.Length == 0) { break; }
+						if (positions == null || positions.Length == 0) {
+							ShowMessage("Too many ships in this small map");
+							break;
+						}
 						m_Game.ShipPositionUI.gameObject.SetActive(true);
 						m_Game.ShipPositionUI.Init(map, shipDatas, positions);
 						RefreshShipPositionButton();
@@ -324,18 +327,22 @@ namespace BattleSoup {
 				int count = container.childCount;
 				var opGroup = group == Group.A ? Group.B : Group.A;
 				for (int i = 0; i < count; i++) {
+
 					int cooldown = m_Game.Game.GetCooldown(group, i);
 					var ability = m_Game.Game.GetAbility(group, i);
 					int opPrevUseIndex = group == Group.A ? m_Game.Game.PrevUsedAbilityB : m_Game.Game.PrevUsedAbilityA;
+					bool alive = m_Game.Game.CheckShipAlive(i, group);
 
 					var grabber = container.GetChild(i).GetComponent<Grabber>();
 					var btn = grabber.Grab<Button>();
-					btn.interactable = m_Game.Game.CheckShipAlive(i, group) && ability.HasActive && cooldown <= 0;
+					btn.interactable =
+						alive &&
+						ability.HasActive &&
+						cooldown <= 0;
 
 					var cooldownTxt = grabber.Grab<Text>("Cooldown");
-					if (cooldownTxt.gameObject.activeSelf) {
-						cooldownTxt.text = cooldown > 0 ? cooldown.ToString() : "";
-					}
+					cooldownTxt.gameObject.SetActive(alive && (ability.CopyOpponentLastUsed || ability.HasActive));
+					cooldownTxt.text = cooldown > 0 ? cooldown.ToString() : "";
 
 					grabber.Grab<GreyImage>("Icon").SetGrey(
 						ability.HasActive && !btn.interactable

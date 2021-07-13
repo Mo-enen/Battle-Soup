@@ -20,7 +20,8 @@ namespace BattleSoup {
 		[System.Serializable] public class VoidStringEvent : UnityEvent<string> { }
 
 
-		private class GameData {
+		[System.Serializable]
+		public class GameData {
 
 			public SoupStrategy Strategy;
 			public MapData Map = null;
@@ -145,8 +146,8 @@ namespace BattleSoup {
 		[SerializeField] VoidStringEvent m_ShowMessage = null;
 
 		// Data
-		private readonly GameData DataA = new GameData();
-		private readonly GameData DataB = new GameData();
+		public GameData DataA = new GameData();
+		public GameData DataB = new GameData();
 		private readonly Vector3[] WorldCornerCaches = new Vector3[4];
 		private BattleMode CurrentBattleMode = BattleMode.PvA;
 		private readonly AbilityPerformData AbilityData = new AbilityPerformData();
@@ -311,6 +312,8 @@ namespace BattleSoup {
 			DataB.Clear();
 			DataA.Init(strategyA, mapA, shipsA, positionsA);
 			DataB.Init(strategyB, mapB, shipsB, positionsB);
+			RefreshCopyFromOpponent(Group.A, -1);
+			RefreshCopyFromOpponent(Group.B, -1);
 			m_CheatToggle.isOn = false;
 			PrevUsedAbilityA = -1;
 			PrevUsedAbilityB = -1;
@@ -439,10 +442,6 @@ namespace BattleSoup {
 				cooldowns[i] = Mathf.Max(cooldowns[i] - 1, 0);
 			}
 
-			// Copy From Opponent
-			RefreshCopyFromOpponent(Group.A);
-			RefreshCopyFromOpponent(Group.B);
-
 			// Refresh
 			RefreshAllSoupRenderers();
 
@@ -561,6 +560,7 @@ namespace BattleSoup {
 			var data = CurrentTurn == Group.A ? DataA : DataB;
 			var opData = CurrentTurn == Group.A ? DataB : DataA;
 			var ability = data.Ships[AbilityShipIndex].Ability;
+
 			if (ability.Attacks == null || ability.Attacks.Count == 0) { error = true; return false; }
 
 			// Perform Attack
@@ -632,6 +632,7 @@ namespace BattleSoup {
 
 			// Prev Use
 			if (ability.HasActive) {
+				RefreshCopyFromOpponent(opponentGroup, AbilityShipIndex);
 				if (CurrentTurn == Group.A) {
 					PrevUsedAbilityA = AbilityShipIndex;
 				} else {
@@ -653,15 +654,14 @@ namespace BattleSoup {
 		}
 
 
-		private void RefreshCopyFromOpponent (Group group) {
-			int prevOpponentUseIndex = group == Group.A ? PrevUsedAbilityB : PrevUsedAbilityA;
-			var data = group == Group.A ? DataA : DataB;
-			var opData = group == Group.A ? DataB : DataA;
+		private void RefreshCopyFromOpponent (Group ownGroup, int opponentIndex) {
+			var data = ownGroup == Group.A ? DataA : DataB;
+			var opData = ownGroup == Group.A ? DataB : DataA;
 			for (int i = 0; i < data.Ships.Length; i++) {
 				var ability = data.Ships[i].Ability;
 				if (ability.CopyOpponentLastUsed) {
-					if (prevOpponentUseIndex >= 0) {
-						ability.CopyFrom(opData.Ships[prevOpponentUseIndex].Ability);
+					if (opponentIndex >= 0) {
+						ability.CopyFrom(opData.Ships[opponentIndex].Ability, opponentIndex);
 					} else {
 						ability.CopyFromNull();
 					}

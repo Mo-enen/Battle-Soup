@@ -19,6 +19,12 @@ namespace BattleSoup {
 
 
 		// API
+		public MapData (int size, Int2[] stones) {
+			m_Size = size;
+			m_Stones = stones;
+		}
+
+
 		public bool HasStone (int x, int y) {
 			for (int i = 0; i < m_Stones.Length; i++) {
 				var stone = m_Stones[i];

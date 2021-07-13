@@ -302,7 +302,7 @@ namespace BattleSoup {
 					if (
 						CurrentBattleMode == BattleMode.PvA &&
 						group == Group.A &&
-						ship.Ship.Ability.HasActive
+						(ship.Ship.Ability.HasActive || ship.Ship.Ability.CopyOpponentLastUsed)
 					) {
 						int _index = i;
 						btn.onClick.AddListener(() => m_Game.Game.OnAbilityClick(_index));

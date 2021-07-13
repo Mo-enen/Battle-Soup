@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Moenen.Standard;
-
+using BattleSoupAI;
 
 
 namespace BattleSoup {
@@ -87,17 +87,29 @@ namespace BattleSoup {
 		private void Awake_Map () {
 			MapDatas.Clear();
 			string root = Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Maps");
-			var files = Util.GetFilesIn(root, true, "*.json");
+			var files = Util.GetFilesIn(root, true, "*.png");
+			var stones = new List<Int2>();
 			for (int i = 0; i < files.Length; i++) {
 				try {
 					var file = files[i];
-					string json = Util.FileToText(file.FullName);
-					if (string.IsNullOrEmpty(json)) { continue; }
-					var map = JsonUtility.FromJson<MapData>(json);
-					if (map == null) { continue; }
-					MapDatas.Add(map);
+					var png = Util.FileToByte(file.FullName);
+					if (png == null || png.Length == 0) { continue; }
+					var texture = new Texture2D(2, 2);
+					texture.LoadImage(png, false);
+					int textureWidth = texture.width;
+					int textureHeight = texture.height;
+					stones.Clear();
+					for (int x = 0; x < textureWidth; x++) {
+						for (int y = 0; y < textureHeight; y++) {
+							if (texture.GetPixel(x, y).r < 0.5f) {
+								stones.Add(new Int2(x, y));
+							}
+						}
+					}
+					MapDatas.Add(new MapData(Mathf.Max(textureWidth, textureHeight), stones.ToArray()));
 				} catch { }
 			}
+			Resources.UnloadUnusedAssets();
 		}
 
 

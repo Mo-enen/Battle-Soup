@@ -167,6 +167,7 @@ namespace BattleSoupAI {
 				return _NeedAim.Value;
 			}
 		}
+		public int CopyIndex => _CopyIndex.HasValue ? _CopyIndex.Value : -1;
 
 		// Api-Ser
 		public List<Attack> Attacks = new List<Attack>();
@@ -180,18 +181,28 @@ namespace BattleSoupAI {
 		private bool? _HasActive;
 		private bool? _HasPassive;
 		private bool? _NeedAim;
+		private int? _CopyIndex;
 
-		public void CopyFrom (Ability target) {
+
+		public void CopyFrom (Ability target, int index) {
 			Attacks.Clear();
 			Attacks.AddRange(target.Attacks);
 			BreakOnSunk = target.BreakOnSunk;
 			BreakOnMiss = target.BreakOnMiss;
+			_HasActive = null;
+			_HasPassive = null;
+			_NeedAim = null;
+			_CopyIndex = index;
 		}
 
 		public void CopyFromNull () {
 			Attacks.Clear();
 			BreakOnSunk = false;
 			BreakOnMiss = false;
+			_HasActive = null;
+			_HasPassive = null;
+			_NeedAim = null;
+			_CopyIndex = null;
 		}
 
 	}
