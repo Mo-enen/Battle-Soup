@@ -180,6 +180,7 @@ namespace BattleSoup {
 
 
 		private void Update () {
+			//Debug.Log(PrevUsedAbilityA + ", " + PrevUsedAbilityB);
 			Update_Aim();
 			Update_Turn();
 		}
@@ -346,8 +347,8 @@ namespace BattleSoup {
 			m_SoupA.GetCheating = m_SoupB.GetCheating = () => m_CheatToggle.isOn;
 			m_SoupA.CheckShipSuperRevealed = (index) => DataA.SuperRevealed[index];
 			m_SoupB.CheckShipSuperRevealed = (index) => DataB.SuperRevealed[index];
-			m_SoupA.GetOpponentPrevUseShip = () => GetShip(PrevUsedAbilityB);
-			m_SoupB.GetOpponentPrevUseShip = () => GetShip(PrevUsedAbilityA);
+			m_SoupA.GetPrevUseShip = () => GetShip(PrevUsedAbilityA);
+			m_SoupB.GetPrevUseShip = () => GetShip(PrevUsedAbilityB);
 		}
 
 
@@ -421,6 +422,8 @@ namespace BattleSoup {
 				m_CheatToggle.gameObject.SetActive(false);
 				m_RefreshUI.Invoke();
 				RefreshAllSoupRenderers();
+				m_SoupA.ClearAimRenderer();
+				m_SoupB.ClearAimRenderer();
 				return;
 			} else if (AllShipsSunk(Group.B)) {
 				if (CurrentBattleMode == BattleMode.PvA) {
@@ -436,6 +439,8 @@ namespace BattleSoup {
 				m_CheatToggle.gameObject.SetActive(false);
 				m_RefreshUI.Invoke();
 				RefreshAllSoupRenderers();
+				m_SoupA.ClearAimRenderer();
+				m_SoupB.ClearAimRenderer();
 				return;
 			}
 

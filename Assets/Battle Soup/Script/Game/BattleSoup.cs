@@ -61,7 +61,10 @@ namespace BattleSoup {
 			);
 			m_Game.Game.gameObject.SetActive(false);
 			m_Game.Game.SetupDelegate();
-			Game.GetShip = (key) => m_Game.Asset.GetShipData(key);
+			Game.GetShip = (key) => {
+				//Debug.Log(key + "::" + m_Game.Asset.GetShipData(key));
+				return m_Game.Asset.GetShipData(key);
+			};
 
 			// Quit Game Confirm
 			Application.wantsToQuit += () => {

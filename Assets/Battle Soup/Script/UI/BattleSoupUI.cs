@@ -49,7 +49,7 @@ namespace BattleSoup {
 		public AbilityHandler GetCurrentAbility { get; set; } = null;
 		public AbilityDirectionHandler GetCurrentAbilityDirection { get; set; } = null;
 		public BoolHandler GetCheating { get; set; } = null;
-		public ShipDataHandler GetOpponentPrevUseShip { get; set; } = null;
+		public ShipDataHandler GetPrevUseShip { get; set; } = null;
 
 		// Ser
 		[SerializeField] MapRenderer m_MapRenderer = null;
@@ -179,11 +179,11 @@ namespace BattleSoup {
 
 		public void RefreshAimRenderer () {
 			var ability = GetCurrentAbility();
-			var dir = GetCurrentAbilityDirection();
 			bool inside = false;
 			if (ability != null) {
 				if (ability.NeedAim && GetMapPositionInside(Input.mousePosition, out var pos)) {
 					inside = true;
+					var dir = GetCurrentAbilityDirection();
 					if (!PrevMousePosForAim.HasValue || PrevMousePosForAim.Value != pos || PrevAbilityDirection != dir) {
 						var map = GetMap();
 						PrevMousePosForAim = pos;
@@ -191,18 +191,18 @@ namespace BattleSoup {
 						m_AimRenderer.ClearBlock();
 						var attacks = ability.Attacks;
 						if (ability.CopyOpponentLastUsed) {
-							var oppPrevShip = GetOpponentPrevUseShip();
+							var oppPrevShip = GetPrevUseShip();
 							if (oppPrevShip != null) {
 								attacks = oppPrevShip.Ship.Ability.Attacks;
 							}
 						}
 						foreach (var att in attacks) {
-							if (att.Trigger == AttackTrigger.Picked || att.Trigger == AttackTrigger.TiedUp) {
-								var (x, y) = att.GetPosition(pos.x, pos.y, dir);
-								if (x >= 0 && x < map.Size && y >= 0 && y < map.Size) {
-									if (x != pos.x || y != pos.y) {
-										m_AimRenderer.AddBlock(x, y, 0);
-									}
+							if (att.Type != AttackType.HitTile && att.Type != AttackType.HitWholeShip) { continue; }
+							if (att.Trigger != AttackTrigger.Picked && att.Trigger != AttackTrigger.TiedUp) { continue; }
+							var (x, y) = att.GetPosition(pos.x, pos.y, dir);
+							if (x >= 0 && x < map.Size && y >= 0 && y < map.Size) {
+								if (x != pos.x || y != pos.y) {
+									m_AimRenderer.AddBlock(x, y, 0);
 								}
 							}
 						}
