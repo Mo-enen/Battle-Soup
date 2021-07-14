@@ -566,7 +566,21 @@ PlayerSettings:
   webGLLinkerTarget: 1
   webGLThreadsSupport: 0
   webGLDecompressionFallback: 0
-  scriptingDefineSymbols: {}
+  scriptingDefineSymbols:
+    1: CT_FB;CT_FB_PRO
+    4: CT_FB;CT_FB_PRO
+    7: CT_FB;CT_FB_PRO
+    13: CT_FB;CT_FB_PRO
+    14: CT_FB;CT_FB_PRO
+    19: CT_FB;CT_FB_PRO
+    21: CT_FB;CT_FB_PRO
+    25: CT_FB;CT_FB_PRO
+    27: CT_FB;CT_FB_PRO
+    28: CT_FB;CT_FB_PRO
+    29: CT_FB;CT_FB_PRO
+    30: CT_FB;CT_FB_PRO
+    32: CT_FB;CT_FB_PRO
+    33: CT_FB;CT_FB_PRO
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
