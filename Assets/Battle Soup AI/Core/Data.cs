@@ -63,6 +63,7 @@ namespace BattleSoupAI {
 		Sonar = 4,
 		RevealOwnUnoccupiedTile = 5,
 		RevealSelf = 6,
+		DoNothing = 7,
 	}
 
 
@@ -72,12 +73,17 @@ namespace BattleSoupAI {
 		TiedUp = 1,
 		Random = 2,
 		PassiveRandom = 3,
+
 	}
 
 
 
 	[System.Serializable]
 	public struct Attack {
+		// Api
+		public bool IsHitOpponent => Type == AttackType.HitTile || Type == AttackType.HitWholeShip;
+		public bool IsRevealOpponent => Type == AttackType.RevealTile || Type == AttackType.RevealWholeShip;
+		// Ser-Api
 		public int X;
 		public int Y;
 		public AttackType Type;

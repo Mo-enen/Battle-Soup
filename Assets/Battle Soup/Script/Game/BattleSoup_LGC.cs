@@ -12,7 +12,6 @@ namespace BattleSoup {
 	public partial class BattleSoup {
 
 
-
 		// Ship
 		private void ReloadShipToggle (Group group) {
 

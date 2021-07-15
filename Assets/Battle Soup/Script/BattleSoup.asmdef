@@ -4,7 +4,8 @@
     "references": [
         "BattleSoupAI",
         "Moenen.Standard",
-        "UIGadget.Core"
+        "UIGadget.Core",
+        "BetterCoroutine"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

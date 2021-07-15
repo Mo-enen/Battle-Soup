@@ -174,7 +174,10 @@ namespace BattleSoup {
 		}
 
 
-		public void Blink (int x, int y, Color color, Sprite sprite) => m_Highlight.Blink(x, y, color, sprite);
+		public void Blink (int x, int y, Color color, Sprite sprite, float alpha = 0f, float duration = 0.618f, int count = 4) => m_Highlight.Blink(x, y, color, sprite, alpha, duration, count);
+
+
+		public void ClearBlinks () => m_Highlight.ClearAllBlinks();
 
 
 		public void RefreshAimRenderer () {

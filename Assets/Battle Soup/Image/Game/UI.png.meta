@@ -40,7 +40,16 @@ TextureImporter:
     second: Cheat Win Face
   - first:
       213: -4532114073746202998
-    second: Control Panel
+    second: Play
+  - first:
+      213: -8346291274449466048
+    second: Next
+  - first:
+      213: -343943630576144839
+    second: Pause
+  - first:
+      213: 7301787903208175943
+    second: Attack Blink
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -322,8 +331,8 @@ TextureImporter:
       name: Demon Face
       rect:
         serializedVersion: 2
-        x: 110
-        y: 147
+        x: 253
+        y: 70
         width: 54
         height: 55
       alignment: 0
@@ -377,6 +386,90 @@ TextureImporter:
       bones: []
       spriteID: e20dac52653863e70800000000000000
       internalID: 9094600903545770030
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Play
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 148
+        width: 86
+        height: 95
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a8e1fc81342ba11c0800000000000000
+      internalID: -4532114073746202998
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Next
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 148
+        width: 91
+        height: 96
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 04d4f727e440c2c80800000000000000
+      internalID: -8346291274449466048
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pause
+      rect:
+        serializedVersion: 2
+        x: 181
+        y: 127
+        width: 85
+        height: 105
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 93e20cc17111a3bf0800000000000000
+      internalID: -343943630576144839
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Attack Blink
+      rect:
+        serializedVersion: 2
+        x: 308
+        y: 78
+        width: 78
+        height: 74
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 749b7f35969255560800000000000000
+      internalID: 7301787903208175943
       vertices: []
       indices: 
       edges: []

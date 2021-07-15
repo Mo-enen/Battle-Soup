@@ -17,6 +17,7 @@ namespace BattleSoup {
 
 		// Data
 		private Coroutine MouseCor = null;
+		private float BlinkTime = 0f;
 
 
 		// MSG
@@ -59,9 +60,7 @@ namespace BattleSoup {
 		}
 
 
-		public void Blink (int x, int y, Color color, Sprite sprite) {
-			const float DURATION = 3f;
-			const int COUNT = 8;
+		public void Blink (int x, int y, Color color, Sprite sprite, float alpha = 0f, float duration = 0.618f, int count = 4) {
 			StartCoroutine(Blinking(x, y, m_Map.GridCountX));
 			IEnumerator Blinking (int _x, int _y, int _size) {
 				var rt = new GameObject("Blinking", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image)).transform as RectTransform;
@@ -75,17 +74,24 @@ namespace BattleSoup {
 				rt.offsetMin = Vector2.zero;
 				rt.offsetMax = Vector2.zero;
 				rt.SetAsLastSibling();
-				Destroy(rt.gameObject, DURATION + 1f);
+				Destroy(rt.gameObject, duration + 1f);
 				var img = rt.GetComponent<Image>();
+				float alphaA = color.a;
 				img.color = color;
 				img.sprite = sprite;
-				for (float time = 0f; time < DURATION; time += Time.deltaTime) {
-					img.enabled = (time * COUNT / DURATION) % 1f > 0.5f;
+				float blinkTime = Time.time;
+				img.enabled = true;
+				for (float time = 0f; time < duration && blinkTime > BlinkTime; time += Time.deltaTime) {
+					color.a = (time * count / duration) % 1f > 0.5f ? alpha : alphaA;
+					img.color = color;
 					yield return new WaitForEndOfFrame();
 				}
 				img.enabled = false;
 			}
 		}
+
+
+		public void ClearAllBlinks () => BlinkTime = Time.time - 0.01f;
 
 
 	}

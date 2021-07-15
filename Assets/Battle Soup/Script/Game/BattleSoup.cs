@@ -38,9 +38,9 @@ namespace BattleSoup {
 		// Saving
 		private readonly SavingString SelectedFleetA = new SavingString("BattleSoup.SelectedFleetA", "Coracle+KillerSquid+SeaTurtle+Whale");
 		private readonly SavingString SelectedFleetB = new SavingString("BattleSoup.SelectedFleetB", "Coracle+KillerSquid+SeaTurtle+Whale");
+		private readonly SavingBool UseSound = new SavingBool("BattleSoup.UseSound", true);
 		private readonly SavingInt SelectedMapA = new SavingInt("BattleSoup.SelectedMapA", 0);
 		private readonly SavingInt SelectedMapB = new SavingInt("BattleSoup.SelectedMapB", 0);
-		private readonly SavingBool UseSound = new SavingBool("BattleSoup.UseSound", true);
 		private readonly SavingInt StrategyIndexA = new SavingInt("BattleSoup.StrategyIndexA", 0);
 		private readonly SavingInt StrategyIndexB = new SavingInt("BattleSoup.StrategyIndexB", 0);
 
@@ -61,10 +61,7 @@ namespace BattleSoup {
 			);
 			m_Game.Game.gameObject.SetActive(false);
 			m_Game.Game.SetupDelegate();
-			Game.GetShip = (key) => {
-				//Debug.Log(key + "::" + m_Game.Asset.GetShipData(key));
-				return m_Game.Asset.GetShipData(key);
-			};
+			Game.GetShip = (key) => m_Game.Asset.GetShipData(key);
 
 			// Quit Game Confirm
 			Application.wantsToQuit += () => {
@@ -244,7 +241,6 @@ namespace BattleSoup {
 						}
 						m_Game.Game.Init(CurrentBattleMode, Strategies[StrategyIndexA.Value], Strategies[StrategyIndexB.Value], mapA, mapB, shipsA, shipsB, positionsA, positionsB);
 					}
-					m_Game.Game.gameObject.SetActive(true);
 					m_Game.BattleSoupUIA.Init(CurrentBattleMode == BattleMode.AvA);
 					m_Game.BattleSoupUIB.Init(true);
 					m_Game.BattleSoupUIA.RefreshShipRenderer();

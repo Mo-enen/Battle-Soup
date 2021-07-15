@@ -89,6 +89,30 @@ namespace Moenen.Standard {
 		}
 
 
+		// Coroutine
+		public static Coroutine StartBetterCoroutine (this MonoBehaviour beh, IEnumerator routine, System.Action onFinished = null) => beh.StartBetterCoroutine(routine, (ex) => onFinished?.Invoke());
+		public static Coroutine StartBetterCoroutine (this MonoBehaviour beh, IEnumerator routine, System.Action<System.Exception> onFinished = null) {
+			var cor = beh.StartCoroutine(Coroutine());
+			return cor;
+			// Func
+			IEnumerator Coroutine () {
+				while (true) {
+					bool done;
+					try {
+						done = routine.MoveNext();
+					} catch (System.Exception ex) {
+						onFinished?.Invoke(ex);
+						yield break;
+					}
+					if (done) {
+						yield return routine.Current;
+					} else { break; }
+				}
+				onFinished?.Invoke(null);
+			}
+		}
+
+
 
 	}
 }
