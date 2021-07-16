@@ -1,5 +1,6 @@
 ﻿{
   "m_DisplayName": "Octopus",
+  "m_Description": "Attacks 2 UNKNOWN tiles at random with sonar. Sonar: shows the distance to the closest enemy unit(s)",
   "m_Ship": {
     "TerminateHP": 0,
     "Body": [

@@ -103,7 +103,7 @@ namespace BattleSoup {
 			map = GetSelectingMap(group);
 			positions = null;
 			for (int i = 0; i < 36; i++) {
-				if (SoupStrategy.GetRandomShipPositions(map.Size, ships, map.Stones, out positions)) { break; }
+				if (SoupStrategy.PositionShips_Random(map.Size, ships, map.Stones, out positions)) { break; }
 			}
 			if (positions == null || positions.Length == 0) {
 				error = "Failed to position AI ships.";

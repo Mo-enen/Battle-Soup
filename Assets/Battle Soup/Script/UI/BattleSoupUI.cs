@@ -50,6 +50,7 @@ namespace BattleSoup {
 		public AbilityDirectionHandler GetCurrentAbilityDirection { get; set; } = null;
 		public BoolHandler GetCheating { get; set; } = null;
 		public ShipDataHandler GetPrevUseShip { get; set; } = null;
+		public bool SunkOnly { get; set; } = false;
 
 		// Ser
 		[SerializeField] MapRenderer m_MapRenderer = null;
@@ -64,7 +65,6 @@ namespace BattleSoup {
 		// Data
 		private Vector2Int? PrevMousePosForAim = null;
 		private AbilityDirection PrevAbilityDirection = AbilityDirection.Up;
-		private bool SunkOnly = false;
 
 
 		#endregion
@@ -127,6 +127,8 @@ namespace BattleSoup {
 						m_HitRenderer.AddBlock(i, j, 1);
 					} else if (tile == Tile.RevealedShip) {
 						m_HitRenderer.AddBlock(i, j, 2);
+					} else if (tile == Tile.SunkShip) {
+						m_HitRenderer.AddBlock(i, j, 3);
 					}
 				}
 			}
@@ -220,7 +222,7 @@ namespace BattleSoup {
 					m_AimRenderer.SetVerticesDirty();
 				}
 			}
-			if (m_AbilityAimHint != null) {
+			if (m_AbilityAimHint != null && m_AbilityAimHint.gameObject.activeSelf != inside) {
 				m_AbilityAimHint.gameObject.SetActive(inside);
 			}
 		}
@@ -230,6 +232,9 @@ namespace BattleSoup {
 			m_AimRenderer.ClearBlock();
 			m_AimRenderer.SetVerticesDirty();
 			PrevMousePosForAim = null;
+			if (m_AbilityAimHint != null && m_AbilityAimHint.gameObject.activeSelf) {
+				m_AbilityAimHint.gameObject.SetActive(false);
+			}
 		}
 
 

@@ -1,5 +1,6 @@
 ﻿{
   "m_DisplayName": "Sailboat",
+  "m_Description": "Attacks in a 1x3 pattern",
   "m_Ship": {
     "TerminateHP": 0,
     "Body": [

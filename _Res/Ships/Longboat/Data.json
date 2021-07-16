@@ -1,5 +1,6 @@
 ﻿{
   "m_DisplayName": "Longboat",
+  "m_Description": "Combo. Attack up to 5 times or until you miss or destroy a ship.",
   "m_Ship": {
     "TerminateHP": 0,
     "Body": [

@@ -1,5 +1,6 @@
 ﻿{
   "m_DisplayName": "Mirror",
+  "m_Description": "Play the last ability used by your opponent",
   "m_Ship": {
     "TerminateHP": 0,
     "Body": [

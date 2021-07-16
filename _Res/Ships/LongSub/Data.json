@@ -1,5 +1,6 @@
 ﻿{
   "m_DisplayName": "Long Sub",
+  "m_Description": "Sonar. Is revealed to the other player when the ability is used. Self-destructs when only 1 tile remains.",
   "m_Ship": {
     "TerminateHP": 1,
     "Body": [

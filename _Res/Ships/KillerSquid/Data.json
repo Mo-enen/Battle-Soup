@@ -1,5 +1,6 @@
 ﻿{
   "m_DisplayName": "Squid",
+  "m_Description": "Can only attack on revealed tiles. Attacks also reveal adjacent tiles",
   "m_Ship": {
     "TerminateHP": 0,
     "Body": [

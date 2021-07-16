@@ -1,5 +1,6 @@
 ﻿{
   "m_DisplayName": "Coracle",
+  "m_Description": "Destroys ships in one hit, can only play in revealed tiles.\nReveals a random unoccupied tile on your grid when you play a regular attack",
   "m_Ship": {
     "TerminateHP": 0,
     "Body": [

@@ -1,5 +1,6 @@
 ﻿{
   "m_DisplayName": "Whale",
+  "m_Description": "Attacks reveal adjacent tiles",
   "m_Ship": {
     "TerminateHP": 0,
     "Body": [

@@ -1,5 +1,6 @@
 ﻿{
   "m_DisplayName": "Galleon",
+  "m_Description": "Attacks twice.",
   "m_Ship": {
     "TerminateHP": 0,
     "Body": [
@@ -36,7 +37,7 @@
       "Cooldown": 3,
       "BreakOnSunk": false,
       "BreakOnMiss": false,
-      "ResetCooldownOnHit": true,
+      "ResetCooldownOnHit": false,
       "CopyOpponentLastUsed": false
     }
   }

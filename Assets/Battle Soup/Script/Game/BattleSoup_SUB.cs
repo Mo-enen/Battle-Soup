@@ -61,6 +61,7 @@ namespace BattleSoup {
 		}
 
 
+
 		[System.Serializable]
 		public struct GameData {
 			public Game Game;
@@ -70,6 +71,7 @@ namespace BattleSoup {
 			public BattleSoupUI BattleSoupUIB;
 			public Grabber AbilityShip;
 		}
+
 
 
 		[System.Serializable]
@@ -95,6 +97,7 @@ namespace BattleSoup {
 			public RectTransform TurnArrowA;
 			public RectTransform TurnArrowB;
 			public Toggle SoundTG;
+			public Toggle AutoPlayAvATG;
 			public Dropdown StrategyDropA;
 			public Dropdown StrategyDropB;
 			public Text StrategyDescriptionA;
@@ -105,11 +108,13 @@ namespace BattleSoup {
 		}
 
 
+
 		[System.Serializable]
 		public struct ResourceData {
 			public Sprite[] BattleAvatars;
 			public CursorData[] Cursors;
 		}
+
 
 
 	}

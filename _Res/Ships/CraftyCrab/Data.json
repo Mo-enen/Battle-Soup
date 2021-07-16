@@ -1,5 +1,6 @@
 ﻿{
   "m_DisplayName": "Crafty Crab",
+  "m_Description": "While not destroyed, your cannon attack also reveals a random unknown tile.",
   "m_Ship": {
     "TerminateHP": 0,
     "Body": [

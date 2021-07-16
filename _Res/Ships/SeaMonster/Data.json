@@ -1,5 +1,6 @@
 ﻿{
   "m_DisplayName": "Sea Monster",
+  "m_Description": "Attacks 3 sea tiles randomly",
   "m_Ship": {
     "TerminateHP": 0,
     "Body": [

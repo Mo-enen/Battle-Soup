@@ -1,5 +1,6 @@
 ﻿{
   "m_DisplayName": "Elec Eels",
+  "m_Description": "Fully reveal the target ship (does not count as an attack)",
   "m_Ship": {
     "TerminateHP": 0,
     "Body": [

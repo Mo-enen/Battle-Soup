@@ -1,5 +1,6 @@
 ﻿{
   "m_DisplayName": "Turtle",
+  "m_Description": "Successful attacks reveal adjacent tiles",
   "m_Ship": {
     "TerminateHP": 0,
     "Body": [

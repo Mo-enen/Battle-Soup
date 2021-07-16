@@ -45,6 +45,8 @@ namespace BattleSoupAI {
 		RevealedStone = 1 << 3,
 		RevealedShip = 1 << 4,
 		HittedShip = 1 << 5,
+		SunkShip = 1 << 6,
+
 	}
 
 
@@ -157,7 +159,7 @@ namespace BattleSoupAI {
 						foreach (var att in Attacks) {
 							if (
 								(att.Trigger == AttackTrigger.Picked || att.Trigger == AttackTrigger.TiedUp) &&
-								(att.Type == AttackType.HitTile || att.Type == AttackType.HitWholeShip || att.Type == AttackType.Sonar)
+								(att.IsHitOpponent || att.Type == AttackType.Sonar)
 							) {
 								count++;
 								if (count > 1) {

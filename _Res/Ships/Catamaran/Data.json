@@ -1,5 +1,6 @@
 ﻿{
   "m_DisplayName": "Catamaran",
+  "m_Description": "Attacks in a 7x1 line.",
   "m_Ship": {
     "TerminateHP": 0,
     "Body": [

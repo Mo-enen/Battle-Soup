@@ -39,6 +39,7 @@ namespace BattleSoup {
 		private readonly SavingString SelectedFleetA = new SavingString("BattleSoup.SelectedFleetA", "Coracle+KillerSquid+SeaTurtle+Whale");
 		private readonly SavingString SelectedFleetB = new SavingString("BattleSoup.SelectedFleetB", "Coracle+KillerSquid+SeaTurtle+Whale");
 		private readonly SavingBool UseSound = new SavingBool("BattleSoup.UseSound", true);
+		private readonly SavingBool AutoPlayAvA = new SavingBool("BattleSoup.AutoPlayAvA", true);
 		private readonly SavingInt SelectedMapA = new SavingInt("BattleSoup.SelectedMapA", 0);
 		private readonly SavingInt SelectedMapB = new SavingInt("BattleSoup.SelectedMapB", 0);
 		private readonly SavingInt StrategyIndexA = new SavingInt("BattleSoup.StrategyIndexA", 0);
@@ -79,6 +80,7 @@ namespace BattleSoup {
 			// Sound
 			AudioListener.volume = UseSound.Value ? 1f : 0f;
 			m_UI.SoundTG.SetIsOnWithoutNotify(UseSound.Value);
+			m_UI.AutoPlayAvATG.SetIsOnWithoutNotify(AutoPlayAvA.Value);
 
 			// System
 			Application.targetFrameRate = 30;
@@ -202,7 +204,7 @@ namespace BattleSoup {
 						ShipPosition[] positions = null;
 						var ships = ShipData.GetShips(shipDatas);
 						for (int i = 0; i < 36; i++) {
-							if (SoupStrategy.GetRandomShipPositions(map.Size, ships, map.Stones, out positions)) { break; }
+							if (SoupStrategy.PositionShips_Random(map.Size, ships, map.Stones, out positions)) { break; }
 						}
 						if (positions == null || positions.Length == 0) {
 							ShowMessage("Too many ships in this small map");
@@ -234,12 +236,18 @@ namespace BattleSoup {
 					}
 					if (CurrentBattleMode == BattleMode.PvA) {
 						m_Game.Game.Init(CurrentBattleMode, Strategies[StrategyIndexA.Value], Strategies[StrategyIndexB.Value], m_Game.ShipPositionUI.Map, mapB, m_Game.ShipPositionUI.Ships, shipsB, m_Game.ShipPositionUI.Positions, positionsB);
+						if (AutoPlayAvA.Value) {
+							m_Game.Game.UI_PlayAvA();
+						}
 					} else {
 						if (!SetupAIBattleSoup(Group.A, out var mapA, out var shipsA, out var positionsA, out string errorA)) {
 							ShowMessage(errorA);
 							break;
 						}
 						m_Game.Game.Init(CurrentBattleMode, Strategies[StrategyIndexA.Value], Strategies[StrategyIndexB.Value], mapA, mapB, shipsA, shipsB, positionsA, positionsB);
+						if (AutoPlayAvA.Value) {
+							m_Game.Game.UI_PlayAvA();
+						}
 					}
 					m_Game.BattleSoupUIA.Init(CurrentBattleMode == BattleMode.AvA);
 					m_Game.BattleSoupUIB.Init(true);
@@ -394,12 +402,6 @@ namespace BattleSoup {
 		public void UI_RefreshBattleInfoUI () => RefreshBattleInfoUI();
 
 
-		public void UI_SoundToggle (bool isOn) {
-			UseSound.Value = isOn;
-			AudioListener.volume = isOn ? 1f : 0f;
-		}
-
-
 		public void UI_SetCheat () => m_Game.Game.Cheated = true;
 
 
@@ -418,6 +420,18 @@ namespace BattleSoup {
 		public void UI_QuitGame () {
 			QuitGameForReal = true;
 			Application.Quit();
+		}
+
+
+		// Setting
+		public void UI_SoundToggle (bool isOn) {
+			UseSound.Value = isOn;
+			AudioListener.volume = isOn ? 1f : 0f;
+		}
+
+
+		public void UI_AutoPlayAvAToggle (bool isOn) {
+			AutoPlayAvA.Value = isOn;
 		}
 
 

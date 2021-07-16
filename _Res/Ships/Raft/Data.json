@@ -1,5 +1,6 @@
 ﻿{
   "m_DisplayName": "Raft",
+  "m_Description": "Attacks in a 2x2 pattern",
   "m_Ship": {
     "TerminateHP": 0,
     "Body": [
