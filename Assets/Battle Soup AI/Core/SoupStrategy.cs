@@ -42,7 +42,8 @@ namespace BattleSoupAI {
 		public virtual string Description { get; } = "";
 
 		// Data
-		//private int[,] PotentialValueCache = new int[0, 0];
+		//private int[,,] PotentialValueCache = new int[0, 0,0];
+		//private ShipPosition[,] PotentialShipPositions = new ShipPosition[0,0];
 
 
 		#endregion
@@ -149,58 +150,122 @@ namespace BattleSoupAI {
 
 
 		// Potential
-		public static void GetPotentialValues (Int2[] shipBody, Tile[,] tiles, ref int[,] result) {
+		public static bool CalculatePotentials (
+			Ship[] ships, Tile[,] tiles, ShipPosition?[] knownPositions,
+			int[,,] values, List<ShipPosition>[] positions
+		) {
 
-			if (tiles == null || tiles.Length == 0) { return; }
-			if (result.GetLength(0) != tiles.GetLength(0) || result.GetLength(1) != tiles.GetLength(1)) {
-				result = new int[tiles.GetLength(0), tiles.GetLength(1)];
+			// Check
+			if (ships == null || ships.Length == 0) { return false; }
+
+			if (knownPositions == null || knownPositions.Length != ships.Length) { return false; }
+
+			if (
+				tiles == null ||
+				tiles.Length == 0 ||
+				tiles.GetLength(0) != ships.Length ||
+				tiles.GetLength(1) != tiles.GetLength(2)
+			) { return false; }
+
+			if (
+				values.GetLength(0) != tiles.GetLength(0) ||
+				values.GetLength(1) != tiles.GetLength(1) ||
+				values.GetLength(2) != tiles.GetLength(2)
+			) {
+				values = new int[tiles.GetLength(0), tiles.GetLength(1), tiles.GetLength(2)];
 			}
-			if (shipBody == null || shipBody.Length == 0) { return; }
 
-			// Result:
+
+			// Values:
 			// 0+	ship count
 			// -1	stone, revealed water, sunk ship
-			// -2	hitted ship, revealed ship
+			// -2	revealed ship
+			// -3	hitted ship
 
-			// Init Result
-			int size = tiles.GetLength(0);
-			for (int y = 0; y < size; y++) {
-				for (int x = 0; x < size; x++) {
-					switch (tiles[x, y]) {
-						case Tile.None:
-						case Tile.GeneralWater:
-							result[x, y] = 0;
-							break;
-						case Tile.GeneralStone:
-						case Tile.RevealedStone:
-						case Tile.RevealedWater:
-						case Tile.SunkShip:
-							result[x, y] = -1;
-							break;
-						case Tile.HittedShip:
-						case Tile.RevealedShip:
-							result[x, y] = -2;
-							break;
+			// Init
+			int shipCount = ships.Length;
+			int size = tiles.GetLength(1);
+			int stoneCount = 0;
+			for (int shipIndex = 0; shipIndex < shipCount; shipIndex++) {
+				for (int y = 0; y < size; y++) {
+					for (int x = 0; x < size; x++) {
+						var tile = tiles[x, y];
+						var value = tile switch {
+							Tile.None => 0,
+							Tile.GeneralWater => 0,
+							Tile.GeneralStone => -1,
+							Tile.RevealedStone => -1,
+							Tile.RevealedWater => -1,
+							Tile.SunkShip => -1,
+							Tile.RevealedShip => -2,
+							Tile.HittedShip => -3,
+							_ => -5,
+						};
+						values[shipIndex, x, y] = value;
+						if (tile == Tile.GeneralStone || tile == Tile.RevealedStone) {
+							stoneCount++;
+						}
 					}
 				}
 			}
 
 			// Add Potential Ships
+			if (positions == null || positions.Length != shipCount) {
+				positions = new List<ShipPosition>[shipCount];
+			}
+			for (int shipIndex = 0; shipIndex < shipCount; shipIndex++) {
+				var posList = positions[shipIndex];
+				if (knownPositions[shipIndex].HasValue) {
+					posList.Add(knownPositions[shipIndex].Value);
+					continue;
+				}
+				for (int y = 0; y < size; y++) {
+					for (int x = 0; x < size; x++) {
+						if (CheckAvailable(shipIndex, x, y, true)) {
+							posList.Add(new ShipPosition(x, y, true));
+						}
+						if (CheckAvailable(shipIndex, x, y, false)) {
+							posList.Add(new ShipPosition(x, y, false));
+						}
+					}
+				}
+			}
+
+			// Smart Fix
 
 
 
 
 
+			// Calculate Values
+			for (int shipIndex = 0; shipIndex < shipCount; shipIndex++) {
+				var posList = positions[shipIndex];
+				var ship = ships[shipIndex];
+				foreach (var pos in posList) {
+					foreach (var v in ship.Body) {
+						values[
+							shipIndex,
+							pos.Pivot.x + (pos.Flip ? v.y : v.x),
+							pos.Pivot.y + (pos.Flip ? v.x : v.y)
+						]++;
+					}
+				}
+			}
 
-
-		}
-
-
-		public static void GetPotentialPositions () {
-
-
-
-
+			return true;
+			// Func
+			bool CheckAvailable (int shipIndex, int _x, int _y, bool _flip) {
+				var body = ships[shipIndex].Body;
+				foreach (var v in body) {
+					var value = values[
+						shipIndex,
+						_x + (_flip ? v.y : v.x),
+						_y + (_flip ? v.x : v.y)
+					];
+					if (value == -1) { return false; }
+				}
+				return true;
+			}
 		}
 
 

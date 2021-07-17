@@ -74,6 +74,9 @@ TextureImporter:
   - first:
       213: 522795827424058390
     second: Target
+  - first:
+      213: -6064967667912391024
+    second: Sunk
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -250,12 +253,12 @@ TextureImporter:
       name: Target
       rect:
         serializedVersion: 2
-        x: 120
+        x: 191
         y: 1
         width: 64
         height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -263,6 +266,27 @@ TextureImporter:
       bones: []
       spriteID: 61cdaaff808514700800000000000000
       internalID: 522795827424058390
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Sunk
+      rect:
+        serializedVersion: 2
+        x: 124
+        y: 2
+        width: 56
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0964ad32a08e4dba0800000000000000
+      internalID: -6064967667912391024
       vertices: []
       indices: 
       edges: []

@@ -50,6 +50,9 @@ TextureImporter:
   - first:
       213: 7301787903208175943
     second: Attack Blink
+  - first:
+      213: 1652299931923453484
+    second: Nerd Face
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -462,7 +465,7 @@ TextureImporter:
         width: 78
         height: 74
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -470,6 +473,27 @@ TextureImporter:
       bones: []
       spriteID: 749b7f35969255560800000000000000
       internalID: 7301787903208175943
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Nerd Face
+      rect:
+        serializedVersion: 2
+        x: 389
+        y: 77
+        width: 56
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c2613b8a8062ee610800000000000000
+      internalID: 1652299931923453484
       vertices: []
       indices: 
       edges: []

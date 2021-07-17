@@ -358,6 +358,7 @@ namespace BattleSoup {
 
 			// Func
 			void RefreshAbilityUI (RectTransform container, Group group) {
+				bool devMode = m_Game.Game.DevMode;
 				int count = container.childCount;
 				for (int i = 0; i < count; i++) {
 
@@ -368,26 +369,36 @@ namespace BattleSoup {
 
 					var grabber = container.GetChild(i).GetComponent<Grabber>();
 					var btn = grabber.Grab<Button>();
-					btn.interactable =
-						alive && cooldown <= 0 &&
-						(ability.HasActive || (ability.CopyOpponentLastUsed && !string.IsNullOrEmpty(opPrevUseID)));
+					if (!devMode) {
+						btn.interactable =
+							alive && cooldown <= 0 &&
+							(ability.HasActive || (ability.CopyOpponentLastUsed && !string.IsNullOrEmpty(opPrevUseID)));
+					} else {
+						btn.interactable = true;
+					}
 
 					var cooldownTxt = grabber.Grab<Text>("Cooldown");
-					cooldownTxt.gameObject.SetActive(alive && (ability.CopyOpponentLastUsed || ability.HasActive));
+					cooldownTxt.gameObject.SetActive(!devMode && alive && (ability.CopyOpponentLastUsed || ability.HasActive));
 					cooldownTxt.text = cooldown > 0 ? cooldown.ToString() : "";
 
 					grabber.Grab<GreyImage>("Icon").SetGrey(
-						ability.HasActive && !btn.interactable
+						!devMode && ability.HasActive && !btn.interactable
 					);
 					grabber.Grab<RectTransform>("Red Panel").gameObject.SetActive(
-						!m_Game.Game.CheckShipAlive(i, group)
+						!devMode && !m_Game.Game.CheckShipAlive(i, group)
 					);
-					grabber.Grab<RectTransform>("Highlight").gameObject.SetActive(
-						currentTurn == group && m_Game.Game.AbilityShipIndex == i
-					);
+					if (devMode) {
+						grabber.Grab<RectTransform>("Highlight").gameObject.SetActive(
+							(group == Group.A ? m_Game.Game.DevShipIndexA : m_Game.Game.DevShipIndexB) == i
+						);
+					} else {
+						grabber.Grab<RectTransform>("Highlight").gameObject.SetActive(
+							currentTurn == group && m_Game.Game.AbilityShipIndex == i
+						);
+					}
 
 					var copy = grabber.Grab<Image>("Copy");
-					bool copyActive = ability.CopyOpponentLastUsed && !string.IsNullOrEmpty(opPrevUseID);
+					bool copyActive = !devMode && ability.CopyOpponentLastUsed && !string.IsNullOrEmpty(opPrevUseID);
 					copy.gameObject.SetActive(copyActive);
 					if (copyActive) {
 						var copyShipData = m_Game.Asset.GetShipData(opPrevUseID);

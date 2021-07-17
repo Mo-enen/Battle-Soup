@@ -103,9 +103,8 @@ namespace BattleSoup {
 			float gridSizeX = rect.width / m_GridCountX;
 			float gridSizeY = rect.height / m_GridCountY;
 			foreach (var block in Blocks) {
-				if (block.ID < 0 || block.ID >= m_Blocks.Length) { continue; }
 				SetCachePos(block.X, block.Y, block.Scale * m_BlockScale);
-				SetCacheUV(m_Blocks[block.ID]);
+				SetCacheUV(block.ID >= 0 && block.ID < m_Blocks.Length ? m_Blocks[block.ID] : null);
 				SetColor(block.Color * color);
 				toFill.AddUIVertexQuad(CacheVertices);
 			}

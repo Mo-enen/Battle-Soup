@@ -79,6 +79,7 @@ namespace BattleSoup {
 			}
 
 			public void Clear () {
+				Strategy = null;
 				Map = null;
 				ShipDatas = null;
 				Ships = null;
@@ -143,12 +144,18 @@ namespace BattleSoup {
 		public string PrevUsedAbilityA { get; private set; } = "";
 		public string PrevUsedAbilityB { get; private set; } = "";
 		public bool Cheated { get; set; } = false;
+		public bool DevMode { get; private set; } = false;
+		public int DevShipIndexA { get; private set; } = 0;
+		public int DevShipIndexB { get; private set; } = 0;
 
 		// Ser
 		[SerializeField] BattleSoupUI m_SoupA = null;
 		[SerializeField] BattleSoupUI m_SoupB = null;
+		[SerializeField] DebugUI m_DevA = null;
+		[SerializeField] DebugUI m_DevB = null;
 		[SerializeField] Image m_Face = null;
 		[SerializeField] Toggle m_CheatToggle = null;
+		[SerializeField] Toggle m_DevToggle = null;
 		[SerializeField] Button AvAControlButton_Play = null;
 		[SerializeField] Button AvAControlButton_Pause = null;
 		[SerializeField] Button AvAControlButton_Next = null;
@@ -340,7 +347,8 @@ namespace BattleSoup {
 			DataB.Clear();
 			DataA.Init(strategyA, mapA, shipsA, positionsA);
 			DataB.Init(strategyB, mapB, shipsB, positionsB);
-			m_CheatToggle.isOn = false;
+			m_CheatToggle.SetIsOnWithoutNotify(false);
+			m_DevToggle.SetIsOnWithoutNotify(false);
 			PrevUsedAbilityA = "";
 			PrevUsedAbilityB = "";
 			Cheated = false;
@@ -348,6 +356,8 @@ namespace BattleSoup {
 			AvA_Playing = false;
 			AvA_GotoNext = false;
 			RefreshControlButtons();
+			m_DevA.gameObject.SetActive(false);
+			m_DevB.gameObject.SetActive(false);
 			gameObject.SetActive(true);
 		}
 
@@ -407,6 +417,15 @@ namespace BattleSoup {
 		}
 
 
+		public void UI_SetDevMode (bool on) {
+			m_DevA.gameObject.SetActive(on);
+			m_DevB.gameObject.SetActive(on);
+			gameObject.SetActive(!on);
+			DevMode = on;
+			m_RefreshUI.Invoke();
+		}
+
+
 		// Ship
 		public bool CheckShipAlive (int index, Group group) => (group == Group.A ? DataA : DataB).ShipsAlive[index];
 
@@ -430,14 +449,28 @@ namespace BattleSoup {
 		}
 
 
-		public void OnAbilityClick (int shipIndex) {
-			if (
-				!gameObject.activeSelf ||
-				CurrentBattleMode != BattleMode.PvA ||
-				CurrentTurn != Group.A ||
-				AbilityShipIndex >= 0
-			) { return; }
-			AbilityFirstTrigger(shipIndex);
+		public void OnAbilityClick (Group group, int shipIndex) {
+			if (!DevMode) {
+				if (
+					gameObject.activeSelf &&
+					group == Group.A &&
+					CurrentBattleMode == BattleMode.PvA &&
+					AbilityShipIndex < 0 &&
+					shipIndex >= 0
+				) {
+					var ship = DataA.Ships[shipIndex];
+					if (ship.Ability.HasActive || ship.Ability.CopyOpponentLastUsed) {
+						AbilityFirstTrigger(shipIndex);
+					}
+				}
+			} else {
+				if (group == Group.A) {
+					DevShipIndexA = shipIndex;
+				} else {
+					DevShipIndexB = shipIndex;
+				}
+				m_RefreshUI.Invoke();
+			}
 		}
 
 
@@ -516,6 +549,7 @@ namespace BattleSoup {
 
 
 		private bool AllShipsSunk (Group group) {
+			if (DataA.ShipDatas == null || DataB.ShipDatas == null) { return false; }
 			int count = (group == Group.A ? DataA.ShipDatas.Length : DataB.ShipDatas.Length);
 			for (int i = 0; i < count; i++) {
 				if (CheckShipAlive(i, group)) {
@@ -882,13 +916,17 @@ namespace BattleSoup {
 			return result;
 			// Func
 			void Blink (int _x, int _y, bool _hitBlink) {
-				if (!blink || !_hitBlink || attackFromShipIndex < 0) { return; }
-				soup.Blink(
-					_x, _y,
-					new Color(1f, 1f, 1f, 0.5f),
-					ownData.ShipDatas[attackFromShipIndex].Sprite,
-					0.1f
-				);
+				if (!blink || !_hitBlink) { return; }
+				if (attackFromShipIndex < 0) {
+					soup.Blink(_x, _y, Color.white, m_AttackBlink, 0.5f);
+				} else {
+					soup.Blink(
+						_x, _y,
+						new Color(1f, 1f, 1f, 0.5f),
+						ownData.ShipDatas[attackFromShipIndex].Sprite,
+						0.1f
+					);
+				}
 			}
 		}
 

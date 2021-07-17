@@ -301,14 +301,11 @@ namespace BattleSoup {
 
 					var btn = grabber.Grab<Button>();
 					btn.interactable = ship.Ship.Ability.HasActive && ship.Ship.Ability.Cooldown <= 0;
-					if (
-						CurrentBattleMode == BattleMode.PvA &&
-						group == Group.A &&
-						(ship.Ship.Ability.HasActive || ship.Ship.Ability.CopyOpponentLastUsed)
-					) {
-						int _index = i;
-						btn.onClick.AddListener(() => m_Game.Game.OnAbilityClick(_index));
-					}
+
+					int _index = i;
+					btn.onClick.AddListener(
+						() => m_Game.Game.OnAbilityClick(group, _index)
+					);
 
 					var icon = grabber.Grab<GreyImage>("Icon");
 					icon.sprite = ship.Sprite;

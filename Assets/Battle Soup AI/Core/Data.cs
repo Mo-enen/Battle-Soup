@@ -251,6 +251,14 @@ namespace BattleSoupAI {
 	public struct ShipPosition {
 		public Int2 Pivot;
 		public bool Flip;
+		public ShipPosition (int x, int y, bool flip) {
+			Pivot = new Int2(x, y);
+			Flip = flip;
+		}
+		public ShipPosition (Int2 pivot, bool flip) {
+			Pivot = pivot;
+			Flip = flip;
+		}
 	}
 
 
