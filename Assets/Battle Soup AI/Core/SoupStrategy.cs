@@ -150,9 +150,12 @@ namespace BattleSoupAI {
 
 
 		// Potential
-		public static bool CalculatePotentials (
-			Ship[] ships, Tile[,] tiles, ShipPosition?[] knownPositions,
-			int[,,] values, List<ShipPosition>[] positions
+		public static bool CalculatePotentialPositions (
+			Ship[] ships,
+			Tile[,] tiles,
+			ShipPosition?[] knownPositions,
+			ref List<ShipPosition>[] hiddenPositions,
+			ref List<ShipPosition>[] exposedPositions
 		) {
 
 			// Check
@@ -163,108 +166,157 @@ namespace BattleSoupAI {
 			if (
 				tiles == null ||
 				tiles.Length == 0 ||
-				tiles.GetLength(0) != ships.Length ||
-				tiles.GetLength(1) != tiles.GetLength(2)
+				tiles.GetLength(0) != tiles.GetLength(1)
 			) { return false; }
 
-			if (
-				values.GetLength(0) != tiles.GetLength(0) ||
-				values.GetLength(1) != tiles.GetLength(1) ||
-				values.GetLength(2) != tiles.GetLength(2)
-			) {
-				values = new int[tiles.GetLength(0), tiles.GetLength(1), tiles.GetLength(2)];
-			}
-
-
-			// Values:
-			// 0+	ship count
-			// -1	stone, revealed water, sunk ship
-			// -2	revealed ship
-			// -3	hitted ship
-
-			// Init
 			int shipCount = ships.Length;
-			int size = tiles.GetLength(1);
-			int stoneCount = 0;
-			for (int shipIndex = 0; shipIndex < shipCount; shipIndex++) {
-				for (int y = 0; y < size; y++) {
-					for (int x = 0; x < size; x++) {
-						var tile = tiles[x, y];
-						var value = tile switch {
-							Tile.None => 0,
-							Tile.GeneralWater => 0,
-							Tile.GeneralStone => -1,
-							Tile.RevealedStone => -1,
-							Tile.RevealedWater => -1,
-							Tile.SunkShip => -1,
-							Tile.RevealedShip => -2,
-							Tile.HittedShip => -3,
-							_ => -5,
-						};
-						values[shipIndex, x, y] = value;
-						if (tile == Tile.GeneralStone || tile == Tile.RevealedStone) {
-							stoneCount++;
-						}
-					}
-				}
+
+			if (hiddenPositions == null || hiddenPositions.Length != shipCount) {
+				hiddenPositions = new List<ShipPosition>[shipCount];
 			}
+			if (exposedPositions == null || exposedPositions.Length != shipCount) {
+				exposedPositions = new List<ShipPosition>[shipCount];
+			}
+
+			int size = tiles.GetLength(1);
 
 			// Add Potential Ships
-			if (positions == null || positions.Length != shipCount) {
-				positions = new List<ShipPosition>[shipCount];
+			if (hiddenPositions == null || hiddenPositions.Length != shipCount) {
+				hiddenPositions = new List<ShipPosition>[shipCount];
+			}
+			if (exposedPositions == null || exposedPositions.Length != shipCount) {
+				exposedPositions = new List<ShipPosition>[shipCount];
 			}
 			for (int shipIndex = 0; shipIndex < shipCount; shipIndex++) {
-				var posList = positions[shipIndex];
+				if (hiddenPositions[shipIndex] == null) {
+					hiddenPositions[shipIndex] = new List<ShipPosition>();
+				}
+				if (exposedPositions[shipIndex] == null) {
+					exposedPositions[shipIndex] = new List<ShipPosition>();
+				}
+				var hiddenList = hiddenPositions[shipIndex];
+				var exposedList = exposedPositions[shipIndex];
+				hiddenList.Clear();
+				exposedList.Clear();
 				if (knownPositions[shipIndex].HasValue) {
-					posList.Add(knownPositions[shipIndex].Value);
+					exposedList.Add(knownPositions[shipIndex].Value);
 					continue;
 				}
 				for (int y = 0; y < size; y++) {
 					for (int x = 0; x < size; x++) {
-						if (CheckAvailable(shipIndex, x, y, true)) {
-							posList.Add(new ShipPosition(x, y, true));
+						if (CheckAvailable(shipIndex, x, y, true, out bool exposed)) {
+							(exposed ? exposedList : hiddenList).Add(new ShipPosition(x, y, true));
 						}
-						if (CheckAvailable(shipIndex, x, y, false)) {
-							posList.Add(new ShipPosition(x, y, false));
+						if (CheckAvailable(shipIndex, x, y, false, out exposed)) {
+							(exposed ? exposedList : hiddenList).Add(new ShipPosition(x, y, false));
 						}
-					}
-				}
-			}
-
-			// Smart Fix
-
-
-
-
-
-			// Calculate Values
-			for (int shipIndex = 0; shipIndex < shipCount; shipIndex++) {
-				var posList = positions[shipIndex];
-				var ship = ships[shipIndex];
-				foreach (var pos in posList) {
-					foreach (var v in ship.Body) {
-						values[
-							shipIndex,
-							pos.Pivot.x + (pos.Flip ? v.y : v.x),
-							pos.Pivot.y + (pos.Flip ? v.x : v.y)
-						]++;
 					}
 				}
 			}
 
 			return true;
 			// Func
-			bool CheckAvailable (int shipIndex, int _x, int _y, bool _flip) {
+			bool CheckAvailable (int shipIndex, int _x, int _y, bool _flip, out bool _isExposed) {
 				var body = ships[shipIndex].Body;
+				_isExposed = false;
+				bool available = true;
+				int size = tiles.GetLength(0);
 				foreach (var v in body) {
-					var value = values[
-						shipIndex,
-						_x + (_flip ? v.y : v.x),
-						_y + (_flip ? v.x : v.y)
-					];
-					if (value == -1) { return false; }
+					int _i = _x + (_flip ? v.y : v.x);
+					int _j = _y + (_flip ? v.x : v.y);
+					if (_i < 0 || _j < 0 || _i >= size || _j >= size) {
+						_isExposed = false;
+						return false;
+					}
+					switch (tiles[_i, _j]) {
+						case Tile.RevealedShip:
+						case Tile.HittedShip:
+							_isExposed = true;
+							break;
+						case Tile.GeneralStone:
+						case Tile.RevealedStone:
+						case Tile.RevealedWater:
+						case Tile.SunkShip:
+							available = false;
+							break;
+					}
+					if (!available && _isExposed) { break; }
 				}
-				return true;
+				return available;
+			}
+
+		}
+
+
+		public static bool CalculatePotentialValues (
+			Ship[] ships,
+			Tile[,] tiles,
+			List<ShipPosition>[] hiddenPositions,
+			List<ShipPosition>[] exposedPositions,
+			ref int[,,] values,
+			out int minValue,
+			out int maxValue
+		) {
+			minValue = maxValue = 0;
+
+			if (ships == null || ships.Length == 0) { return false; }
+			if (tiles == null || tiles.GetLength(0) == 0) { return false; }
+			if (hiddenPositions == null || exposedPositions == null || hiddenPositions.Length != ships.Length || exposedPositions.Length != ships.Length) { return false; }
+
+			if (
+				values == null ||
+				values.GetLength(0) != ships.Length ||
+				values.GetLength(1) != tiles.GetLength(0) ||
+				values.GetLength(2) != tiles.GetLength(1)
+			) {
+				values = new int[ships.Length, tiles.GetLength(0), tiles.GetLength(1)];
+			}
+
+			int shipCount = ships.Length;
+
+			// Values:
+			// 0+	ship count
+			// -1	stone, revealed water
+			// -2	revealed ship
+			// -3	hit ship
+			// -4	sunk ship
+
+			// Init
+			int size = tiles.GetLength(1);
+			for (int shipIndex = 0; shipIndex < shipCount; shipIndex++) {
+				for (int y = 0; y < size; y++) {
+					for (int x = 0; x < size; x++) {
+						values[shipIndex, x, y] = 0;
+					}
+				}
+			}
+
+			// Calculate Values
+			minValue = int.MaxValue;
+			maxValue = int.MinValue;
+			int _x, _y, _newValue;
+			for (int shipIndex = 0; shipIndex < shipCount; shipIndex++) {
+				(minValue, maxValue) = AddToValues(values, hiddenPositions[shipIndex], shipIndex, minValue, maxValue);
+				(minValue, maxValue) = AddToValues(values, exposedPositions[shipIndex], shipIndex, minValue, maxValue);
+			}
+
+			return true;
+			// Func
+			(int min, int max) AddToValues (int[,,] _values, List<ShipPosition> _list, int _shipIndex, int _minValue, int _maxValue) {
+				var _ship = ships[_shipIndex];
+				foreach (var pos in _list) {
+					foreach (var v in _ship.Body) {
+						_x = pos.Pivot.x + (pos.Flip ? v.y : v.x);
+						_y = pos.Pivot.y + (pos.Flip ? v.x : v.y);
+						_newValue = _values[_shipIndex, _x, _y] + 1;
+						_values[_shipIndex, _x, _y] = _newValue;
+						if (_newValue >= 0) {
+							_minValue = System.Math.Min(_newValue, _minValue);
+							_maxValue = System.Math.Max(_newValue, _maxValue);
+						}
+					}
+				}
+				return (_minValue, _maxValue);
 			}
 		}
 

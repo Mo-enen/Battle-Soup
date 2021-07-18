@@ -45,7 +45,7 @@ namespace BattleSoup {
 		public ShipPositionsHandler GetPositions { get; set; } = null;
 		public SonarPositionsHandler GetSonars { get; set; } = null;
 		public BoolIntHandler CheckShipAlive { get; set; } = null;
-		public BoolIntHandler CheckShipSuperRevealed { get; set; } = null;
+		public BoolIntHandler CheckShipKnown { get; set; } = null;
 		public AbilityHandler GetCurrentAbility { get; set; } = null;
 		public AbilityDirectionHandler GetCurrentAbilityDirection { get; set; } = null;
 		public BoolHandler GetCheating { get; set; } = null;
@@ -104,7 +104,7 @@ namespace BattleSoup {
 			bool cheating = GetCheating();
 			m_ShipsRenderer.ClearBlock();
 			for (int i = 0; i < ships.Length; i++) {
-				bool superRevealed = CheckShipSuperRevealed(i);
+				bool superRevealed = CheckShipKnown(i);
 				if (!cheating && !superRevealed && SunkOnly && CheckShipAlive(i)) { continue; }
 				var color = Color.HSVToRGB((float)i / ships.Length, 0.618f, 0.618f);
 				color.a = superRevealed ? 0.618f : 1f;
@@ -123,7 +123,7 @@ namespace BattleSoup {
 					var tile = GetTile(i, j);
 					if (tile == Tile.HittedShip) {
 						m_HitRenderer.AddBlock(i, j, 0);
-					} else if (tile == Tile.RevealedWater) {
+					} else if (tile == Tile.RevealedWater || tile == Tile.RevealedStone) {
 						m_HitRenderer.AddBlock(i, j, 1);
 					} else if (tile == Tile.RevealedShip) {
 						m_HitRenderer.AddBlock(i, j, 2);

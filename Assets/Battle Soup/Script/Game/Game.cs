@@ -23,7 +23,7 @@ namespace BattleSoup {
 
 
 
-		private class GameData {
+		public class GameData {
 
 			public SoupStrategy Strategy;
 			public MapData Map = null;
@@ -32,8 +32,9 @@ namespace BattleSoup {
 			public Tile[,] Tiles = null;
 			public int[] Cooldowns = null;
 			public bool[] ShipsAlive = null;
-			public bool[] SuperRevealed = null;
+			//public bool[] SuperRevealed = null;
 			public ShipPosition[] Positions = null;
+			public ShipPosition?[] KnownPositions = null;
 			public readonly List<SonarPosition> Sonars = new List<SonarPosition>();
 
 			public void Init (SoupStrategy strategy, MapData map, ShipData[] ships, ShipPosition[] positions) {
@@ -47,6 +48,7 @@ namespace BattleSoup {
 
 				// Pos
 				Positions = positions;
+				KnownPositions = new ShipPosition?[positions.Length];
 
 				// Tiles
 				Tiles = new Tile[map.Size, map.Size];
@@ -74,7 +76,7 @@ namespace BattleSoup {
 				}
 
 				// Super Revealed
-				SuperRevealed = new bool[ShipDatas.Length];
+				//SuperRevealed = new bool[ShipDatas.Length];
 
 			}
 
@@ -151,8 +153,8 @@ namespace BattleSoup {
 		// Ser
 		[SerializeField] BattleSoupUI m_SoupA = null;
 		[SerializeField] BattleSoupUI m_SoupB = null;
-		[SerializeField] DebugUI m_DevA = null;
-		[SerializeField] DebugUI m_DevB = null;
+		[SerializeField] DevUI m_DevA = null;
+		[SerializeField] DevUI m_DevB = null;
 		[SerializeField] Image m_Face = null;
 		[SerializeField] Toggle m_CheatToggle = null;
 		[SerializeField] Toggle m_DevToggle = null;
@@ -288,9 +290,9 @@ namespace BattleSoup {
 						AttackTile(DEFAULT_ATTACK, result.TargetPosition.x, result.TargetPosition.y, oppGroup);
 						PerformPassiveAttack();
 						SwitchTurn();
-					} else {
+					} else if (CheckAbilityAvailable(group, result.AbilityIndex)) {
 						bool combo = AbilityShipIndex >= 0;
-						if (AbilityShipIndex < 0) {
+						if (!combo) {
 							// First Trigger
 							if (!AbilityFirstTrigger(result.AbilityIndex)) {
 								combo = true;
@@ -311,6 +313,8 @@ namespace BattleSoup {
 								}
 							}
 						}
+					} else {
+						SwitchTurn();
 					}
 				}
 			}
@@ -383,8 +387,8 @@ namespace BattleSoup {
 			};
 			m_SoupA.GetCurrentAbilityDirection = m_SoupB.GetCurrentAbilityDirection = () => AbilityDirection;
 			m_SoupA.GetCheating = m_SoupB.GetCheating = () => m_CheatToggle.isOn;
-			m_SoupA.CheckShipSuperRevealed = (index) => DataA.SuperRevealed[index];
-			m_SoupB.CheckShipSuperRevealed = (index) => DataB.SuperRevealed[index];
+			m_SoupA.CheckShipKnown = (index) => DataA.KnownPositions[index].HasValue;
+			m_SoupB.CheckShipKnown = (index) => DataB.KnownPositions[index].HasValue;
 			m_SoupA.GetPrevUseShip = () => GetShip(PrevUsedAbilityA);
 			m_SoupB.GetPrevUseShip = () => GetShip(PrevUsedAbilityB);
 		}
@@ -393,6 +397,8 @@ namespace BattleSoup {
 		public void UI_Clear () {
 			DataA.Clear();
 			DataB.Clear();
+			m_DevA.Clear();
+			m_DevB.Clear();
 		}
 
 
@@ -418,6 +424,14 @@ namespace BattleSoup {
 
 
 		public void UI_SetDevMode (bool on) {
+			if (on) {
+				if (!m_DevA.LoadData(DataA) || !m_DevB.LoadData(DataB)) {
+					m_ShowMessage.Invoke("Fail to load data");
+					on = false;
+				}
+			}
+			m_DevA.RefreshRenderer(DevShipIndexA);
+			m_DevB.RefreshRenderer(DevShipIndexB);
 			m_DevA.gameObject.SetActive(on);
 			m_DevB.gameObject.SetActive(on);
 			gameObject.SetActive(!on);
@@ -469,6 +483,8 @@ namespace BattleSoup {
 				} else {
 					DevShipIndexB = shipIndex;
 				}
+				m_DevA.RefreshRenderer(DevShipIndexA);
+				m_DevB.RefreshRenderer(DevShipIndexB);
 				m_RefreshUI.Invoke();
 			}
 		}
@@ -801,6 +817,12 @@ namespace BattleSoup {
 		}
 
 
+		private bool CheckAbilityAvailable (Group group, int index) {
+			var data = group == Group.A ? DataA : DataB;
+			return data.ShipsAlive[index] && data.Cooldowns[index] <= 0;
+		}
+
+
 		// Attack
 		private AttackResult AttackTile (Attack attack, int x, int y, Group targetGroup, int attackFromShipIndex = -1, AbilityDirection direction = default, bool blink = true) {
 
@@ -952,6 +974,7 @@ namespace BattleSoup {
 							targetData.Ships[_shipIndex],
 							targetData.Positions[_shipIndex]
 						);
+						targetData.KnownPositions[_shipIndex] = targetData.Positions[_shipIndex];
 						if (prevAlive) {
 							m_OnShipSunk.Invoke(wPos);
 						} else {
@@ -978,6 +1001,7 @@ namespace BattleSoup {
 					RefreshShipsAlive(_shipIndex, targetGroup);
 					sunkShip = true;
 					SetTilesToSunk(targetData.Ships[_shipIndex], targetData.Positions[_shipIndex]);
+					targetData.KnownPositions[_shipIndex] = targetData.Positions[_shipIndex];
 					m_OnShipSunk.Invoke(wPos);
 				}
 				hitShip = true;
@@ -1046,7 +1070,7 @@ namespace BattleSoup {
 		private void RevealWholeShip (GameData data, int shipIndex, Group group) {
 			var ship = data.ShipDatas[shipIndex];
 			var sPos = data.Positions[shipIndex];
-			data.SuperRevealed[shipIndex] = true;
+			data.KnownPositions[shipIndex] = data.Positions[shipIndex];
 			foreach (var v in ship.Ship.Body) {
 				int _x = sPos.Pivot.x + (sPos.Flip ? v.y : v.x);
 				int _y = sPos.Pivot.y + (sPos.Flip ? v.x : v.y);
