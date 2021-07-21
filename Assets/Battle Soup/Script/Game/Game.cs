@@ -32,7 +32,6 @@ namespace BattleSoup {
 			public Tile[,] Tiles = null;
 			public int[] Cooldowns = null;
 			public bool[] ShipsAlive = null;
-			//public bool[] SuperRevealed = null;
 			public ShipPosition[] Positions = null;
 			public ShipPosition?[] KnownPositions = null;
 			public readonly List<SonarPosition> Sonars = new List<SonarPosition>();

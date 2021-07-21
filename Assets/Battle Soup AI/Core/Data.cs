@@ -213,9 +213,39 @@ namespace BattleSoupAI {
 	[System.Serializable]
 	public class Ship {
 
+		// Api
+		public bool Symmetry {
+			get {
+				if (!_Symmetry.HasValue) {
+					int bCount = Body.Length;
+					for (int i = 0; i < bCount; i++) {
+						var v0 = Body[i];
+						if (v0.x == v0.y) { continue; }
+						bool sFlag = false;
+						for (int j = 0; j < bCount; j++) {
+							if (i == j) { continue; }
+							var v1 = Body[j];
+							if (v0.x == v1.y && v0.y == v1.x) { sFlag = true; break; }
+						}
+						if (!sFlag) {
+							_Symmetry = false;
+							return false;
+						}
+					}
+					_Symmetry = true;
+				}
+				return _Symmetry.Value;
+			}
+		}
+
+		// Api-Ser
 		public int TerminateHP = 0;
 		public Int2[] Body = new Int2[0];
 		public Ability Ability = new Ability();
+
+		// Data
+		private bool? _Symmetry = null;
+
 
 		public (Int2 min, Int2 max) GetBounds (ShipPosition pos) {
 			int minX = int.MaxValue;
@@ -243,6 +273,7 @@ namespace BattleSoupAI {
 			return false;
 		}
 
+
 	}
 
 
@@ -259,6 +290,14 @@ namespace BattleSoupAI {
 			Pivot = pivot;
 			Flip = flip;
 		}
+		public Int2 GetPosition (int bodyX, int bodyY) => new Int2(
+			Flip ? Pivot.x + bodyY : Pivot.x + bodyX,
+			Flip ? Pivot.y + bodyX : Pivot.y + bodyY
+		);
+		public Int2 GetPosition (Int2 bodyPos) => new Int2(
+			Flip ? Pivot.x + bodyPos.y : Pivot.x + bodyPos.x,
+			Flip ? Pivot.y + bodyPos.x : Pivot.y + bodyPos.y
+		);
 	}
 
 

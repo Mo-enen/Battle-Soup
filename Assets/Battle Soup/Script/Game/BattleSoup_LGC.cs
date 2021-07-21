@@ -37,7 +37,7 @@ namespace BattleSoup {
 				rt.gameObject.name = pair.Key;
 				// Label
 				rt.Find("Label").GetComponent<Text>().text = ship.DisplayName;
-				rt.GetComponent<Toggle>().isOn = false;
+				rt.GetComponent<Toggle>().SetIsOnWithoutNotify(false);
 				rt.Find("Thumbnail").GetComponent<Image>().sprite = ship.Sprite;
 			}
 
@@ -59,7 +59,7 @@ namespace BattleSoup {
 				}
 			}
 			foreach (var tg in group == Group.A ? m_ShipsToggleA : m_ShipsToggleB) {
-				tg.isOn = savingHash.Contains(tg.name);
+				tg.SetIsOnWithoutNotify(savingHash.Contains(tg.name));
 			}
 		}
 
@@ -136,7 +136,7 @@ namespace BattleSoup {
 				rt.SetAsLastSibling();
 				rt.gameObject.name = $"Map {rt.GetSiblingIndex()}";
 				// Label
-				rt.GetComponent<Toggle>().isOn = false;
+				rt.GetComponent<Toggle>().SetIsOnWithoutNotify(false);
 				rt.Find("Label").GetComponent<Text>().text = $"{map.Size}¡Á{map.Size}";
 				rt.Find("Thumbnail").GetComponent<MapRenderer>().LoadMap(map);
 				var grid = rt.Find("Grid").GetComponent<VectorGrid>();

@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Sonar
+  m_Name: Number
   m_Shader: {fileID: 4800000, guid: 5fa01f2cdddf2494aa76c7eb884164c4, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 
+
 namespace BattleSoupAI {
 
 
@@ -42,8 +43,7 @@ namespace BattleSoupAI {
 		public virtual string Description { get; } = "";
 
 		// Data
-		//private int[,,] PotentialValueCache = new int[0, 0,0];
-		//private ShipPosition[,] PotentialShipPositions = new ShipPosition[0,0];
+		private int[] PosGroupsIndex = new int[0];
 
 
 		#endregion
@@ -150,7 +150,7 @@ namespace BattleSoupAI {
 
 
 		// Potential
-		public static bool CalculatePotentialPositions (
+		public virtual bool CalculatePotentialPositions (
 			Ship[] ships,
 			Tile[,] tiles,
 			ShipPosition?[] knownPositions,
@@ -160,25 +160,21 @@ namespace BattleSoupAI {
 
 			// Check
 			if (ships == null || ships.Length == 0) { return false; }
-
 			if (knownPositions == null || knownPositions.Length != ships.Length) { return false; }
-
 			if (
 				tiles == null ||
 				tiles.Length == 0 ||
 				tiles.GetLength(0) != tiles.GetLength(1)
 			) { return false; }
-
-			int shipCount = ships.Length;
-
-			if (hiddenPositions == null || hiddenPositions.Length != shipCount) {
-				hiddenPositions = new List<ShipPosition>[shipCount];
+			if (hiddenPositions == null || hiddenPositions.Length != ships.Length) {
+				hiddenPositions = new List<ShipPosition>[ships.Length];
 			}
-			if (exposedPositions == null || exposedPositions.Length != shipCount) {
-				exposedPositions = new List<ShipPosition>[shipCount];
+			if (exposedPositions == null || exposedPositions.Length != ships.Length) {
+				exposedPositions = new List<ShipPosition>[ships.Length];
 			}
 
 			int size = tiles.GetLength(1);
+			int shipCount = ships.Length;
 
 			// Add Potential Ships
 			if (hiddenPositions == null || hiddenPositions.Length != shipCount) {
@@ -204,7 +200,7 @@ namespace BattleSoupAI {
 				}
 				for (int y = 0; y < size; y++) {
 					for (int x = 0; x < size; x++) {
-						if (CheckAvailable(shipIndex, x, y, true, out bool exposed)) {
+						if (!ships[shipIndex].Symmetry && CheckAvailable(shipIndex, x, y, true, out bool exposed)) {
 							(exposed ? exposedList : hiddenList).Add(new ShipPosition(x, y, true));
 						}
 						if (CheckAvailable(shipIndex, x, y, false, out exposed)) {
@@ -216,8 +212,8 @@ namespace BattleSoupAI {
 
 			return true;
 			// Func
-			bool CheckAvailable (int shipIndex, int _x, int _y, bool _flip, out bool _isExposed) {
-				var body = ships[shipIndex].Body;
+			bool CheckAvailable (int _shipIndex, int _x, int _y, bool _flip, out bool _isExposed) {
+				var body = ships[_shipIndex].Body;
 				_isExposed = false;
 				bool available = true;
 				int size = tiles.GetLength(0);
@@ -242,17 +238,114 @@ namespace BattleSoupAI {
 					}
 					if (!available && _isExposed) { break; }
 				}
+				// Sunk Check
+				if (available && _isExposed) {
+					bool alive = false;
+					foreach (var v in body) {
+						var tile = tiles[
+							_x + (_flip ? v.y : v.x),
+							_y + (_flip ? v.x : v.y)
+						];
+						if (tile == Tile.SunkShip) {
+							alive = false;
+							break;
+						} else if (tile != Tile.HittedShip) {
+							alive = true;
+							break;
+						}
+					}
+					if (!alive) {
+						available = false;
+					}
+				}
 				return available;
 			}
 
 		}
 
 
-		public static bool CalculatePotentialValues (
+		public virtual bool CalculateExposedMap (
 			Ship[] ships,
 			Tile[,] tiles,
-			List<ShipPosition>[] hiddenPositions,
-			List<ShipPosition>[] exposedPositions,
+			ref Dictionary<Int2, int>[] exposedMap
+		) {
+
+			if (ships == null || ships.Length == 0) { return false; }
+			if (tiles == null || tiles.GetLength(0) != tiles.GetLength(1)) { return false; }
+			if (exposedMap == null || exposedMap.Length != ships.Length) {
+				exposedMap = new Dictionary<Int2, int>[ships.Length];
+				for (int i = 0; i < exposedMap.Length; i++) {
+					exposedMap[i] = new Dictionary<Int2, int>();
+				}
+			}
+
+			int shipCount = ships.Length;
+			int size = tiles.GetLength(0);
+
+			for (int shipIndex = 0; shipIndex < shipCount; shipIndex++) {
+				var map = exposedMap[shipIndex];
+				Int2 tilePos = default;
+				for (int y = 0; y < size; y++) {
+					for (int x = 0; x < size; x++) {
+						var tile = tiles[x, y];
+						tilePos.x = x;
+						tilePos.y = y;
+						if (tile == Tile.HittedShip || tile == Tile.RevealedShip) {
+							if (!map.ContainsKey(tilePos)) {
+								map.Add(tilePos, -1);
+							}
+						} else {
+							if (map.ContainsKey(tilePos)) {
+								map.Remove(tilePos);
+							}
+						}
+					}
+				}
+			}
+			return true;
+		}
+
+
+		public virtual bool SmartFixExposedPositions (
+			Ship[] ships,
+			Tile[,] tiles,
+			Dictionary<Int2, int>[] exposedMap,
+			ref List<ShipPosition>[] exposedPositions
+		) {
+
+			// Check
+			if (ships == null || ships.Length == 0) { return false; }
+			if (tiles == null || tiles.Length == 0 || tiles.GetLength(0) != tiles.GetLength(1)) { return false; }
+			if (exposedMap == null || exposedMap.Length != ships.Length) { return false; }
+			if (exposedPositions == null || exposedPositions.Length != ships.Length) {
+				exposedPositions = new List<ShipPosition>[ships.Length];
+			}
+			if (PosGroupsIndex.Length != ships.Length) {
+				PosGroupsIndex = new int[ships.Length];
+			} else {
+				System.Array.Clear(PosGroupsIndex, 0, PosGroupsIndex.Length);
+			}
+
+			int shipCount = ships.Length;
+			int hittedCount = GetTileCount(tiles, Tile.HittedShip);
+
+			// Remove When Hitted Tile Don't Runout
+
+
+
+
+
+
+
+			return true;
+		}
+
+
+		public virtual bool CalculatePotentialValues (
+			Ship[] ships,
+			int mapSize,
+			List<ShipPosition>[] positions,
+			bool resetValues,
 			ref int[,,] values,
 			out int minValue,
 			out int maxValue
@@ -260,16 +353,14 @@ namespace BattleSoupAI {
 			minValue = maxValue = 0;
 
 			if (ships == null || ships.Length == 0) { return false; }
-			if (tiles == null || tiles.GetLength(0) == 0) { return false; }
-			if (hiddenPositions == null || exposedPositions == null || hiddenPositions.Length != ships.Length || exposedPositions.Length != ships.Length) { return false; }
-
+			if (positions == null || positions.Length != ships.Length) { return false; }
 			if (
 				values == null ||
 				values.GetLength(0) != ships.Length ||
-				values.GetLength(1) != tiles.GetLength(0) ||
-				values.GetLength(2) != tiles.GetLength(1)
+				values.GetLength(1) != mapSize ||
+				values.GetLength(2) != mapSize
 			) {
-				values = new int[ships.Length, tiles.GetLength(0), tiles.GetLength(1)];
+				values = new int[ships.Length, mapSize, mapSize];
 			}
 
 			int shipCount = ships.Length;
@@ -282,11 +373,12 @@ namespace BattleSoupAI {
 			// -4	sunk ship
 
 			// Init
-			int size = tiles.GetLength(1);
-			for (int shipIndex = 0; shipIndex < shipCount; shipIndex++) {
-				for (int y = 0; y < size; y++) {
-					for (int x = 0; x < size; x++) {
-						values[shipIndex, x, y] = 0;
+			if (resetValues) {
+				for (int shipIndex = 0; shipIndex < shipCount; shipIndex++) {
+					for (int y = 0; y < mapSize; y++) {
+						for (int x = 0; x < mapSize; x++) {
+							values[shipIndex, x, y] = 0;
+						}
 					}
 				}
 			}
@@ -296,8 +388,7 @@ namespace BattleSoupAI {
 			maxValue = int.MinValue;
 			int _x, _y, _newValue;
 			for (int shipIndex = 0; shipIndex < shipCount; shipIndex++) {
-				(minValue, maxValue) = AddToValues(values, hiddenPositions[shipIndex], shipIndex, minValue, maxValue);
-				(minValue, maxValue) = AddToValues(values, exposedPositions[shipIndex], shipIndex, minValue, maxValue);
+				(minValue, maxValue) = AddToValues(values, positions[shipIndex], shipIndex, minValue, maxValue);
 			}
 
 			return true;
@@ -329,6 +420,35 @@ namespace BattleSoupAI {
 		#region --- LGC ---
 
 
+		private int GetTileCount (Tile[,] tiles, Tile target) {
+			int sizeX = tiles.GetLength(0);
+			int sizeY = tiles.GetLength(1);
+			int count = 0;
+			for (int j = 0; j < sizeY; j++) {
+				for (int i = 0; i < sizeX; i++) {
+					if (tiles[i, j] == target) {
+						count++;
+					}
+				}
+			}
+			return count;
+		}
+
+
+		private bool ToNextPosGroupsIndex (List<ShipPosition>[] posList) {
+			int len = PosGroupsIndex.Length;
+			for (int i = len - 1; i >= 0; i--) {
+				if (PosGroupsIndex[i] < posList[i].Count - 1) {
+					PosGroupsIndex[i]++;
+					return true;
+				} else if (i > 0 && PosGroupsIndex[i - 1] < posList[i].Count - 1) {
+					PosGroupsIndex[i] = 0;
+					PosGroupsIndex[i - 1]++;
+					return true;
+				}
+			}
+			return false;
+		}
 
 
 		#endregion

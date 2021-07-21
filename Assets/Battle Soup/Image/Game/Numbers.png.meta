@@ -89,6 +89,9 @@ TextureImporter:
   - first:
       213: 917366848348029782
     second: SonarNumbers_10
+  - first:
+      213: -6629531029891648246
+    second: Pixel
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -383,6 +386,27 @@ TextureImporter:
       bones: []
       spriteID: 6530184c9442bbc00800000000000000
       internalID: 917366848348029782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pixel
+      rect:
+        serializedVersion: 2
+        x: 125
+        y: 2
+        width: 1
+        height: 1
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a05f0ef27ac2ff3a0800000000000000
+      internalID: -6629531029891648246
       vertices: []
       indices: 
       edges: []

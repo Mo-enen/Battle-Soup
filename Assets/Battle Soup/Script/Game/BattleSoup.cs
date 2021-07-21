@@ -145,10 +145,20 @@ namespace BattleSoup {
 			m_UI.StartMessage_ShipPos.text = "";
 			CurrentState = GameState.BattleMode;
 			RefreshPanelUI(GameState.BattleMode);
+
 		}
 
 
-		private void Update () => CursorUI.GlobalUpdate();
+		private void Update () {
+			CursorUI.GlobalUpdate();
+			// Hotkey
+			if (Input.GetKeyDown(KeyCode.F12)) {
+				// Dev Mode
+				m_Game.Game.UI_SetDevMode(!m_Game.Game.DevMode);
+			}
+
+		}
+
 
 
 		#endregion
@@ -374,7 +384,7 @@ namespace BattleSoup {
 							alive && cooldown <= 0 &&
 							(ability.HasActive || (ability.CopyOpponentLastUsed && !string.IsNullOrEmpty(opPrevUseID)));
 					} else {
-						btn.interactable = true;
+						btn.interactable = alive;
 					}
 
 					var cooldownTxt = grabber.Grab<Text>("Cooldown");
