@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using BattleSoupAI;
@@ -13,9 +14,9 @@ namespace BattleSoup {
 
 
 		// Ship
-		private void ReloadShipToggle (Group group) {
+		private void ReloadShipToggle () {
 
-			var container = group == Group.A ? m_UI.ShipsToggleContainerA : m_UI.ShipsToggleContainerB;
+			var container = m_UI.ShipsToggleContainer;
 			var shipMap = m_Game.Asset.ShipMap;
 
 			// Clear UI
@@ -47,9 +48,9 @@ namespace BattleSoup {
 		}
 
 
-		private void LoadShipSelectionFromSaving (Group group) {
+		private void LoadShipSelectionFromSaving () {
 			var savingHash = new HashSet<string>();
-			string fleetStr = group == Group.A ? SelectedFleetA.Value : SelectedFleetB.Value;
+			string fleetStr = SelectedFleet.Value;
 			if (!string.IsNullOrEmpty(fleetStr)) {
 				var fleetNames = fleetStr.Split('+');
 				if (fleetNames != null && fleetNames.Length > 0) {
@@ -58,28 +59,27 @@ namespace BattleSoup {
 					}
 				}
 			}
-			foreach (var tg in group == Group.A ? m_ShipsToggleA : m_ShipsToggleB) {
+			foreach (var tg in m_ShipsToggle) {
 				tg.SetIsOnWithoutNotify(savingHash.Contains(tg.name));
 			}
 		}
 
 
-		private void SaveShipSelectionToSaving (Group group) {
+		private void SaveShipSelectionToSaving () {
 			string result = "";
-			foreach (var tg in group == Group.A ? m_ShipsToggleA : m_ShipsToggleB) {
+			foreach (var tg in m_ShipsToggle) {
 				if (tg.isOn) {
 					result += string.IsNullOrEmpty(result) ? tg.name : "+" + tg.name;
 				}
 			}
-			var saving = group == Group.A ? SelectedFleetA : SelectedFleetB;
-			saving.Value = result;
+			SelectedFleet.Value = result;
 		}
 
 
-		private ShipData[] GetSelectingShips (Group group) {
+		private ShipData[] GetSelectingShips () {
 			var result = new List<ShipData>();
 			var hash = new HashSet<string>();
-			var toggles = group == Group.A ? m_ShipsToggleA : m_ShipsToggleB;
+			var toggles = m_ShipsToggle;
 			for (int i = 0; i < toggles.Length; i++) {
 				var tg = toggles[i];
 				if (tg.isOn) {
@@ -96,9 +96,29 @@ namespace BattleSoup {
 		}
 
 
-		private bool SetupAIBattleSoup (Group group, out MapData map, out ShipData[] shipDatas, out ShipPosition[] positions, out string error) {
+		private ShipData[] GetStrategyShips (SoupStrategy strategy) {
+			var fleetID = strategy.FleetID;
+			if (fleetID == null || fleetID.Length == 0) { return null; }
+			var shipDatas = new ShipData[fleetID.Length];
+			for (int i = 0; i < fleetID.Length; i++) {
+				string shipID = fleetID[i];
+				var data = m_Game.Asset.GetShipData(shipID);
+				if (data == null) { return null; }
+				shipDatas[i] = data;
+			}
+			return shipDatas;
+		}
+
+
+		private bool SetupAIBattleSoup (Group group, SoupStrategy strategy, out MapData map, out ShipData[] shipDatas, out ShipPosition[] positions, out string error) {
 			error = "";
-			shipDatas = GetSelectingShips(group);
+			map = null;
+			positions = null;
+			shipDatas = GetStrategyShips(strategy);
+			if (shipDatas == null) {
+				error = $"Fleet of strategy {strategy.FinalDisplayName} is empty.";
+				return false;
+			}
 			var ships = ShipData.GetShips(shipDatas);
 			map = GetSelectingMap(group);
 			positions = null;
@@ -187,17 +207,13 @@ namespace BattleSoup {
 		private bool RefreshShipButton () {
 
 			// Has Ship Selected
-			bool hasShipA = false;
-			bool hasShipB = false;
-			foreach (var tg in m_ShipsToggleA) {
-				if (tg.isOn) { hasShipA = true; break; }
+			bool hasShip = false;
+			foreach (var tg in m_ShipsToggle) {
+				if (tg.isOn) { hasShip = true; break; }
 			}
-			foreach (var tg in m_ShipsToggleB) {
-				if (tg.isOn) { hasShipB = true; break; }
-			}
-			if (!hasShipA || !hasShipB) {
+			if (!hasShip) {
 				m_UI.StartButton_Ship.interactable = false;
-				m_UI.StartMessage_Ship.text = "Select ships for all players";
+				m_UI.StartMessage_Ship.text = "Select at least one ship";
 				return false;
 			}
 
@@ -287,7 +303,10 @@ namespace BattleSoup {
 
 			// Func
 			void DoAbilityUI (RectTransform container, Group group) {
-				var ships = GetSelectingShips(group);
+				var ships = CurrentBattleMode == BattleMode.PvA && group == Group.A ?
+					GetSelectingShips() :
+					GetStrategyShips(group == Group.A ? Strategies[StrategyIndexA.Value] : Strategies[StrategyIndexB.Value]);
+
 				for (int i = 0; i < ships.Length; i++) {
 					var ship = ships[i];
 					var grabber = Instantiate(m_Game.AbilityShip, container);
@@ -341,20 +360,22 @@ namespace BattleSoup {
 		private void FixContainerVerticalSize (RectTransform containerA, RectTransform containerB) {
 			var rt = containerA.parent as RectTransform;
 			var gridA = containerA.GetComponent<GridLayoutGroup>();
-			var gridB = containerB.GetComponent<GridLayoutGroup>();
 			var fitterA = containerA.GetComponent<ContentSizeFitter>();
-			var fitterB = containerB.GetComponent<ContentSizeFitter>();
 			gridA.CalculateLayoutInputHorizontal();
 			gridA.CalculateLayoutInputVertical();
 			gridA.SetLayoutHorizontal();
 			gridA.SetLayoutVertical();
-			gridB.CalculateLayoutInputHorizontal();
-			gridB.CalculateLayoutInputVertical();
-			gridB.SetLayoutHorizontal();
-			gridB.SetLayoutVertical();
 			fitterA.SetLayoutVertical();
-			fitterB.SetLayoutVertical();
-			float height = Mathf.Max(containerA.rect.height, containerB.rect.height);
+			if (containerB != null) {
+				var gridB = containerB.GetComponent<GridLayoutGroup>();
+				var fitterB = containerB.GetComponent<ContentSizeFitter>();
+				gridB.CalculateLayoutInputHorizontal();
+				gridB.CalculateLayoutInputVertical();
+				gridB.SetLayoutHorizontal();
+				gridB.SetLayoutVertical();
+				fitterB.SetLayoutVertical();
+			}
+			float height = Mathf.Max(containerA.rect.height, containerB != null ? containerB.rect.height : 0f);
 			if (rt.rect.height < height) {
 				rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
 			}

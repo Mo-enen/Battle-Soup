@@ -635,7 +635,6 @@ namespace BattleSoup {
 			AvAControlButton_Next.gameObject.SetActive(
 				CurrentBattleMode == BattleMode.AvA
 			);
-			AvAControlButton_Next.interactable = !AvA_Playing;
 		}
 
 

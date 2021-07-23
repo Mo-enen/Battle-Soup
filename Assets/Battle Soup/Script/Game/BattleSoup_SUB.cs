@@ -76,15 +76,12 @@ namespace BattleSoup {
 
 		[System.Serializable]
 		public struct UIData {
-			public RectTransform ShipsToggleContainerA;
-			public RectTransform ShipsToggleContainerB;
+			public RectTransform ShipsToggleContainer;
 			public RectTransform MapsToggleContainerA;
 			public RectTransform MapsToggleContainerB;
 			public RectTransform AbilityContainerA;
 			public RectTransform AbilityContainerB;
 			public RectTransform MessageRoot;
-			public Text ShipLabelA;
-			public Text ShipLabelB;
 			public Text MapLabelA;
 			public Text MapLabelB;
 			public Button StartButton_Ship;

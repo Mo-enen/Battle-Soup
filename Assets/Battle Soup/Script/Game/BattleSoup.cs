@@ -29,15 +29,13 @@ namespace BattleSoup {
 		private readonly List<SoupStrategy> Strategies = new List<SoupStrategy>();
 		private GameState CurrentState = GameState.BattleMode;
 		private BattleMode CurrentBattleMode = BattleMode.PvA;
-		private Toggle[] m_ShipsToggleA = null;
-		private Toggle[] m_ShipsToggleB = null;
+		private Toggle[] m_ShipsToggle = null;
 		private Toggle[] m_MapsToggleA = null;
 		private Toggle[] m_MapsToggleB = null;
 		private bool QuitGameForReal = false;
 
 		// Saving
-		private readonly SavingString SelectedFleetA = new SavingString("BattleSoup.SelectedFleetA", "Coracle+KillerSquid+SeaTurtle+Whale");
-		private readonly SavingString SelectedFleetB = new SavingString("BattleSoup.SelectedFleetB", "Coracle+KillerSquid+SeaTurtle+Whale");
+		private readonly SavingString SelectedFleet = new SavingString("BattleSoup.SelectedFleet", "Coracle+KillerSquid+SeaTurtle+Whale");
 		private readonly SavingBool UseSound = new SavingBool("BattleSoup.UseSound", true);
 		private readonly SavingBool AutoPlayAvA = new SavingBool("BattleSoup.AutoPlayAvA", true);
 		private readonly SavingInt SelectedMapA = new SavingInt("BattleSoup.SelectedMapA", 0);
@@ -123,12 +121,9 @@ namespace BattleSoup {
 
 		private void Start () {
 			// Ships
-			ReloadShipToggle(Group.A);
-			ReloadShipToggle(Group.B);
-			m_ShipsToggleA = m_UI.ShipsToggleContainerA.GetComponentsInChildren<Toggle>(true);
-			m_ShipsToggleB = m_UI.ShipsToggleContainerB.GetComponentsInChildren<Toggle>(true);
-			LoadShipSelectionFromSaving(Group.A);
-			LoadShipSelectionFromSaving(Group.B);
+			ReloadShipToggle();
+			m_ShipsToggle = m_UI.ShipsToggleContainer.GetComponentsInChildren<Toggle>(true);
+			LoadShipSelectionFromSaving();
 			// Maps
 			ReloadMapToggle(Group.A);
 			ReloadMapToggle(Group.B);
@@ -173,23 +168,31 @@ namespace BattleSoup {
 			switch (CurrentState) {
 
 
-				// BattleMode >> Ship
+				// BattleMode >> Ship/Map
 				case GameState.BattleMode:
 					m_Game.Game.gameObject.SetActive(false);
-					m_UI.ShipLabelA.text = CurrentBattleMode == BattleMode.PvA ? "My Ships" : "Robot-A Ships";
-					m_UI.ShipLabelB.text = CurrentBattleMode == BattleMode.PvA ? "Opponent Ships" : "Robot-B Ships";
-					RefreshShipButton();
-					RefreshPanelUI(GameState.Ship);
-					FixContainerVerticalSize(m_UI.ShipsToggleContainerA, m_UI.ShipsToggleContainerB);
-					CurrentState = GameState.Ship;
+					if (CurrentBattleMode == BattleMode.PvA) {
+						// Goto Ship
+						RefreshShipButton();
+						RefreshPanelUI(GameState.Ship);
+						FixContainerVerticalSize(m_UI.ShipsToggleContainer, null);
+						CurrentState = GameState.Ship;
+					} else {
+						// Goto Map
+						m_UI.MapLabelA.text = "Robot-A Map";
+						m_UI.MapLabelB.text = "Robot-B Map";
+						RefreshMapButton();
+						RefreshPanelUI(GameState.Map);
+						FixContainerVerticalSize(m_UI.MapsToggleContainerA, m_UI.MapsToggleContainerB);
+						CurrentState = GameState.Map;
+					}
 					break;
 
 
-				// Ship >> Map
+				// BattleMode/Ship >> Map
 				case GameState.Ship:
 					if (!RefreshShipButton()) { break; }
-					SaveShipSelectionToSaving(Group.A);
-					SaveShipSelectionToSaving(Group.B);
+					SaveShipSelectionToSaving();
 					m_Game.Game.gameObject.SetActive(false);
 					m_UI.MapLabelA.text = CurrentBattleMode == BattleMode.PvA ? "My Map" : "Robot-A Map";
 					m_UI.MapLabelB.text = CurrentBattleMode == BattleMode.PvA ? "Opponent Map" : "Robot-B Map";
@@ -209,7 +212,7 @@ namespace BattleSoup {
 						// PvA
 						var map = GetSelectingMap(Group.A);
 						if (map == null) { break; }
-						var shipDatas = GetSelectingShips(Group.A);
+						var shipDatas = GetSelectingShips();
 						if (shipDatas == null) { break; }
 						ShipPosition[] positions = null;
 						var ships = ShipData.GetShips(shipDatas);
@@ -240,7 +243,7 @@ namespace BattleSoup {
 				// PositionShips >> Playing
 				case GameState.PositionShip: {
 					if (!RefreshShipPositionButton()) { break; }
-					if (!SetupAIBattleSoup(Group.B, out var mapB, out var shipsB, out var positionsB, out string error)) {
+					if (!SetupAIBattleSoup(Group.B, Strategies[StrategyIndexB.Value], out var mapB, out ShipData[] shipsB, out var positionsB, out string error)) {
 						ShowMessage(error);
 						break;
 					}
@@ -250,7 +253,7 @@ namespace BattleSoup {
 							m_Game.Game.UI_PlayAvA();
 						}
 					} else {
-						if (!SetupAIBattleSoup(Group.A, out var mapA, out var shipsA, out var positionsA, out string errorA)) {
+						if (!SetupAIBattleSoup(Group.A, Strategies[StrategyIndexA.Value], out var mapA, out var shipsA, out var positionsA, out string errorA)) {
 							ShowMessage(errorA);
 							break;
 						}
