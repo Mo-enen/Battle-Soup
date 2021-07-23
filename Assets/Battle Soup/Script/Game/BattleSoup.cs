@@ -29,7 +29,6 @@ namespace BattleSoup {
 		private readonly List<SoupStrategy> Strategies = new List<SoupStrategy>();
 		private GameState CurrentState = GameState.BattleMode;
 		private BattleMode CurrentBattleMode = BattleMode.PvA;
-		private Toggle[] m_ShipsToggle = null;
 		private Toggle[] m_MapsToggleA = null;
 		private Toggle[] m_MapsToggleB = null;
 		private bool QuitGameForReal = false;
@@ -121,8 +120,7 @@ namespace BattleSoup {
 
 		private void Start () {
 			// Ships
-			ReloadShipToggle();
-			m_ShipsToggle = m_UI.ShipsToggleContainer.GetComponentsInChildren<Toggle>(true);
+			ReloadShipButtons();
 			LoadShipSelectionFromSaving();
 			// Maps
 			ReloadMapToggle(Group.A);
@@ -175,7 +173,7 @@ namespace BattleSoup {
 						// Goto Ship
 						RefreshShipButton();
 						RefreshPanelUI(GameState.Ship);
-						FixContainerVerticalSize(m_UI.ShipsToggleContainer, null);
+						FixContainerVerticalSize(m_UI.ShipsButtonContainer, null);
 						CurrentState = GameState.Ship;
 					} else {
 						// Goto Map
@@ -439,6 +437,9 @@ namespace BattleSoup {
 			StrategyIndexB.Value = Mathf.Clamp(index, 0, Strategies.Count - 1);
 			RefreshStrategyUI();
 		}
+
+
+		public void UI_ClearShipSelection () => ClearShipSelection();
 
 
 		public void UI_QuitGame () {

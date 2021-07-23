@@ -14,9 +14,9 @@ namespace BattleSoup {
 
 
 		// Ship
-		private void ReloadShipToggle () {
+		private void ReloadShipButtons () {
 
-			var container = m_UI.ShipsToggleContainer;
+			var container = m_UI.ShipsButtonContainer;
 			var shipMap = m_Game.Asset.ShipMap;
 
 			// Clear UI
@@ -37,9 +37,10 @@ namespace BattleSoup {
 				rt.SetAsLastSibling();
 				rt.gameObject.name = pair.Key;
 				// Label
-				rt.Find("Label").GetComponent<Text>().text = ship.DisplayName;
-				rt.GetComponent<Toggle>().SetIsOnWithoutNotify(false);
-				rt.Find("Thumbnail").GetComponent<Image>().sprite = ship.Sprite;
+				var grab = rt.GetComponent<Grabber>();
+				grab.Grab<Button>().onClick.AddListener(() => AddShipToSelection(rt.name));
+				grab.Grab<Text>("Label").text = ship.DisplayName;
+				grab.Grab<Image>("Thumbnail").sprite = ship.Sprite;
 			}
 
 			// Final
@@ -48,29 +49,57 @@ namespace BattleSoup {
 		}
 
 
+		private void AddShipToSelection (string id) {
+			var shipData = m_Game.Asset.GetShipData(id);
+			if (shipData == null) { return; }
+			var grab = Instantiate(m_UI.ShipSelectionItem, m_UI.ShipSelectionContainer);
+			var rt = grab.transform as RectTransform;
+			rt.anchoredPosition3D = rt.anchoredPosition;
+			rt.localScale = Vector3.one;
+			rt.localRotation = Quaternion.identity;
+			rt.SetAsLastSibling();
+			rt.name = id;
+			grab.Grab<Button>().onClick.AddListener(() => RemoveShipFromSelection(rt.GetSiblingIndex()));
+			grab.Grab<Image>("Icon").sprite = shipData.Sprite;
+			RefreshShipButton();
+		}
+
+
+		private void RemoveShipFromSelection (int index) {
+			int len = m_UI.ShipSelectionContainer.childCount;
+			if (index < 0 || index >= len) { return; }
+			DestroyImmediate(m_UI.ShipSelectionContainer.GetChild(index).gameObject, false);
+			RefreshShipButton();
+		}
+
+
+		private void ClearShipSelection () {
+			int len = m_UI.ShipSelectionContainer.childCount;
+			for (int i = 0; i < len; i++) {
+				DestroyImmediate(m_UI.ShipSelectionContainer.GetChild(0).gameObject, false);
+			}
+			RefreshShipButton();
+		}
+
+
 		private void LoadShipSelectionFromSaving () {
-			var savingHash = new HashSet<string>();
 			string fleetStr = SelectedFleet.Value;
 			if (!string.IsNullOrEmpty(fleetStr)) {
 				var fleetNames = fleetStr.Split('+');
 				if (fleetNames != null && fleetNames.Length > 0) {
+					ClearShipSelection();
 					foreach (var _name in fleetNames) {
-						savingHash.TryAdd(_name);
+						AddShipToSelection(_name);
 					}
 				}
-			}
-			foreach (var tg in m_ShipsToggle) {
-				tg.SetIsOnWithoutNotify(savingHash.Contains(tg.name));
 			}
 		}
 
 
 		private void SaveShipSelectionToSaving () {
 			string result = "";
-			foreach (var tg in m_ShipsToggle) {
-				if (tg.isOn) {
-					result += string.IsNullOrEmpty(result) ? tg.name : "+" + tg.name;
-				}
+			foreach (RectTransform rt in m_UI.ShipSelectionContainer) {
+				result += string.IsNullOrEmpty(result) ? rt.name : "+" + rt.name;
 			}
 			SelectedFleet.Value = result;
 		}
@@ -79,16 +108,10 @@ namespace BattleSoup {
 		private ShipData[] GetSelectingShips () {
 			var result = new List<ShipData>();
 			var hash = new HashSet<string>();
-			var toggles = m_ShipsToggle;
-			for (int i = 0; i < toggles.Length; i++) {
-				var tg = toggles[i];
-				if (tg.isOn) {
-					hash.TryAdd(tg.name);
-				}
-			}
-			foreach (var pair in m_Game.Asset.ShipMap) {
-				if (hash.Contains(pair.Key)) {
-					result.Add(pair.Value);
+			foreach (RectTransform rt in m_UI.ShipSelectionContainer) {
+				var data = m_Game.Asset.GetShipData(rt.name);
+				if (data != null) {
+					result.Add(data);
 				}
 			}
 			result.Sort((a, b) => b.Ship.Body.Length.CompareTo(a.Ship.Body.Length));
@@ -207,11 +230,7 @@ namespace BattleSoup {
 		private bool RefreshShipButton () {
 
 			// Has Ship Selected
-			bool hasShip = false;
-			foreach (var tg in m_ShipsToggle) {
-				if (tg.isOn) { hasShip = true; break; }
-			}
-			if (!hasShip) {
+			if (m_UI.ShipSelectionContainer.childCount == 0) {
 				m_UI.StartButton_Ship.interactable = false;
 				m_UI.StartMessage_Ship.text = "Select at least one ship";
 				return false;

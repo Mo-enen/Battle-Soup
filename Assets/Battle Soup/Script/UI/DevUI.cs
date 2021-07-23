@@ -24,7 +24,7 @@ namespace BattleSoup {
 
 		// Data
 		private List<ShipPosition>[] HiddenPositions = new List<ShipPosition>[0];
-		private List<(ShipPosition, int)>[] ExposedPositions = new List<(ShipPosition, int)>[0];
+		private List<ShipPosition>[] ExposedPositions = new List<ShipPosition>[0];
 		private int[,,] Values = new int[0, 0, 0];
 		private int MinValue = 0;
 		private int MaxValue = 0;
@@ -48,7 +48,7 @@ namespace BattleSoup {
 
 			// Calculate Potential Values
 			if (!data.Strategy.CalculatePotentialValues(
-				data.Ships, data.Map.Size, HiddenPositions, ExposedPositions, true,
+				data.Ships, data.Map.Size, HiddenPositions, ExposedPositions,
 				ref Values, out MinValue, out MaxValue
 			)) { return false; }
 

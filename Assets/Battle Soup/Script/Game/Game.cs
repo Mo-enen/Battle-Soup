@@ -173,6 +173,8 @@ namespace BattleSoup {
 		// Data
 		private readonly GameData DataA = new GameData();
 		private readonly GameData DataB = new GameData();
+		private readonly BattleInfo InfoA = new BattleInfo();
+		private readonly BattleInfo InfoB = new BattleInfo();
 		private readonly Vector3[] WorldCornerCaches = new Vector3[4];
 		private readonly AbilityPerformData AbilityData = new AbilityPerformData();
 		private BattleMode CurrentBattleMode = BattleMode.PvA;
@@ -263,26 +265,10 @@ namespace BattleSoup {
 			// Func
 			void PerformRobotTurn (Group group) {
 				var ownData = group == Group.A ? DataA : DataB;
-				var oppData = group == Group.A ? DataB : DataA;
 				var oppGroup = group == Group.A ? Group.B : Group.A;
 				RefreshShipsAlive(-1, group);
 				RefreshShipsAlive(-1, oppGroup);
-				var result = ownData.Strategy.Analyse(
-					new BattleInfo() {
-						Ships = ownData.Ships,
-						Tiles = ownData.Tiles,
-						Cooldowns = ownData.Cooldowns,
-						ShipsAlive = ownData.ShipsAlive,
-					},
-					new BattleInfo() {
-						Ships = oppData.Ships,
-						Tiles = oppData.Tiles,
-						Cooldowns = oppData.Cooldowns,
-						ShipsAlive = oppData.ShipsAlive,
-					},
-					ownData.Positions,
-					AbilityShipIndex
-				);
+				var result = ownData.Strategy.Analyse(InfoA, InfoB, AbilityShipIndex);
 				if (result.Success) {
 					if (result.AbilityIndex < 0) {
 						// Normal Attack
@@ -315,6 +301,9 @@ namespace BattleSoup {
 					} else {
 						SwitchTurn();
 					}
+				} else {
+					//result.ErrorMessage
+					SwitchTurn();
 				}
 			}
 		}
@@ -343,25 +332,49 @@ namespace BattleSoup {
 
 
 		public void Init (BattleMode battleMode, SoupStrategy strategyA, SoupStrategy strategyB, MapData mapA, MapData mapB, ShipData[] shipsA, ShipData[] shipsB, ShipPosition[] positionsA, ShipPosition[] positionsB) {
+
 			CurrentBattleMode = battleMode;
 			CurrentTurn = Random.value > 0.5f ? Group.A : Group.B;
 			AbilityData.Clear();
+
 			DataA.Clear();
 			DataB.Clear();
 			DataA.Init(strategyA, mapA, shipsA, positionsA);
 			DataB.Init(strategyB, mapB, shipsB, positionsB);
+
+			InfoA.MapSize = DataA.Map.Size;
+			InfoA.Ships = DataA.Ships;
+			InfoA.ShipsAlive = DataA.ShipsAlive;
+			InfoA.Cooldowns = DataA.Cooldowns;
+			InfoA.Tiles = DataA.Tiles;
+			InfoA.KnownPositions = DataA.KnownPositions;
+
+			InfoB.MapSize = DataB.Map.Size;
+			InfoB.Ships = DataB.Ships;
+			InfoB.ShipsAlive = DataB.ShipsAlive;
+			InfoB.Cooldowns = DataB.Cooldowns;
+			InfoB.Tiles = DataB.Tiles;
+			InfoB.KnownPositions = DataB.KnownPositions;
+
 			m_CheatToggle.SetIsOnWithoutNotify(false);
 			m_DevToggle.SetIsOnWithoutNotify(false);
 			PrevUsedAbilityA = "";
 			PrevUsedAbilityB = "";
 			Cheated = false;
+
 			m_CheatToggle.gameObject.SetActive(true);
+			m_DevToggle.gameObject.SetActive(true);
+
 			AvA_Playing = false;
 			AvA_GotoNext = false;
+
 			RefreshControlButtons();
 			m_DevA.gameObject.SetActive(false);
 			m_DevB.gameObject.SetActive(false);
+
 			gameObject.SetActive(true);
+			strategyA.OnBattleStart(InfoA, InfoB);
+			strategyB.OnBattleStart(InfoB, InfoA);
 		}
 
 
@@ -398,6 +411,14 @@ namespace BattleSoup {
 			DataB.Clear();
 			m_DevA.Clear();
 			m_DevB.Clear();
+			InfoA.Ships = null;
+			InfoA.ShipsAlive = null;
+			InfoA.Cooldowns = null;
+			InfoA.Tiles = null;
+			InfoB.Ships = null;
+			InfoB.ShipsAlive = null;
+			InfoB.Cooldowns = null;
+			InfoB.Tiles = null;
 		}
 
 
@@ -505,6 +526,7 @@ namespace BattleSoup {
 			if (!gameObject.activeSelf) { return; }
 
 			// Check Win
+			bool gameEnd = false;
 			if (AllShipsSunk(Group.A)) {
 				// B Win
 				if (CurrentBattleMode == BattleMode.PvA) {
@@ -516,15 +538,7 @@ namespace BattleSoup {
 					m_Face.sprite = null;
 					m_ShowMessage.Invoke("Robot B Win");
 				}
-				gameObject.SetActive(false);
-				m_CheatToggle.gameObject.SetActive(false);
-				m_RefreshUI.Invoke();
-				m_SoupA.SunkOnly = false;
-				m_SoupB.SunkOnly = false;
-				RefreshAllSoupRenderers();
-				m_SoupA.ClearAimRenderer();
-				m_SoupB.ClearAimRenderer();
-				return;
+				gameEnd = true;
 			} else if (AllShipsSunk(Group.B)) {
 				// A Win
 				if (CurrentBattleMode == BattleMode.PvA) {
@@ -536,8 +550,15 @@ namespace BattleSoup {
 					m_Face.sprite = null;
 					m_ShowMessage.Invoke("Robot A Win");
 				}
+				gameEnd = true;
+			}
+
+			if (gameEnd) {
+				DataA.Strategy.OnBattleEnd(InfoA, InfoB);
+				DataB.Strategy.OnBattleEnd(InfoB, InfoA);
 				gameObject.SetActive(false);
 				m_CheatToggle.gameObject.SetActive(false);
+				m_DevToggle.gameObject.SetActive(false);
 				m_RefreshUI.Invoke();
 				m_SoupA.SunkOnly = false;
 				m_SoupB.SunkOnly = false;

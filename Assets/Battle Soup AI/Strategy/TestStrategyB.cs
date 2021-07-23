@@ -10,7 +10,7 @@ namespace BattleSoupAI {
 		public override string Description => "Test Strategy B";
 
 
-		public override AnalyseResult Analyse (BattleInfo ownInfo, BattleInfo opponentInfo, ShipPosition[] ownShipPositions, int usingAbilityIndex = -1) {
+		public override AnalyseResult Analyse (BattleInfo ownInfo, BattleInfo opponentInfo, int usingAbilityIndex = -1) {
 
 
 
