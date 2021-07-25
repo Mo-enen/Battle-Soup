@@ -41,6 +41,7 @@ namespace BattleSoup {
 				grab.Grab<Button>().onClick.AddListener(() => AddShipToSelection(rt.name));
 				grab.Grab<Text>("Label").text = ship.DisplayName;
 				grab.Grab<Image>("Thumbnail").sprite = ship.Sprite;
+				grab.Grab<TipUI>().Content = ship.Description;
 			}
 
 			// Final

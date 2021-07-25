@@ -42,7 +42,7 @@ namespace BattleSoup {
 
 			// Calculate Potential Positions
 			if (!data.Strategy.CalculatePotentialPositions(
-				data.Ships, data.Tiles, data.KnownPositions,
+				data.Ships, data.ShipsAlive, data.Tiles, data.KnownPositions,
 				ref HiddenPositions, ref ExposedPositions
 			)) { return false; }
 

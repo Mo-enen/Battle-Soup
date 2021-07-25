@@ -295,8 +295,13 @@ namespace BattleSoup {
 					CurrentState = GameState.BattleMode;
 					break;
 				case GameState.Map:
-					RefreshPanelUI(GameState.Ship);
-					CurrentState = GameState.Ship;
+					if (CurrentBattleMode == BattleMode.PvA) {
+						RefreshPanelUI(GameState.Ship);
+						CurrentState = GameState.Ship;
+					} else {
+						RefreshPanelUI(GameState.BattleMode);
+						CurrentState = GameState.BattleMode;
+					}
 					break;
 				case GameState.PositionShip:
 					RefreshPanelUI(GameState.Map);

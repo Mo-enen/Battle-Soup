@@ -15,10 +15,8 @@ namespace BattleSoup {
 		public string GlobalID { get; set; } = "";
 		public Sprite Sprite { get; set; } = null;
 		public int SpriteIndex { get; set; } = 0;
-		public string DisplayName {
-			get => m_DisplayName;
-			set => m_DisplayName = value;
-		}
+		public string DisplayName => m_DisplayName;
+		public string Description => m_Description;
 		public Ship Ship {
 			get => m_Ship;
 			set => m_Ship = value;
@@ -26,6 +24,7 @@ namespace BattleSoup {
 
 		// Ser
 		[SerializeField] string m_DisplayName = "";
+		[SerializeField] string m_Description = "";
 		[SerializeField] Ship m_Ship = default;
 
 
