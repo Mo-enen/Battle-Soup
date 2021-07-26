@@ -222,8 +222,9 @@ namespace BattleSoup {
 					m_AimRenderer.SetVerticesDirty();
 				}
 			}
-			if (m_AbilityAimHint != null && m_AbilityAimHint.gameObject.activeSelf != inside) {
-				m_AbilityAimHint.gameObject.SetActive(inside);
+			bool showHint = ability != null;
+			if (m_AbilityAimHint != null && m_AbilityAimHint.gameObject.activeSelf != showHint) {
+				m_AbilityAimHint.gameObject.SetActive(showHint);
 			}
 		}
 

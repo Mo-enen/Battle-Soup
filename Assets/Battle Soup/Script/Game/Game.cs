@@ -140,6 +140,8 @@ namespace BattleSoup {
 		// Api
 		public static ShipDataStringHandler GetShip { get; set; } = null;
 		public Group CurrentTurn { get; private set; } = Group.A;
+		public int ShipCountA => DataA.Ships.Length;
+		public int ShipCountB => DataB.Ships.Length;
 		public AbilityDirection AbilityDirection { get; private set; } = AbilityDirection.Up;
 		public int AbilityShipIndex { get; private set; } = -1;
 		public string PrevUsedAbilityA { get; private set; } = "";
@@ -202,11 +204,12 @@ namespace BattleSoup {
 			Update_Aim();
 			if (CurrentBattleMode == BattleMode.PvA) {
 				// PvA
-				if (CurrentTurn == Group.A) {
-					Update_Turn();
-				} else if (Time.time > NextUpdateTime) {
-					NextUpdateTime = Time.time + 0.3f;
-					Update_Turn();
+				if (Time.time > NextUpdateTime) {
+					if (CurrentTurn == Group.A) {
+						Update_Turn();
+					} else {
+						Update_Turn();
+					}
 				}
 			} else {
 				// AvA
@@ -246,8 +249,8 @@ namespace BattleSoup {
 								m_SoupB.ClearBlinks();
 								m_SoupB.Blink(pos.x, pos.y, Color.white, m_AttackBlink, 0.5f);
 							}
-						} else if (AbilityData.AbilityAttackIndex == 0) {
-							OnAbilityCancel();
+						} else {
+							CancelAbility(false);
 						}
 					} else if (Input.GetMouseButtonDown(1)) {
 						if (AbilityShipIndex >= 0) {
@@ -302,7 +305,6 @@ namespace BattleSoup {
 						SwitchTurn();
 					}
 				} else {
-					//result.ErrorMessage
 					SwitchTurn();
 				}
 			}
@@ -460,6 +462,9 @@ namespace BattleSoup {
 		}
 
 
+		public void UI_CancelAbility () => CancelAbility(true);
+
+
 		// Ship
 		public bool CheckShipAlive (int index, Group group) => (group == Group.A ? DataA : DataB).ShipsAlive[index];
 
@@ -579,8 +584,8 @@ namespace BattleSoup {
 
 			// Turn Change
 			CurrentTurn = CurrentTurn == Group.A ? Group.B : Group.A;
+			NextUpdateTime = Time.time + 0.618f;
 			m_RefreshUI.Invoke();
-
 		}
 
 
@@ -812,10 +817,17 @@ namespace BattleSoup {
 		}
 
 
-		private void OnAbilityCancel () {
-			AbilityShipIndex = -1;
-			AbilityData.Clear();
-			m_RefreshUI.Invoke();
+		private void CancelAbility (bool forceCancel) {
+			int attIndex = AbilityData.AbilityAttackIndex;
+			if (forceCancel || attIndex == 0) {
+				AbilityShipIndex = -1;
+				AbilityData.Clear();
+				if (forceCancel && attIndex != 0) {
+					SwitchTurn();
+				} else {
+					m_RefreshUI.Invoke();
+				}
+			}
 		}
 
 

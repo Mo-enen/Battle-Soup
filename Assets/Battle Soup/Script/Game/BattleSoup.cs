@@ -375,7 +375,7 @@ namespace BattleSoup {
 			// Func
 			void RefreshAbilityUI (RectTransform container, Group group) {
 				bool devMode = m_Game.Game.DevMode;
-				int count = container.childCount;
+				int count = group == Group.A ? m_Game.Game.ShipCountA : m_Game.Game.ShipCountB;
 				for (int i = 0; i < count; i++) {
 
 					int cooldown = m_Game.Game.GetCooldown(group, i);
@@ -422,6 +422,17 @@ namespace BattleSoup {
 					}
 
 				}
+
+				for (int i = count; i < count + 2; i++) {
+					var grabber = container.GetChild(i).GetComponent<Grabber>();
+					grabber.gameObject.SetActive(devMode);
+					if (devMode) {
+						grabber.Grab<RectTransform>("Highlight").gameObject.SetActive(
+							(group == Group.A ? m_Game.Game.DevShipIndexA : m_Game.Game.DevShipIndexB) == i
+						);
+					}
+				}
+
 			}
 		}
 
