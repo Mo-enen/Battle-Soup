@@ -102,7 +102,7 @@ namespace BattleSoup {
 			public Text StrategyDescriptionA;
 			public Text StrategyDescriptionB;
 			public Button PositionShipResetButton;
-			public Sprite DevValueIterIcon;
+			public Sprite[] DevValueIterIcons;
 			public Image[] BattleAvatarA;
 			public Image[] BattleAvatarB;
 		}

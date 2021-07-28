@@ -21,15 +21,12 @@ namespace BattleSoupAI {
 		private List<ShipPosition>[] ExposedPositions = new List<ShipPosition>[0];
 		private float[,,] HiddenValues = new float[0, 0, 0];
 		private float[,,] ExposedValues = new float[0, 0, 0];
-		private (Int2 pos, float max) HiddenValueMax = default;
-		private (Int2 pos, float max) ExposedValueMax = default;
+		private (Int2 pos0, Int2 pos1, float max0, float max1, bool alone0) HiddenValueMax = default;
+		private (Int2 pos0, Int2 pos1, float max0, float max1, bool alone0) ExposedValueMax = default;
 		private (int index, int exposure)[] MostExposed = null;
-		private int AliveShipCount = 0;
-		private int BestTargetIndex = -1;
 
 
 		#endregion
-
 
 
 
@@ -84,19 +81,6 @@ namespace BattleSoupAI {
 
 		private string CalculateCache (BattleInfo info) {
 
-			// Ship Alive Check
-			AliveShipCount = 0;
-			int lastAliveShipIndex = -1;
-			for (int i = 0; i < info.ShipsAlive.Length; i++) {
-				bool alive = info.ShipsAlive[i];
-				if (alive) {
-					AliveShipCount++;
-					lastAliveShipIndex = i;
-				}
-			}
-			if (AliveShipCount == 0) { return "No Ship Alive"; }
-
-			// Positions
 			if (!CalculatePotentialPositions(
 				info.Ships,
 				info.ShipsAlive,
@@ -124,7 +108,6 @@ namespace BattleSoupAI {
 				ref ExposedPositions
 			);
 
-			// Values
 			if (!CalculatePotentialValues(
 				info.Ships,
 				info.MapSize,
@@ -142,6 +125,8 @@ namespace BattleSoupAI {
 			// Get Value Max
 			int shipCount = info.Ships.Length;
 			int mapSize = info.MapSize;
+			HiddenValueMax.alone0 = true;
+			ExposedValueMax.alone0 = true;
 			FillValue(true);
 			FillValue(false);
 
@@ -153,24 +138,28 @@ namespace BattleSoupAI {
 				MostExposed[i] = GetMostExposedPosition(info.Ships[i], info.Tiles, ExposedPositions[i]);
 			}
 
-			// Get Best Hunt Target
-			BestTargetIndex = AliveShipCount == 1 ?
-				lastAliveShipIndex :
-				GetBestHuntTarget(info, HiddenPositions, ExposedPositions);
-
 			return "";
 			// Func
 			void FillValue (bool hidden) {
 				var values = hidden ? HiddenValues : ExposedValues;
 				var valueMax = hidden ? HiddenValueMax : ExposedValueMax;
-				valueMax.max = 0;
+				valueMax.max0 = 0;
+				valueMax.max1 = 0;
 				for (int j = 0; j < mapSize; j++) {
 					for (int i = 0; i < mapSize; i++) {
 						float v0 = values[shipCount, i, j];
-						if (v0 > valueMax.max) {
-							valueMax.max = v0;
-							valueMax.pos.x = i;
-							valueMax.pos.y = j;
+						if (v0 > valueMax.max0) {
+							valueMax.max0 = v0;
+							valueMax.pos0.x = i;
+							valueMax.pos0.y = j;
+						} else if (v0 == valueMax.max0) {
+							valueMax.alone0 = false;
+						}
+						float v1 = values[shipCount + 1, i, j];
+						if (v1 > valueMax.max1) {
+							valueMax.max1 = v1;
+							valueMax.pos1.x = i;
+							valueMax.pos1.y = j;
 						}
 					}
 				}
@@ -189,42 +178,54 @@ namespace BattleSoupAI {
 			float finalScore = 0f;
 
 			// Alive Check
-
-			if (AliveShipCount == 0) { return (default, 0); }
+			int aliveShipCount = 0;
+			int lastAliveShipIndex = -1;
+			for (int i = 0; i < info.ShipsAlive.Length; i++) {
+				bool alive = info.ShipsAlive[i];
+				if (alive) {
+					aliveShipCount++;
+					lastAliveShipIndex = i;
+				}
+			}
+			if (aliveShipCount == 0) { return (default, 0); }
 
 			// Hit Hidden Water
-			var pos = HiddenValueMax.pos;
+			var pos = HiddenValueMax.alone0 ? HiddenValueMax.pos0 : HiddenValueMax.pos1;
 			var tile = info.Tiles[pos.x, pos.y];
 			if (tile == Tile.GeneralWater) {
 				TrySetScoreAndPos(40f, pos);
 			}
 			// Hit Reveal Ship
-			pos = ExposedValueMax.pos;
+			pos = ExposedValueMax.alone0 ? ExposedValueMax.pos0 : ExposedValueMax.pos1;
 			tile = info.Tiles[pos.x, pos.y];
 			if (tile == Tile.GeneralWater || tile == Tile.RevealedShip) {
 				TrySetScoreAndPos(45f, pos);
 			}
 
+			// Get Best Hunt Target
+			int bestTargetIndex = aliveShipCount == 1 ?
+				lastAliveShipIndex :
+				GetBestHuntTarget(info, HiddenPositions, ExposedPositions);
 
 			// Hunt Target Ship
-			if (BestTargetIndex >= 0) {
-				int huntID = Hunt(BestTargetIndex, info, out var huntTargetPos);
+			if (bestTargetIndex >= 0) {
+				int huntID = Hunt(bestTargetIndex, info, out var huntTargetPos);
 				switch (huntID) {
 					case 2: // Hidden
 						TrySetScoreAndPos(
-							AliveShipCount == 1 ? 75f : AliveShipCount == 2 ? 65f : 50f,
+							aliveShipCount == 1 ? 75f : aliveShipCount == 2 ? 65f : 50f,
 							huntTargetPos
 						);
 						break;
 					case 1: // Exposed
 						TrySetScoreAndPos(
-							AliveShipCount == 1 ? 85f : AliveShipCount == 2 ? 75f : 60f,
+							aliveShipCount == 1 ? 85f : aliveShipCount == 2 ? 75f : 60f,
 							huntTargetPos
 						);
 						break;
 					case 3: // Known
 						TrySetScoreAndPos(
-							AliveShipCount == 1 ? 95 : AliveShipCount == 2 ? 85f : 65f,
+							aliveShipCount == 1 ? 95 : aliveShipCount == 2 ? 85f : 65f,
 							huntTargetPos
 						);
 						break;
@@ -242,69 +243,15 @@ namespace BattleSoupAI {
 		}
 
 
-		private (Int2 pos, AbilityDirection direction, float score) AnalyseAbility (int abilityIndex, BattleInfo info) {
-			Int2 pos = default;
-			AbilityDirection dir = default;
-			float score = 0f;
-			switch (abilityIndex) {
-				case 0: {
-					// Coracle
-					if (GetBestTile(ExposedValues, info.Ships.Length, info.Tiles, Tile.RevealedShip, false, out var bestRPos)) {
-						pos = bestRPos;
-						if (AliveShipCount == 1) {
-							score = 9999f;
-						} else {
-							score = 85f;
-						}
-					}
-					break;
-				}
-				case 1: {
-					// Whale
-					if (AliveShipCount == 1) {
-						if (BestTargetIndex >= 0) {
-							int huntID = Hunt(BestTargetIndex, info, out var huntTargetPos);
-							if (huntID > 0) {
-								pos = huntTargetPos;
-								score = 85f;
-							}
-						}
-					} else {
-						if (GetBestTile(ExposedValues, info.Ships.Length, info.Tiles, Tile.GeneralWater, true, out var bestRPos)) {
-							bool isShip = info.Tiles[bestRPos.x, bestRPos.y] == Tile.RevealedShip;
-							pos = bestRPos;
-							score = isShip ? 70f : 85f;
-						}
-					}
-					break;
-				}
-				case 2: {
-					// KillerSquid
-					if (GetBestTile(ExposedValues, info.Ships.Length, info.Tiles, Tile.RevealedShip | Tile.GeneralWater, true, out var bestRPos)) {
-						bool isShip = info.Tiles[bestRPos.x, bestRPos.y] == Tile.RevealedShip;
-						pos = bestRPos;
-						score = isShip ? 70f : 85f;
-					}
-					break;
-				}
-				case 3: {
-					// SeaTurtle
-					if (BestTargetIndex >= 0) {
-						int huntID = Hunt(BestTargetIndex, info, out var huntTargetPos);
-						if (huntID > 0) {
-							pos = huntTargetPos;
-						}
-					} else {
-						pos = HiddenValueMax.pos;
-					}
-					var tile = info.Tiles[pos.x, pos.y];
-					if (tile == Tile.GeneralWater || tile == Tile.RevealedShip) {
-						score = 65f;
-					}
-					break;
-				}
-			}
-			return (pos, dir, score);
+		private (Int2 pos, AbilityDirection direction, float score) AnalyseAbility (
+			int abilityIndex, BattleInfo opponentInfo
+		) {
+
+
+
+
+
+			return (default, default, 0f);
 		}
 
 
@@ -338,45 +285,6 @@ namespace BattleSoupAI {
 				bestTargetIndex = bestHdTargetIndex;
 			}
 			return bestTargetIndex;
-		}
-
-
-		private bool GetBestTile (float[,,] values, int shipCount, Tile[,] tiles, Tile filter, bool neighbour, out Int2 pos) {
-			int size = tiles.GetLength(0);
-			float maxValue = 0;
-			bool success = false;
-			pos = default;
-			for (int j = 0; j < size; j++) {
-				for (int i = 0; i < size; i++) {
-					float value = GetValue(i, j);
-					var tile = tiles[i, j];
-					if (value > maxValue && filter.HasFlag(tile)) {
-						maxValue = value;
-						pos.x = i;
-						pos.y = j;
-					}
-				}
-			}
-			return success;
-			// Func
-			float GetValue (int _i, int _j) {
-				float result = values[shipCount, _i, _j];
-				if (neighbour) {
-					if (_i - 1 >= 0) {
-						result += values[shipCount, _i - 1, _j];
-					}
-					if (_j - 1 >= 0) {
-						result += values[shipCount, _i, _j - 1];
-					}
-					if (_i + 1 < size) {
-						result += values[shipCount, _i + 1, _j];
-					}
-					if (_j + 1 < size) {
-						result += values[shipCount, _i, _j + 1];
-					}
-				}
-				return result;
-			}
 		}
 
 
@@ -416,7 +324,7 @@ namespace BattleSoupAI {
 				}
 			} else if (HiddenPositions[shipIndex].Count > 0) {
 				// Hidden
-				var pos = HiddenValueMax.pos;
+				var pos = HiddenValueMax.alone0 ? HiddenValueMax.pos0 : HiddenValueMax.pos1;
 				if (info.Tiles[pos.x, pos.y] == Tile.GeneralWater) {
 					result = pos;
 					return 2;

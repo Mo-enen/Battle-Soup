@@ -125,7 +125,6 @@ namespace BattleSoup {
 
 
 
-
 		#region --- VAR ---
 
 
@@ -272,9 +271,7 @@ namespace BattleSoup {
 				var oppGroup = group == Group.A ? Group.B : Group.A;
 				RefreshShipsAlive(-1, group);
 				RefreshShipsAlive(-1, oppGroup);
-				var ownInfo = group == Group.A ? InfoA : InfoB;
-				var oppInfo = group == Group.A ? InfoB : InfoA;
-				var result = ownData.Strategy.Analyse(ownInfo, oppInfo, AbilityShipIndex);
+				var result = ownData.Strategy.Analyse(InfoA, InfoB, AbilityShipIndex);
 				if (result.Success) {
 					if (result.AbilityIndex < 0) {
 						// Normal Attack
@@ -308,7 +305,6 @@ namespace BattleSoup {
 						SwitchTurn();
 					}
 				} else {
-					Debug.LogWarning(result.ErrorMessage);
 					SwitchTurn();
 				}
 			}

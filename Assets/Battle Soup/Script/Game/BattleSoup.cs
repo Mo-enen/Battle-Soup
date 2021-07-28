@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -141,7 +142,16 @@ namespace BattleSoup {
 		}
 
 
-		private void Update () => CursorUI.GlobalUpdate();
+		private void Update () {
+			CursorUI.GlobalUpdate();
+			// Hotkey
+			if (Input.GetKeyDown(KeyCode.F12)) {
+				// Dev Mode
+				m_Game.Game.UI_SetDevMode(!m_Game.Game.DevMode);
+			}
+
+		}
+
 
 
 		#endregion
@@ -413,7 +423,7 @@ namespace BattleSoup {
 
 				}
 
-				for (int i = count; i < count + 1; i++) {
+				for (int i = count; i < count + 2; i++) {
 					var grabber = container.GetChild(i).GetComponent<Grabber>();
 					grabber.gameObject.SetActive(devMode);
 					if (devMode) {
