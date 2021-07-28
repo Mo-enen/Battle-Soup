@@ -360,31 +360,31 @@ namespace BattleSoup {
 
 				}
 
-				for (int i = 0; i < 2; i++) {
+				{
 					var grabber = Instantiate(m_Game.AbilityShip, container);
 					var rt = grabber.transform as RectTransform;
 					rt.anchoredPosition3D = rt.anchoredPosition;
 					rt.localRotation = Quaternion.identity;
 					rt.localScale = Vector3.one;
 					rt.SetAsLastSibling();
-					rt.name = $"Iter {i}";
+					rt.name = "Iter";
 
 					var btn = grabber.Grab<Button>();
 					btn.interactable = true;
 
-					int _index = i;
 					btn.onClick.AddListener(
-						() => m_Game.Game.OnAbilityClick(group, ships.Length + _index)
+						() => m_Game.Game.OnAbilityClick(group, ships.Length)
 					);
 
 					var icon = grabber.Grab<GreyImage>("Icon");
-					icon.sprite = m_UI.DevValueIterIcons[i];
+					icon.sprite = m_UI.DevValueIterIcon;
 
 					grabber.Grab<Text>("Cooldown").gameObject.SetActive(false);
 					grabber.Grab<RectTransform>("Red Panel").gameObject.SetActive(false);
 					grabber.Grab<Image>("Copy").gameObject.SetActive(false);
-
 				}
+
+
 
 			}
 

@@ -290,19 +290,17 @@ namespace BattleSoupAI {
 
 		public bool CalculatePotentialValues (Ship[] ships, int mapSize, List<ShipPosition>[] positions, ref float[,,] values, out float minValue, out float maxValue) {
 
-			const int VALUE_ITERATE = 2;
-
 			minValue = maxValue = 0f;
 
 			if (ships == null || ships.Length == 0) { return false; }
 			if (positions == null || positions.Length != ships.Length) { return false; }
 			if (
 				values == null ||
-				values.GetLength(0) != ships.Length + VALUE_ITERATE ||
+				values.GetLength(0) != ships.Length + 1 ||
 				values.GetLength(1) != mapSize ||
 				values.GetLength(2) != mapSize
 			) {
-				values = new float[ships.Length + VALUE_ITERATE, mapSize, mapSize];
+				values = new float[ships.Length + 1, mapSize, mapSize];
 			}
 
 			int shipCount = ships.Length;
@@ -323,16 +321,6 @@ namespace BattleSoupAI {
 				}
 			}
 
-			// Iterate
-			for (int iter = 1; iter < VALUE_ITERATE; iter++) {
-				for (int y = 0; y < mapSize; y++) {
-					for (int x = 0; x < mapSize; x++) {
-						if (values[shipCount, x, y] <= 0) { continue; }
-						Iterate(ref values, iter, x, y);
-					}
-				}
-			}
-
 			return true;
 			// Func
 			(float min, float max) AddToValues (float[,,] _values, ShipPosition _pos, int _shipIndex, float _minValue, float _maxValue) {
@@ -349,21 +337,6 @@ namespace BattleSoupAI {
 					}
 				}
 				return (_minValue, _maxValue);
-			}
-			void Iterate (ref float[,,] _values, int _iter, int _x, int _y) {
-				int l = System.Math.Max(_x - 1, 0);
-				int r = System.Math.Min(_x + 1, mapSize - 1);
-				int d = System.Math.Max(_y - 1, 0);
-				int u = System.Math.Min(_y + 1, mapSize - 1);
-				float sum = 0f;
-				float count = 0f;
-				for (int _j = d; _j <= u; _j++) {
-					for (int _i = l; _i <= r; _i++) {
-						sum += _values[shipCount + _iter - 1, _i, _j];
-						count++;
-					}
-				}
-				_values[shipCount + _iter, _x, _y] = count > 0f ? sum / count : 0f;
 			}
 		}
 
