@@ -12,7 +12,6 @@ namespace BattleSoup {
 
 
 		// Api
-		public string GlobalID { get; set; } = "";
 		public Sprite Sprite { get; set; } = null;
 		public int SpriteIndex { get; set; } = 0;
 		public string DisplayName => m_DisplayName;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 
 namespace BattleSoupAI {
-	public class Strategy_RevealAndSnipe : SoupStrategy {
+	public class RevealAndSnipe_Standard : SoupStrategy {
 
 
 
@@ -13,7 +13,7 @@ namespace BattleSoupAI {
 
 		// Api
 		public override string DisplayName => "Reveal & Snipe";
-		public override string Description => "Knowledge is power! Find your enemy and take them down with precision.";
+		public override string Description => "Standard strategy for Reveal&Snipe.";
 		public override string[] FleetID => new string[] { "Coracle", "Whale", "KillerSquid", "SeaTurtle", };
 
 		// Data
@@ -23,7 +23,7 @@ namespace BattleSoupAI {
 		private float[,,] ExposedValues = new float[0, 0, 0];
 		private (Int2 pos, float max) HiddenValueMax = default;
 		private (Int2 pos, float max) ExposedValueMax = default;
-		private (int index, int exposure)[] MostExposed = null;
+		private int[] MostExposed = null;
 		private int AliveShipCount = 0;
 		private int BestTargetIndex = -1;
 
@@ -42,7 +42,6 @@ namespace BattleSoupAI {
 				AbilityIndex = -1,
 				ErrorMessage = "",
 			};
-			float highScore;
 
 			// Calculate
 			string msg = CalculateCache(opponentInfo);
@@ -52,7 +51,7 @@ namespace BattleSoupAI {
 			}
 
 			// Normal
-			(result.TargetPosition, highScore) = AnalyseNormalAttack(opponentInfo);
+			result.TargetPosition = AnalyseNormalAttack(opponentInfo, out float highScore);
 
 			// Ability
 			for (int aIndex = 0; aIndex < ownInfo.Ships.Length; aIndex++) {
@@ -85,56 +84,38 @@ namespace BattleSoupAI {
 		private string CalculateCache (BattleInfo info) {
 
 			// Ship Alive Check
-			AliveShipCount = 0;
-			int lastAliveShipIndex = -1;
-			for (int i = 0; i < info.ShipsAlive.Length; i++) {
-				bool alive = info.ShipsAlive[i];
-				if (alive) {
-					AliveShipCount++;
-					lastAliveShipIndex = i;
-				}
-			}
+			AliveShipCount = GetLiveShipCount(info);
 			if (AliveShipCount == 0) { return "No Ship Alive"; }
 
 			// Positions
 			if (!CalculatePotentialPositions(
-				info.Ships,
-				info.ShipsAlive,
-				info.Tiles,
-				info.KnownPositions,
+				info,
 				Tile.GeneralWater,
 				Tile.GeneralWater,
 				ref HiddenPositions
 			)) { return "Fail to calculate potential positions"; }
 
 			if (!CalculatePotentialPositions(
-				info.Ships,
-				info.ShipsAlive,
-				info.Tiles,
-				info.KnownPositions,
+				info,
 				Tile.HittedShip | Tile.RevealedShip,
 				Tile.GeneralWater | Tile.HittedShip | Tile.RevealedShip,
 				ref ExposedPositions
 			)) { return "Fail to calculate potential positions"; }
 
 			RemoveImpossiblePositions(
-				info.Ships,
-				info.MapSize,
-				ref HiddenPositions,
-				ref ExposedPositions
+				info,
+				ref HiddenPositions, ref ExposedPositions
 			);
 
 			// Values
 			if (!CalculatePotentialValues(
-				info.Ships,
-				info.MapSize,
+				info,
 				HiddenPositions,
 				ref HiddenValues, out _, out _
 			)) { return "Fail to calculate potential values"; }
 
 			if (!CalculatePotentialValues(
-				info.Ships,
-				info.MapSize,
+				info,
 				ExposedPositions,
 				ref ExposedValues, out _, out _
 			)) { return "Fail to calculate potential values"; }
@@ -147,16 +128,14 @@ namespace BattleSoupAI {
 
 			// Get Most Exposed
 			if (MostExposed == null || MostExposed.Length != shipCount) {
-				MostExposed = new (int, int)[shipCount];
+				MostExposed = new int[shipCount];
 			}
 			for (int i = 0; i < shipCount; i++) {
-				MostExposed[i] = GetMostExposedPosition(info.Ships[i], info.Tiles, ExposedPositions[i]);
+				MostExposed[i] = GetMostExposedPositionIndex(info.Ships[i], info.Tiles, ExposedPositions[i]);
 			}
 
 			// Get Best Hunt Target
-			BestTargetIndex = AliveShipCount == 1 ?
-				lastAliveShipIndex :
-				GetBestHuntTarget(info, HiddenPositions, ExposedPositions);
+			BestTargetIndex = GetTargetWithMinimalPotentialPos(info, HiddenPositions, ExposedPositions);
 
 			return "";
 			// Func
@@ -183,14 +162,15 @@ namespace BattleSoupAI {
 		}
 
 
-		private (Int2 pos, float score) AnalyseNormalAttack (BattleInfo info) {
+		private Int2 AnalyseNormalAttack (BattleInfo info, out float score) {
 
 			Int2 finalPos = default;
 			float finalScore = 0f;
+			score = 0f;
 
 			// Alive Check
 
-			if (AliveShipCount == 0) { return (default, 0); }
+			if (AliveShipCount == 0) { return default; }
 
 			// Hit Hidden Water
 			var pos = HiddenValueMax.pos;
@@ -208,7 +188,7 @@ namespace BattleSoupAI {
 
 			// Hunt Target Ship
 			if (BestTargetIndex >= 0) {
-				int huntID = Hunt(BestTargetIndex, info, out var huntTargetPos);
+				int huntID = HuntShip(BestTargetIndex, info, out var huntTargetPos);
 				switch (huntID) {
 					case 2: // Hidden
 						TrySetScoreAndPos(
@@ -231,7 +211,9 @@ namespace BattleSoupAI {
 				}
 			}
 
-			return (finalPos, finalScore);
+			score = finalScore;
+
+			return finalPos;
 			// Func
 			void TrySetScoreAndPos (float _score, Int2 _pos) {
 				if (_score > finalScore) {
@@ -249,12 +231,12 @@ namespace BattleSoupAI {
 			switch (abilityIndex) {
 				case 0: {
 					// Coracle
-					if (GetBestTile(ExposedValues, info.Ships.Length, info.Tiles, Tile.RevealedShip, false, out var bestRPos)) {
+					if (GetBestValuedTile(ExposedValues, info.Ships.Length, info.Tiles, Tile.RevealedShip, false, out var bestRPos)) {
 						pos = bestRPos;
 						if (AliveShipCount == 1) {
 							score = 9999f;
 						} else {
-							score = 85f;
+							score = 95f;
 						}
 					}
 					break;
@@ -263,14 +245,14 @@ namespace BattleSoupAI {
 					// Whale
 					if (AliveShipCount == 1) {
 						if (BestTargetIndex >= 0) {
-							int huntID = Hunt(BestTargetIndex, info, out var huntTargetPos);
+							int huntID = HuntShip(BestTargetIndex, info, out var huntTargetPos);
 							if (huntID > 0) {
 								pos = huntTargetPos;
 								score = 85f;
 							}
 						}
 					} else {
-						if (GetBestTile(ExposedValues, info.Ships.Length, info.Tiles, Tile.GeneralWater, true, out var bestRPos)) {
+						if (GetBestValuedTile(ExposedValues, info.Ships.Length, info.Tiles, Tile.GeneralWater, true, out var bestRPos)) {
 							bool isShip = info.Tiles[bestRPos.x, bestRPos.y] == Tile.RevealedShip;
 							pos = bestRPos;
 							score = isShip ? 70f : 85f;
@@ -280,7 +262,7 @@ namespace BattleSoupAI {
 				}
 				case 2: {
 					// KillerSquid
-					if (GetBestTile(ExposedValues, info.Ships.Length, info.Tiles, Tile.RevealedShip | Tile.GeneralWater, true, out var bestRPos)) {
+					if (GetBestValuedTile(ExposedValues, info.Ships.Length, info.Tiles, Tile.RevealedShip | Tile.GeneralWater, true, out var bestRPos)) {
 						bool isShip = info.Tiles[bestRPos.x, bestRPos.y] == Tile.RevealedShip;
 						pos = bestRPos;
 						score = isShip ? 70f : 85f;
@@ -290,7 +272,7 @@ namespace BattleSoupAI {
 				case 3: {
 					// SeaTurtle
 					if (BestTargetIndex >= 0) {
-						int huntID = Hunt(BestTargetIndex, info, out var huntTargetPos);
+						int huntID = HuntShip(BestTargetIndex, info, out var huntTargetPos);
 						if (huntID > 0) {
 							pos = huntTargetPos;
 						}
@@ -308,79 +290,7 @@ namespace BattleSoupAI {
 		}
 
 
-		private int GetBestHuntTarget (BattleInfo info, List<ShipPosition>[] hiddenPositions, List<ShipPosition>[] exposedPositions) {
-			int bestTargetIndex = -1;
-			int bestHiddenPosLeft = int.MaxValue;
-			int bestExposedPosLeft = int.MaxValue;
-			int bestExTargetIndex = -1;
-			int bestHdTargetIndex = -1;
-			for (int i = 0; i < info.Ships.Length; i++) {
-				var alive = info.ShipsAlive[i];
-				if (!alive) { continue; }
-				if (bestTargetIndex == -1) {
-					bestTargetIndex = i;
-					continue;
-				}
-				int exCount = exposedPositions[i].Count;
-				if (exCount > 0 && exCount < bestExposedPosLeft) {
-					bestExposedPosLeft = exCount;
-					bestExTargetIndex = i;
-				}
-				int hdCount = hiddenPositions[i].Count;
-				if (hdCount > 0 && hdCount < bestHiddenPosLeft) {
-					bestHiddenPosLeft = hdCount;
-					bestHdTargetIndex = i;
-				}
-			}
-			if (bestExTargetIndex >= 0) {
-				bestTargetIndex = bestExTargetIndex;
-			} else if (bestHdTargetIndex >= 0) {
-				bestTargetIndex = bestHdTargetIndex;
-			}
-			return bestTargetIndex;
-		}
-
-
-		private bool GetBestTile (float[,,] values, int shipCount, Tile[,] tiles, Tile filter, bool neighbour, out Int2 pos) {
-			int size = tiles.GetLength(0);
-			float maxValue = 0;
-			bool success = false;
-			pos = default;
-			for (int j = 0; j < size; j++) {
-				for (int i = 0; i < size; i++) {
-					float value = GetValue(i, j);
-					var tile = tiles[i, j];
-					if (value > maxValue && filter.HasFlag(tile)) {
-						maxValue = value;
-						pos.x = i;
-						pos.y = j;
-					}
-				}
-			}
-			return success;
-			// Func
-			float GetValue (int _i, int _j) {
-				float result = values[shipCount, _i, _j];
-				if (neighbour) {
-					if (_i - 1 >= 0) {
-						result += values[shipCount, _i - 1, _j];
-					}
-					if (_j - 1 >= 0) {
-						result += values[shipCount, _i, _j - 1];
-					}
-					if (_i + 1 < size) {
-						result += values[shipCount, _i + 1, _j];
-					}
-					if (_j + 1 < size) {
-						result += values[shipCount, _i, _j + 1];
-					}
-				}
-				return result;
-			}
-		}
-
-
-		private int Hunt (int shipIndex, BattleInfo info, out Int2 result) {
+		private int HuntShip (int shipIndex, BattleInfo info, out Int2 result) {
 			// 0:Fail, 1:Exposed, 2: Hidden, 3: Known
 
 			result = default;
@@ -400,7 +310,7 @@ namespace BattleSoupAI {
 				return 3;
 			} else if (ExposedPositions[shipIndex].Count > 0) {
 				// Exposed
-				int mostExIndex = MostExposed[shipIndex].index;
+				int mostExIndex = MostExposed[shipIndex];
 				if (mostExIndex >= 0) {
 					var sPos = ExposedPositions[shipIndex][mostExIndex];
 					var body = info.Ships[shipIndex].Body;

@@ -236,7 +236,7 @@ namespace BattleSoup {
 						break;
 					}
 					if (CurrentBattleMode == BattleMode.PvA) {
-						m_Game.Game.Init(CurrentBattleMode, Strategies[StrategyIndexA.Value], Strategies[StrategyIndexB.Value], m_Game.ShipPositionUI.Map, mapB, m_Game.ShipPositionUI.Ships, shipsB, m_Game.ShipPositionUI.Positions, positionsB);
+						m_Game.Game.Init(CurrentBattleMode, Strategies[StrategyIndexA.Value], Strategies[StrategyIndexB.Value], m_Game.ShipPositionUI.Map, mapB, GetSelectingShips(), shipsB, m_Game.ShipPositionUI.Positions, positionsB);
 						if (AutoPlayAvA.Value) {
 							m_Game.Game.UI_PlayAvA();
 						}

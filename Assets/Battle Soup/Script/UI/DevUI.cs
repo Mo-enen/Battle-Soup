@@ -27,7 +27,7 @@ namespace BattleSoup {
 		private List<ShipPosition>[] ExposedPositions = new List<ShipPosition>[0];
 		private (float[,,] values, float min, float max) HiddenValues = (new float[0, 0, 0], 0, 0);
 		private (float[,,] values, float min, float max) ExposedValues = (new float[0, 0, 0], 0, 0);
-		
+
 
 		#endregion
 
@@ -37,43 +37,41 @@ namespace BattleSoup {
 		#region --- API ---
 
 
-		public bool LoadData (Game.GameData data) {
+		public bool LoadData (SoupStrategy strategy, BattleInfo info) {
 
 			// Calculate Potential Positions
-			if (!data.Strategy.CalculatePotentialPositions(
-				data.Ships, data.ShipsAlive, data.Tiles,
-				data.KnownPositions,
+			if (!strategy.CalculatePotentialPositions(
+				info,
 				Tile.GeneralWater, Tile.GeneralWater,
 				ref HiddenPositions
 			)) { return false; }
 
-			if (!data.Strategy.CalculatePotentialPositions(
-				data.Ships, data.ShipsAlive, data.Tiles,
-				data.KnownPositions,
+			if (!strategy.CalculatePotentialPositions(
+				info,
 				Tile.HittedShip | Tile.RevealedShip,
 				Tile.GeneralWater | Tile.HittedShip | Tile.RevealedShip,
 				ref ExposedPositions
 			)) { return false; }
 
 			// Remove Impossible Positions
-			data.Strategy.RemoveImpossiblePositions(
-				data.Ships, data.Map.Size,
+			strategy.RemoveImpossiblePositions(
+				info,
 				ref HiddenPositions, ref ExposedPositions
 			);
 
 			// Calculate Potential Values
-			if (!data.Strategy.CalculatePotentialValues(
-				data.Ships, data.Map.Size, HiddenPositions,
+			if (!strategy.CalculatePotentialValues(
+				info, HiddenPositions,
 				ref HiddenValues.values, out HiddenValues.min, out HiddenValues.max
 			)) { return false; }
 
-			if (!data.Strategy.CalculatePotentialValues(
-				data.Ships, data.Map.Size, ExposedPositions,
+			if (!strategy.CalculatePotentialValues(
+				info, ExposedPositions,
 				ref ExposedValues.values, out ExposedValues.min, out ExposedValues.max
 			)) { return false; }
 
 			// Grid Size
-			m_PotentialValueRenderer.GridCountX = m_PotentialValueRenderer.GridCountY = data.Map.Size;
+			m_PotentialValueRenderer.GridCountX = m_PotentialValueRenderer.GridCountY = info.MapSize;
 
 			return true;
 		}

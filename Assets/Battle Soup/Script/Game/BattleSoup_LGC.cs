@@ -108,14 +108,12 @@ namespace BattleSoup {
 
 		private ShipData[] GetSelectingShips () {
 			var result = new List<ShipData>();
-			var hash = new HashSet<string>();
 			foreach (RectTransform rt in m_UI.ShipSelectionContainer) {
 				var data = m_Game.Asset.GetShipData(rt.name);
 				if (data != null) {
 					result.Add(data);
 				}
 			}
-			result.Sort((a, b) => b.Ship.Body.Length.CompareTo(a.Ship.Body.Length));
 			return result.ToArray();
 		}
 

@@ -56,7 +56,7 @@ namespace BattleSoup {
 					if (iconByte == null || iconByte.Length == 0) { continue; }
 					var iconTexture = new Texture2D(1, 1);
 					if (!iconTexture.LoadImage(iconByte, false)) { continue; }
-					shipData.GlobalID = key;
+					shipData.Ship.GlobalID = key;
 					iconList.Add(iconTexture);
 					ShipMap.Add(key, shipData);
 					shipList.Add(shipData);

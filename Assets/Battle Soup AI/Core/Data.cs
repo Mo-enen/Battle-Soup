@@ -214,6 +214,7 @@ namespace BattleSoupAI {
 	public class Ship {
 
 		// Api
+		public string GlobalID { get; set; } = "";
 		public bool Symmetry {
 			get {
 				if (!_Symmetry.HasValue) {

@@ -3679,7 +3679,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &394058516
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3706,10 +3706,10 @@ RectTransform:
   m_Father: {fileID: 487132412}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 600, y: -192}
-  m_SizeDelta: {x: 1072, y: 760.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 760.5}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!1 &395884967
 GameObject:
@@ -4747,9 +4747,9 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 96, y: 96}
-  m_Pivot: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 48, y: -48}
+  m_SizeDelta: {x: 72, y: 72}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &521124887
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5163,7 +5163,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 2100000, guid: 8d33f27bc31c03b4abe9f3e8df6f97e6, type: 2}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.50980395}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 0
@@ -6383,9 +6383,9 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 96, y: 96}
-  m_Pivot: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 48, y: -48}
+  m_SizeDelta: {x: 72, y: 72}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &641808936
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10064,9 +10064,9 @@ MonoBehaviour:
   m_Face: {fileID: 190526904}
   m_CheatToggle: {fileID: 1399048300}
   m_DevToggle: {fileID: 1981397196}
-  AvAControlButton_Play: {fileID: 831395708}
-  AvAControlButton_Pause: {fileID: 1659069289}
-  AvAControlButton_Next: {fileID: 961401175}
+  m_AvAControlButton_Play: {fileID: 831395708}
+  m_AvAControlButton_Pause: {fileID: 1659069289}
+  m_AvAControlButton_Next: {fileID: 961401175}
   m_AttackBlink: {fileID: 7301787903208175943, guid: 2e90b1f42c055cd43aa9cc0dbf317292, type: 3}
   m_Faces:
   - {fileID: 7448113381798972013, guid: 2e90b1f42c055cd43aa9cc0dbf317292, type: 3}
@@ -11235,7 +11235,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 383795424}
   m_Direction: 2
   m_Value: 1
-  m_Size: 1
+  m_Size: 0.98905987
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -15727,7 +15727,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1552756819
 RectTransform:
   m_ObjectHideFlags: 0
@@ -15747,10 +15747,10 @@ RectTransform:
   m_Father: {fileID: 487132412}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 574.9}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 600, y: -192}
+  m_SizeDelta: {x: 1072, y: 574.9}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &1552756821
 CanvasRenderer:
