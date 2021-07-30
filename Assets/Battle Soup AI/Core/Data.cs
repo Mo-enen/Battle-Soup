@@ -213,6 +213,7 @@ namespace BattleSoupAI {
 	[System.Serializable]
 	public class Ship {
 
+
 		// Api
 		public string GlobalID { get; set; } = "";
 		public bool Symmetry {
@@ -248,6 +249,7 @@ namespace BattleSoupAI {
 		private bool? _Symmetry = null;
 
 
+		// API
 		public (Int2 min, Int2 max) GetBounds (ShipPosition pos) {
 			int minX = int.MaxValue;
 			int minY = int.MaxValue;
@@ -274,6 +276,15 @@ namespace BattleSoupAI {
 			return false;
 		}
 
+		public int GetRanking () {
+
+
+
+
+
+
+			return 0;
+		}
 
 	}
 

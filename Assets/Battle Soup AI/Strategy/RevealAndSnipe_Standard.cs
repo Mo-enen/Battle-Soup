@@ -122,9 +122,8 @@ namespace BattleSoupAI {
 
 			// Get Value Max
 			int shipCount = info.Ships.Length;
-			int mapSize = info.MapSize;
-			FillValue(true);
-			FillValue(false);
+			HiddenValueMax = GetMaxValue(HiddenValues, shipCount);
+			ExposedValueMax = GetMaxValue(ExposedValues, shipCount);
 
 			// Get Most Exposed
 			if (MostExposed == null || MostExposed.Length != shipCount) {
@@ -138,27 +137,6 @@ namespace BattleSoupAI {
 			BestTargetIndex = GetTargetWithMinimalPotentialPos(info, HiddenPositions, ExposedPositions);
 
 			return "";
-			// Func
-			void FillValue (bool hidden) {
-				var values = hidden ? HiddenValues : ExposedValues;
-				var valueMax = hidden ? HiddenValueMax : ExposedValueMax;
-				valueMax.max = 0;
-				for (int j = 0; j < mapSize; j++) {
-					for (int i = 0; i < mapSize; i++) {
-						float v0 = values[shipCount, i, j];
-						if (v0 > valueMax.max) {
-							valueMax.max = v0;
-							valueMax.pos.x = i;
-							valueMax.pos.y = j;
-						}
-					}
-				}
-				if (hidden) {
-					HiddenValueMax = valueMax;
-				} else {
-					ExposedValueMax = valueMax;
-				}
-			}
 		}
 
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 
 namespace BattleSoupAI {
-	public class RevealAndSnipe_Advanced : SoupStrategy {
+	public class RevealAndSnipe_Advanced : SoupStrategy_Advanced {
 
 
 
@@ -11,6 +11,13 @@ namespace BattleSoupAI {
 		#region --- SUB ---
 
 
+		private enum Task {
+			Search = 0,
+			Reveal = 1,
+			Snipe = 2,
+			Hit = 3,
+
+		}
 
 
 		#endregion
@@ -26,15 +33,6 @@ namespace BattleSoupAI {
 		public override string Description => "Advanced strategy for Reveal&Snipe.";
 		public override string[] FleetID => new string[] { "Coracle", "Whale", "KillerSquid", "SeaTurtle", };
 
-		// Data
-		private int SniperCooldown = 0;
-		private int WhaleCooldown = 0;
-		private int SquidCooldown = 0;
-		private int TurtleCooldown = 0;
-		private int OpponentAliveShipCount = 0;
-		private List<ShipPosition>[] HiddenPotentialPos = null;
-		private List<ShipPosition>[] ExposedPotentialPos = null;
-
 
 		#endregion
 
@@ -44,22 +42,31 @@ namespace BattleSoupAI {
 		#region --- API ---
 
 
-		public override AnalyseResult Analyse (BattleInfo ownInfo, BattleInfo opponentInfo, int usingAbilityIndex = -1) {
+		public override AnalyseResult Analyse (BattleInfo ownInfo, BattleInfo oppInfo, int usingAbilityIndex = -1) {
 
-			// Check
-			string msg = AvailableCheck(ownInfo);
-			if (!string.IsNullOrEmpty(msg)) {
-				return new AnalyseResult() { ErrorMessage = msg, };
+			var result = base.Analyse(ownInfo, oppInfo);
+			if (!string.IsNullOrEmpty(result.ErrorMessage)) {
+				return result;
 			}
 
-			// Cache
-			FillCache(ownInfo, opponentInfo);
+			// Task
+			switch (GetTask()) {
+				default:
+				case Task.Search:
+					PerformTask_Search();
+					break;
+				case Task.Reveal:
+					PerformTask_Reveal();
+					break;
+				case Task.Snipe:
+					PerformTask_Snipe();
+					break;
+				case Task.Hit:
+					PerformTask_Hit();
+					break;
+			}
 
-
-
-
-
-			return default;
+			return result;
 		}
 
 
@@ -71,61 +78,65 @@ namespace BattleSoupAI {
 		#region --- LGC ---
 
 
-		private string AvailableCheck (BattleInfo ownInfo) {
-			if (ownInfo.Ships.Length != 4) {
-				return "There must be 4 ships (Coracle, Whale, KillerSquid, SeaTurtle)";
-			}
-			if (ownInfo.Ships[0].GlobalID != "Coracle") {
-				return "First ship must be Coracle";
-			}
-			if (ownInfo.Ships[1].GlobalID != "Whale") {
-				return "Second ship must be Whale";
-			}
-			if (ownInfo.Ships[2].GlobalID != "KillerSquid") {
-				return "Third ship must be KillerSquid";
-			}
-			if (ownInfo.Ships[3].GlobalID != "SeaTurtle") {
-				return "Fourth ship must be SeaTurtle";
+		private Task GetTask () {
+			var result = Task.Search;
+
+			// Brave Analyse
+			if (ExposedShipCount == 0) {
+				// Ships All Hidden
+				result = Task.Search;
+			} else if (FoundShipCount == 0) {
+				// Ship Exposed but Not Found
+				if (TileCount_RevealedShip + TileCount_HittedShip <= 2) {
+					// Not to many tile exposed
+					if (TileCount_RevealedShip == 0) {
+						result = Task.Search;
+					} else {
+						result = CoracleCooldown != 0 ? Task.Hit : Task.Snipe;
+					}
+				} else if (TileCount_RevealedShip == 0) {
+					// Many tile exposed but no revealed
+					result = Task.Reveal;
+				} else {
+					// Many tile exposed and has revealed
+					result = CoracleCooldown != 0 ? Task.Hit : Task.Snipe;
+				}
+			} else {
+				// Ship Found
+
+
+
 			}
 
-			return "";
+			// Failback Check
+
+
+
+
+
+			return result;
 		}
 
 
-		private void FillCache (BattleInfo ownInfo, BattleInfo oppInfo) {
-
-			// Cooldown
-			SniperCooldown = ownInfo.Cooldowns[0];
-			WhaleCooldown = ownInfo.Cooldowns[1];
-			SquidCooldown = ownInfo.Cooldowns[2];
-			TurtleCooldown = ownInfo.Cooldowns[3];
-
-			// Alive Ship Count
-			OpponentAliveShipCount = 0;
-			foreach (var alive in oppInfo.ShipsAlive) {
-				if (alive) {
-					OpponentAliveShipCount++;
-				}
-			}
-
-			// Potential
-			CalculatePotentialPositions(
-				oppInfo,
-				Tile.GeneralWater,
-				Tile.GeneralWater,
-				ref HiddenPotentialPos
-			);
-			CalculatePotentialPositions(
-				oppInfo,
-				Tile.HittedShip | Tile.RevealedShip,
-				Tile.GeneralWater | Tile.HittedShip | Tile.RevealedShip,
-				ref ExposedPotentialPos
-			);
-			RemoveImpossiblePositions(
-				oppInfo, ref HiddenPotentialPos, ref ExposedPotentialPos
-			);
+		private void PerformTask_Search () {
 
 
+
+
+		}
+
+
+		private void PerformTask_Reveal () {
+
+		}
+
+
+		private void PerformTask_Snipe () {
+
+		}
+
+
+		private void PerformTask_Hit () {
 
 		}
 

@@ -8,6 +8,19 @@ namespace BattleSoupAI {
 
 
 	public class BattleInfo {
+
+		// Api
+		public int AliveShipCount {
+			get {
+				int result = 0;
+				foreach (var alive in ShipsAlive) {
+					if (alive) { result++; }
+				}
+				return result;
+			}
+		}
+
+		// Api-Ser
 		public int MapSize;
 		public Tile[,] Tiles;
 		public Ship[] Ships;
@@ -245,15 +258,11 @@ namespace BattleSoupAI {
 						RemoveByValues(_index, hiddenPos, exposedPos);
 					}
 				}
-				// 2, If exposed tile can only be specific ship, it can't be other ships
-				//    and that ship can not be in other place
+				// 2, If exposed tile can only be specific ship,
+				//    that ship can not be in other place
 				for (int y = 0; y < info.MapSize; y++) {
 					for (int x = 0; x < info.MapSize; x++) {
 						if (SumOfAltValues(x, y, out int index) == 1) {
-							// Remove other ship on this pos
-							RIP_ValuesCache[x, y] = index + 1;
-							RemoveByValues(index, hiddenPos, exposedPos);
-							// Remove other position of this ship
 							var ship = info.Ships[index];
 							var hdList = hiddenPos[index];
 							for (int i = 0; i < hdList.Count; i++) {
@@ -555,6 +564,24 @@ namespace BattleSoupAI {
 				return true;
 			}
 
+		}
+
+
+		public (Int2 pos, float max) GetMaxValue (float[,,] values, int index) {
+			Int2 pos = default;
+			float max = 0;
+			int mapSize = values.GetLength(1);
+			for (int j = 0; j < mapSize; j++) {
+				for (int i = 0; i < mapSize; i++) {
+					float v0 = values[index, i, j];
+					if (v0 > max) {
+						max = v0;
+						pos.x = i;
+						pos.y = j;
+					}
+				}
+			}
+			return (pos, max);
 		}
 
 
