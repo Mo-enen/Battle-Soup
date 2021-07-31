@@ -134,7 +134,7 @@ namespace BattleSoupAI {
 			}
 
 			// Get Best Hunt Target
-			BestTargetIndex = GetTargetWithMinimalPotentialPos(info, HiddenPositions, ExposedPositions);
+			BestTargetIndex = GetShipWithMinimalPotentialPosCount(info, HiddenPositions, ExposedPositions);
 
 			return "";
 		}

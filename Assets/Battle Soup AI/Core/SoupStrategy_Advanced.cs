@@ -25,7 +25,8 @@ namespace BattleSoupAI {
 		protected int[] MostExposed = null;
 		protected (Int2 pos, float max)[] HiddenValueMax = null;
 		protected (Int2 pos, float max)[] ExposedValueMax = null;
-		protected int[] OpponentShipRanking = null;
+
+
 
 		// API
 		public override AnalyseResult Analyse (BattleInfo ownInfo, BattleInfo oppInfo, int usingAbilityIndex = -1) {
@@ -45,14 +46,6 @@ namespace BattleSoupAI {
 			// Alive Ship Count
 			OwnAliveShipCount = ownInfo.AliveShipCount;
 			OpponentAliveShipCount = oppInfo.AliveShipCount;
-
-			// Ranking
-			if (OpponentShipRanking == null || OpponentShipRanking.Length != oppInfo.Ships.Length) {
-				OpponentShipRanking = new int[oppInfo.Ships.Length];
-			}
-			for (int i = 0; i < oppInfo.Ships.Length; i++) {
-				OpponentShipRanking[i] = oppInfo.Ships[i].GetRanking();
-			}
 
 			// Revealed Tile Count
 			TileCount_RevealedShip = 0;

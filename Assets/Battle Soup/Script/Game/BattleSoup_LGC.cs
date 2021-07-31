@@ -389,9 +389,33 @@ namespace BattleSoup {
 		}
 
 
-		private void RefreshStrategyUI () {
-			m_UI.StrategyDescriptionA.text = Strategies[Mathf.Clamp(StrategyIndexA.Value, 0, Strategies.Count - 1)].Description;
-			m_UI.StrategyDescriptionB.text = Strategies[Mathf.Clamp(StrategyIndexB.Value, 0, Strategies.Count - 1)].Description;
+		private void RefreshStrategyUI (bool refreshFleet = false) {
+			var strategyA = Strategies[Mathf.Clamp(StrategyIndexA.Value, 0, Strategies.Count - 1)];
+			var strategyB = Strategies[Mathf.Clamp(StrategyIndexB.Value, 0, Strategies.Count - 1)];
+			m_UI.StrategyDescriptionA.text = strategyA.Description;
+			m_UI.StrategyDescriptionB.text = strategyB.Description;
+			if (refreshFleet) {
+				RefreshFleet(strategyA.FleetID, m_UI.StrategyFleetContainerA);
+				RefreshFleet(strategyB.FleetID, m_UI.StrategyFleetContainerB);
+			}
+			// Func
+			void RefreshFleet (string[] fleetID, RectTransform fleetContainer) {
+				int len = fleetContainer.childCount;
+				for (int i = 0; i < len; i++) {
+					DestroyImmediate(fleetContainer.GetChild(0).gameObject, false);
+				}
+				foreach (var shipID in fleetID) {
+					var shipData = m_Game.Asset.GetShipData(shipID);
+					if (shipData == null) { continue; }
+					var rt = new GameObject("", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image)).transform as RectTransform;
+					rt.SetParent(fleetContainer);
+					rt.anchoredPosition3D = rt.anchoredPosition;
+					rt.localScale = Vector3.one;
+					rt.localRotation = Quaternion.identity;
+					rt.SetAsLastSibling();
+					rt.GetComponent<Image>().sprite = shipData.Sprite;
+				}
+			}
 		}
 
 

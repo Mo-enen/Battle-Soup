@@ -266,6 +266,7 @@ namespace BattleSoupAI {
 				(new Int2(minX, minY), new Int2(maxX, maxY));
 		}
 
+
 		public bool Contains (int x, int y, ShipPosition pos) {
 			foreach (var v in Body) {
 				if (
@@ -276,15 +277,6 @@ namespace BattleSoupAI {
 			return false;
 		}
 
-		public int GetRanking () {
-
-
-
-
-
-
-			return 0;
-		}
 
 	}
 

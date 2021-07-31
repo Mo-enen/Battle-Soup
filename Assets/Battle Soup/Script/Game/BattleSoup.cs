@@ -196,6 +196,7 @@ namespace BattleSoup {
 					if (!RefreshMapButton()) { break; }
 					SaveMapSelectionToSaving(Group.A);
 					SaveMapSelectionToSaving(Group.B);
+					RefreshStrategyUI(true);
 					if (CurrentBattleMode == BattleMode.PvA) {
 						// PvA
 						var map = GetSelectingMap(Group.A);

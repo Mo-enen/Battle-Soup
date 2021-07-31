@@ -76,7 +76,6 @@ namespace BattleSoup {
 
 		[System.Serializable]
 		public struct UIData {
-			public Grabber ShipSelectionItem;
 			public RectTransform ShipSelectionContainer;
 			public RectTransform ShipsButtonContainer;
 			public RectTransform MapsToggleContainerA;
@@ -84,6 +83,7 @@ namespace BattleSoup {
 			public RectTransform AbilityContainerA;
 			public RectTransform AbilityContainerB;
 			public RectTransform MessageRoot;
+			public Grabber ShipSelectionItem;
 			public Text MapLabelA;
 			public Text MapLabelB;
 			public Button StartButton_Ship;
@@ -103,6 +103,8 @@ namespace BattleSoup {
 			public Text StrategyDescriptionB;
 			public Button PositionShipResetButton;
 			public Sprite DevValueIterIcon;
+			public RectTransform StrategyFleetContainerA;
+			public RectTransform StrategyFleetContainerB;
 			public Image[] BattleAvatarA;
 			public Image[] BattleAvatarB;
 		}

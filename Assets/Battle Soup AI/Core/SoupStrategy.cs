@@ -483,8 +483,9 @@ namespace BattleSoupAI {
 			}
 		}
 
-		public int GetTargetWithMinimalPotentialPos (BattleInfo info, List<ShipPosition>[] hiddenPositions, List<ShipPosition>[] exposedPositions) => GetTargetWithMinimalPotentialPos(info, hiddenPositions, exposedPositions, out _);
-		public int GetTargetWithMinimalPotentialPos (BattleInfo info, List<ShipPosition>[] hiddenPositions, List<ShipPosition>[] exposedPositions, out bool exposed) {
+
+		public int GetShipWithMinimalPotentialPosCount (BattleInfo info, List<ShipPosition>[] hiddenPositions, List<ShipPosition>[] exposedPositions) => GetShipWithMinimalPotentialPosCount(info, hiddenPositions, exposedPositions, out _);
+		public int GetShipWithMinimalPotentialPosCount (BattleInfo info, List<ShipPosition>[] hiddenPositions, List<ShipPosition>[] exposedPositions, out bool exposed) {
 			int bestTargetIndex = -1;
 			int bestHiddenPosLeft = int.MaxValue;
 			int bestExposedPosLeft = int.MaxValue;
@@ -582,6 +583,17 @@ namespace BattleSoupAI {
 				}
 			}
 			return (pos, max);
+		}
+
+
+		public bool ContainsTile (Ship ship, ShipPosition position, Tile[,] tiles, Tile filter) {
+			foreach (var v in ship.Body) {
+				var pos = position.GetPosition(v);
+				if (filter.HasFlag(tiles[pos.x, pos.y])) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 

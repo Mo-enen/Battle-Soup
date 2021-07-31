@@ -14,8 +14,7 @@ namespace BattleSoupAI {
 		private enum Task {
 			Search = 0,
 			Reveal = 1,
-			Snipe = 2,
-			Hit = 3,
+			Attack = 2,
 
 		}
 
@@ -44,29 +43,20 @@ namespace BattleSoupAI {
 
 		public override AnalyseResult Analyse (BattleInfo ownInfo, BattleInfo oppInfo, int usingAbilityIndex = -1) {
 
+			// Check and Cache
 			var result = base.Analyse(ownInfo, oppInfo);
 			if (!string.IsNullOrEmpty(result.ErrorMessage)) {
 				return result;
 			}
 
-			// Task
-			switch (GetTask()) {
-				default:
-				case Task.Search:
-					PerformTask_Search();
-					break;
-				case Task.Reveal:
-					PerformTask_Reveal();
-					break;
-				case Task.Snipe:
-					PerformTask_Snipe();
-					break;
-				case Task.Hit:
-					PerformTask_Hit();
-					break;
-			}
+			// Perform Task
+			return GetTask() switch {
+				Task.Search => PerformTask_Search(),
+				Task.Reveal => PerformTask_Reveal(),
+				Task.Attack => PerformTask_Attack(),
+				_ => new AnalyseResult() { ErrorMessage = $"Task not performed" },
+			};
 
-			return result;
 		}
 
 
@@ -79,65 +69,69 @@ namespace BattleSoupAI {
 
 
 		private Task GetTask () {
-			var result = Task.Search;
-
-			// Brave Analyse
 			if (ExposedShipCount == 0) {
 				// Ships All Hidden
-				result = Task.Search;
-			} else if (FoundShipCount == 0) {
+				return Task.Search;
+			} else if (FoundShipCount > 0) {
+				// Ship Found
+				return Task.Attack;
+			} else {
 				// Ship Exposed but Not Found
 				if (TileCount_RevealedShip + TileCount_HittedShip <= 2) {
 					// Not to many tile exposed
-					if (TileCount_RevealedShip == 0) {
-						result = Task.Search;
-					} else {
-						result = CoracleCooldown != 0 ? Task.Hit : Task.Snipe;
-					}
-				} else if (TileCount_RevealedShip == 0) {
-					// Many tile exposed but no revealed
-					result = Task.Reveal;
+					return TileCount_RevealedShip == 0 || CoracleCooldown > 0 ?
+						Task.Search : Task.Attack;
 				} else {
-					// Many tile exposed and has revealed
-					result = CoracleCooldown != 0 ? Task.Hit : Task.Snipe;
+					// Many tile exposed
+					if (TileCount_RevealedShip > 0) {
+						// Has Revealed
+						return Task.Attack;
+					} else {
+						// No Revealed
+						return CoracleCooldown <= 2 ? Task.Reveal : Task.Attack;
+					}
 				}
-			} else {
-				// Ship Found
-
-
-
 			}
-
-			// Failback Check
-
-
-
-
-
-			return result;
 		}
 
 
-		private void PerformTask_Search () {
+		private AnalyseResult PerformTask_Search () {
 
 
 
 
+
+
+			return new AnalyseResult() {
+				ErrorMessage = "",
+
+			};
 		}
 
 
-		private void PerformTask_Reveal () {
+		private AnalyseResult PerformTask_Reveal () {
 
+
+
+
+
+			return new AnalyseResult() {
+				ErrorMessage = "",
+
+			};
 		}
 
 
-		private void PerformTask_Snipe () {
-
-		}
+		private AnalyseResult PerformTask_Attack () {
 
 
-		private void PerformTask_Hit () {
 
+
+
+			return new AnalyseResult() {
+				ErrorMessage = "",
+
+			};
 		}
 
 
