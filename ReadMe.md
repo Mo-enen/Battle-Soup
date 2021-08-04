@@ -6,13 +6,13 @@
 
 
 
-![](_Res/Screenshot 0.png)
+<img src="_Res/Screenshot 0.png" style="zoom:100%;" />
 
-![](_Res/Screenshot 1.png)
+<img src="_Res/Screenshot 1.png" style="zoom:100%;" />
 
-![](_Res/Screenshot 2.png)
+<img src="_Res/Screenshot 2.png" style="zoom:100%;" />
 
-![](_Res/Screenshot 3.png)
+<img src="_Res/Screenshot 3.png" style="zoom:100%;" />
 
 
 
