@@ -209,7 +209,7 @@ namespace BattleSoupAI {
 			switch (abilityIndex) {
 				case 0: {
 					// Coracle
-					if (GetBestValuedTile(ExposedValues, info.Ships.Length, info.Tiles, Tile.RevealedShip, false, out var bestRPos)) {
+					if (GetBestValuedTile(ExposedValues, info.Ships.Length, info.Tiles, Tile.RevealedShip, out var bestRPos)) {
 						pos = bestRPos;
 						if (AliveShipCount == 1) {
 							score = 9999f;
@@ -230,7 +230,7 @@ namespace BattleSoupAI {
 							}
 						}
 					} else {
-						if (GetBestValuedTile(ExposedValues, info.Ships.Length, info.Tiles, Tile.GeneralWater, true, out var bestRPos)) {
+						if (GetBestValuedTile(ExposedValues, info.Ships.Length, info.Tiles, Tile.GeneralWater, Tile.All, out var bestRPos)) {
 							bool isShip = info.Tiles[bestRPos.x, bestRPos.y] == Tile.RevealedShip;
 							pos = bestRPos;
 							score = isShip ? 70f : 85f;
@@ -240,7 +240,7 @@ namespace BattleSoupAI {
 				}
 				case 2: {
 					// KillerSquid
-					if (GetBestValuedTile(ExposedValues, info.Ships.Length, info.Tiles, Tile.RevealedShip | Tile.GeneralWater, true, out var bestRPos)) {
+					if (GetBestValuedTile(ExposedValues, info.Ships.Length, info.Tiles, Tile.RevealedShip | Tile.GeneralWater, Tile.All, out var bestRPos)) {
 						bool isShip = info.Tiles[bestRPos.x, bestRPos.y] == Tile.RevealedShip;
 						pos = bestRPos;
 						score = isShip ? 70f : 85f;

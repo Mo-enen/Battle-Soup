@@ -46,7 +46,7 @@ namespace BattleSoupAI {
 		RevealedShip = 1 << 4,
 		HittedShip = 1 << 5,
 		SunkShip = 1 << 6,
-
+		All = GeneralWater | GeneralStone | RevealedWater | RevealedStone | RevealedShip | HittedShip | SunkShip,
 	}
 
 

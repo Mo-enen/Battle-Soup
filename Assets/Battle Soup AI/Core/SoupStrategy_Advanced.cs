@@ -15,6 +15,8 @@ namespace BattleSoupAI {
 		protected int OpponentAliveShipCount = 0;
 		protected int ExposedShipCount = 0;
 		protected int FoundShipCount = 0;
+		protected int ShipWithMinimalPotentialPos = -1;
+		protected int TileCount_RevealedWater = 0;
 		protected int TileCount_RevealedShip = 0;
 		protected int TileCount_HittedShip = 0;
 		protected ShipPosition?[] ShipFoundPosition = null;
@@ -25,7 +27,6 @@ namespace BattleSoupAI {
 		protected int[] MostExposed = null;
 		protected (Int2 pos, float max)[] HiddenValueMax = null;
 		protected (Int2 pos, float max)[] ExposedValueMax = null;
-
 
 
 		// API
@@ -50,6 +51,7 @@ namespace BattleSoupAI {
 			// Revealed Tile Count
 			TileCount_RevealedShip = 0;
 			TileCount_HittedShip = 0;
+			TileCount_RevealedWater = 0;
 			for (int y = 0; y < oppInfo.MapSize; y++) {
 				for (int x = 0; x < oppInfo.MapSize; x++) {
 					switch (oppInfo.Tiles[x, y]) {
@@ -58,6 +60,9 @@ namespace BattleSoupAI {
 							break;
 						case Tile.HittedShip:
 							TileCount_HittedShip++;
+							break;
+						case Tile.RevealedWater:
+							TileCount_RevealedWater++;
 							break;
 					}
 				}
@@ -152,6 +157,9 @@ namespace BattleSoupAI {
 					FoundShipCount++;
 				}
 			}
+
+			// Ship with Minimal Potential-Pos-Count
+			ShipWithMinimalPotentialPos = GetShipWithMinimalPotentialPosCount(oppInfo, HiddenPotentialPos, ExposedPotentialPos);
 
 			return new AnalyseResult() { ErrorMessage = "", };
 		}

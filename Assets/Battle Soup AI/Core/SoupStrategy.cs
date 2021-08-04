@@ -37,6 +37,7 @@ namespace BattleSoupAI {
 		public Int2 TargetPosition;
 		public int AbilityIndex;
 		public AbilityDirection AbilityDirection;
+		public override string ToString () => Success ? $"pos.x:{TargetPosition.x}, pos.y:{TargetPosition.y} abi:{AbilityIndex}, dir:{AbilityDirection}" : $"ERROR: {ErrorMessage}";
 	}
 
 
@@ -45,11 +46,22 @@ namespace BattleSoupAI {
 
 
 
+		#region --- SUB ---
+
+
+		public delegate void MessageHandler (string msg);
+
+
+		#endregion
+
+
+
 
 		#region --- VAR ---
 
 
 		// Api
+		public static MessageHandler LogMessage { get; set; } = null;
 		public string FinalDisplayName => !string.IsNullOrEmpty(DisplayName) ? DisplayName : GetType().Name;
 		public virtual string DisplayName { get; } = "";
 		public virtual string Description { get; } = "";
@@ -445,19 +457,24 @@ namespace BattleSoupAI {
 		}
 
 
-		public bool GetBestValuedTile (float[,,] values, int valueIndex, Tile[,] tiles, Tile filter, bool neighbour, out Int2 pos) {
+		public bool GetBestValuedTile (float[,,] values, int valueIndex, Tile[,] tiles, Tile filter, out Int2 pos) => GetBestValuedTile(values, valueIndex, tiles, filter, Tile.None, out pos);
+		public bool GetBestValuedTile (float[,,] values, int valueIndex, Tile[,] tiles, Tile filter, Tile neighbourFilter, out Int2 pos) {
 			int size = tiles.GetLength(0);
 			float maxValue = 0;
 			bool success = false;
+			bool neighbour = neighbourFilter != Tile.None;
 			pos = default;
 			for (int j = 0; j < size; j++) {
 				for (int i = 0; i < size; i++) {
-					float value = GetValue(i, j);
 					var tile = tiles[i, j];
-					if (value > maxValue && filter.HasFlag(tile)) {
+					if (!filter.HasFlag(tile)) { continue; }
+					if (neighbour && !CheckNeighbour(i, j)) { continue; }
+					float value = GetValue(i, j);
+					if (value > maxValue) {
 						maxValue = value;
 						pos.x = i;
 						pos.y = j;
+						success = true;
 					}
 				}
 			}
@@ -481,10 +498,27 @@ namespace BattleSoupAI {
 				}
 				return result;
 			}
+			bool CheckNeighbour (int _i, int _j) {
+				if (_i - 1 >= 0 && !filter.HasFlag(tiles[_i - 1, _j])) {
+					return false;
+				}
+				if (_j - 1 >= 0 && !filter.HasFlag(tiles[_i, _j - 1])) {
+					return false;
+				}
+				if (_i + 1 < size && !filter.HasFlag(tiles[_i + 1, _j])) {
+					return false;
+				}
+				if (_j + 1 < size && !filter.HasFlag(tiles[_i, _j + 1])) {
+					return false;
+				}
+				return true;
+			}
 		}
 
 
 		public int GetShipWithMinimalPotentialPosCount (BattleInfo info, List<ShipPosition>[] hiddenPositions, List<ShipPosition>[] exposedPositions) => GetShipWithMinimalPotentialPosCount(info, hiddenPositions, exposedPositions, out _);
+
+
 		public int GetShipWithMinimalPotentialPosCount (BattleInfo info, List<ShipPosition>[] hiddenPositions, List<ShipPosition>[] exposedPositions, out bool exposed) {
 			int bestTargetIndex = -1;
 			int bestHiddenPosLeft = int.MaxValue;
@@ -591,6 +625,21 @@ namespace BattleSoupAI {
 				var pos = position.GetPosition(v);
 				if (filter.HasFlag(tiles[pos.x, pos.y])) {
 					return true;
+				}
+			}
+			return false;
+		}
+
+
+		public bool GetFirstTile (Tile[,] tiles, Tile filter, out Int2 result) {
+			result = default;
+			int size = tiles.GetLength(0);
+			for (int j = 0; j < size; j++) {
+				for (int i = 0; i < size; i++) {
+					if (filter.HasFlag(tiles[i, j])) {
+						result = new Int2(i, j);
+						return true;
+					}
 				}
 			}
 			return false;
