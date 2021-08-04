@@ -1,4 +1,4 @@
-### <img src="_Res/Logo Small.png" alt="Logo" style="zoom:100%;" />   Battle Soup
+## <img src="_Res/Logo Small.png" alt="Logo" style="zoom:100%;" />   Battle Soup
 
 ------
 
