@@ -198,6 +198,12 @@ namespace BattleSoup {
 			if (AllShipsSunk(Group.A) || AllShipsSunk(Group.B)) {
 				gameObject.SetActive(false);
 			}
+			RefreshControlButtons();
+		}
+
+
+		private void OnDisable () {
+			RefreshControlButtons();
 		}
 
 
@@ -680,13 +686,13 @@ namespace BattleSoup {
 
 		private void RefreshControlButtons () {
 			m_AvAControlButton_Play.gameObject.SetActive(
-				CurrentBattleMode == BattleMode.AvA && !AvA_Playing
+				CurrentBattleMode == BattleMode.AvA && !AvA_Playing && gameObject.activeSelf
 			);
 			m_AvAControlButton_Pause.gameObject.SetActive(
-				CurrentBattleMode == BattleMode.AvA && AvA_Playing
+				CurrentBattleMode == BattleMode.AvA && AvA_Playing && gameObject.activeSelf
 			);
 			m_AvAControlButton_Next.gameObject.SetActive(
-				CurrentBattleMode == BattleMode.AvA
+				CurrentBattleMode == BattleMode.AvA && gameObject.activeSelf
 			);
 		}
 

@@ -195,5 +195,31 @@ namespace BattleSoupAI {
 		}
 
 
+		// Util
+		public bool TryAttackShip (BattleInfo info, int targetIndex, Tile filter, out Int2 pos) {
+			pos = default;
+			var body = info.Ships[targetIndex].Body;
+			foreach (var sPos in ExposedPotentialPos[targetIndex]) {
+				foreach (var v in body) {
+					var _pos = sPos.GetPosition(v);
+					if (filter.HasFlag(info.Tiles[_pos.x, _pos.y])) {
+						pos = _pos;
+						return true;
+					}
+				}
+			}
+			foreach (var sPos in HiddenPotentialPos[targetIndex]) {
+				foreach (var v in body) {
+					var _pos = sPos.GetPosition(v);
+					if (filter.HasFlag(info.Tiles[_pos.x, _pos.y])) {
+						pos = _pos;
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
+
 	}
 }

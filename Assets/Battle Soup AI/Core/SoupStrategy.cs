@@ -70,7 +70,7 @@ namespace BattleSoupAI {
 		// Data
 		private int[,] RIP_ValuesCache = null;
 		private int[,,] RIP_ValuesCacheAlt = null;
-
+		private static System.Random Random = new System.Random();
 
 
 		#endregion
@@ -84,7 +84,9 @@ namespace BattleSoupAI {
 		public abstract AnalyseResult Analyse (BattleInfo ownInfo, BattleInfo opponentInfo, int usingAbilityIndex);
 
 
-		public virtual void OnBattleStart (BattleInfo ownInfo, BattleInfo opponentInfo) { }
+		public virtual void OnBattleStart (BattleInfo ownInfo, BattleInfo opponentInfo) {
+			Random = new System.Random((int)System.DateTime.Now.Ticks);
+		}
 
 
 		public virtual void OnBattleEnd (BattleInfo ownInfo, BattleInfo opponentInfo) { }
@@ -111,12 +113,10 @@ namespace BattleSoupAI {
 
 			// Get Result
 			result = new ShipPosition[ships.Length];
-			var random = new System.Random(System.DateTime.Now.Millisecond);
 			for (int index = 0; index < ships.Length; index++) {
 				var ship = ships[index];
-				random = new System.Random(random.Next());
 				var sPos = new ShipPosition();
-				var basicPivot = new Int2(random.Next(0, mapSize), random.Next(0, mapSize));
+				var basicPivot = new Int2(Random.Next(0, mapSize), Random.Next(0, mapSize));
 				bool shipSuccess = false;
 				// Try Fix Overlap
 				for (int j = 0; j < mapSize; j++) {
@@ -434,7 +434,7 @@ namespace BattleSoupAI {
 			int maxIndex = -1;
 			for (int i = 0; i < positions.Count; i++) {
 				int ex = Exposure(ship, positions[i]);
-				if (ex > maxEx) {
+				if (ex > maxEx || (ex == maxEx && Random.NextDouble() > 0.5f)) {
 					maxEx = ex;
 					maxIndex = i;
 				}
@@ -470,7 +470,7 @@ namespace BattleSoupAI {
 					if (!filter.HasFlag(tile)) { continue; }
 					if (neighbour && !CheckNeighbour(i, j)) { continue; }
 					float value = GetValue(i, j);
-					if (value > maxValue) {
+					if (value > maxValue || (value == maxValue && Random.NextDouble() > 0.66666f)) {
 						maxValue = value;
 						pos.x = i;
 						pos.y = j;
@@ -609,7 +609,7 @@ namespace BattleSoupAI {
 			for (int j = 0; j < mapSize; j++) {
 				for (int i = 0; i < mapSize; i++) {
 					float v0 = values[index, i, j];
-					if (v0 > max) {
+					if (v0 > max || (v0 == max && Random.NextDouble() > 0.5f)) {
 						max = v0;
 						pos.x = i;
 						pos.y = j;

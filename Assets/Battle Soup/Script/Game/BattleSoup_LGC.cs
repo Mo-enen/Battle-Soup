@@ -145,7 +145,9 @@ namespace BattleSoup {
 			map = GetSelectingMap(group);
 			positions = null;
 			for (int i = 0; i < 36; i++) {
-				if (SoupStrategy.PositionShips_Random(map.Size, ships, map.Stones, out positions)) { break; }
+				if (SoupStrategy.PositionShips_Random(
+					map.Size, ships, map.Stones, out positions
+				)) { break; }
 			}
 			if (positions == null || positions.Length == 0) {
 				error = "Failed to position AI ships.";
@@ -353,8 +355,8 @@ namespace BattleSoup {
 					cooldown.text = ship.Ship.Ability.Cooldown.ToString();
 
 					grabber.Grab<RectTransform>("Red Panel").gameObject.SetActive(false);
-
 					grabber.Grab<Image>("Copy").gameObject.SetActive(false);
+					grabber.Grab<Text>("Label").text = ship.DisplayName;
 
 				}
 

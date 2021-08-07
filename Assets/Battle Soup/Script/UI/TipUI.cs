@@ -20,21 +20,33 @@ namespace BattleSoup {
 		// MSG
 		private void OnDisable () {
 			if (m_Text != null) {
-				m_Text.text = "";
+				if (!string.IsNullOrEmpty(m_Content)) {
+					m_Text.text = "";
+				} else {
+					m_Text.gameObject.SetActive(false);
+				}
 			}
 		}
 
 
 		public void OnPointerEnter (PointerEventData eData) {
 			if (m_Text != null) {
-				m_Text.text = m_Content;
+				if (!string.IsNullOrEmpty(m_Content)) {
+					m_Text.text = m_Content;
+				} else {
+					m_Text.gameObject.SetActive(true);
+				}
 			}
 		}
 
 
 		public void OnPointerExit (PointerEventData eData) {
 			if (m_Text != null) {
-				m_Text.text = "";
+				if (!string.IsNullOrEmpty(m_Content)) {
+					m_Text.text = "";
+				} else {
+					m_Text.gameObject.SetActive(false);
+				}
 			}
 		}
 

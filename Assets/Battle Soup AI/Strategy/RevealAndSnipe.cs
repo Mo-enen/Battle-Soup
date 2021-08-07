@@ -34,8 +34,8 @@ namespace BattleSoupAI {
 		private const int TURTLE_INDEX = 3;
 
 		// Api
-		public override string DisplayName => "Reveal & Snipe Pro";
-		public override string Description => "Advanced strategy for Reveal&Snipe.";
+		public override string DisplayName => "Reveal & Snipe";
+		public override string Description => "Standard Reveal & Snipe strategy created by Moenen. Noob level, easy every time :)";
 		public override string[] FleetID => new string[] { "Coracle", "Whale", "KillerSquid", "SeaTurtle", };
 
 
@@ -126,7 +126,7 @@ namespace BattleSoupAI {
 				}
 			} else if (SquidCooldown == 0 && TileCount_RevealedShip + TileCount_RevealedWater > 0) {
 				// Use Squid
-				if (GetBestValuedTile(HiddenValues, info.Ships.Length, info.Tiles, Tile.RevealedWater | Tile.RevealedShip, Tile.All, out var bestSquidPos)) {
+				if (GetBestValuedTile(HiddenValues, info.Ships.Length, info.Tiles, Tile.RevealedWater | Tile.RevealedShip, Tile.GeneralWater | Tile.RevealedShip, out var bestSquidPos)) {
 					result.TargetPosition = bestSquidPos;
 					result.AbilityIndex = SQUID_INDEX;
 					LogMessage?.Invoke($"Search/Squid [{result}]");
@@ -183,7 +183,7 @@ namespace BattleSoupAI {
 				}
 			} else if (SquidCooldown == 0 && TileCount_RevealedShip + TileCount_RevealedWater > 0) {
 				// Use Squid
-				if (GetBestValuedTile(HiddenValues, info.Ships.Length, info.Tiles, Tile.RevealedWater | Tile.RevealedShip, Tile.All, out var bestSquidPos)) {
+				if (GetBestValuedTile(HiddenValues, info.Ships.Length, info.Tiles, Tile.RevealedWater | Tile.RevealedShip, Tile.GeneralWater | Tile.RevealedShip, out var bestSquidPos)) {
 					result.TargetPosition = bestSquidPos;
 					result.AbilityIndex = SQUID_INDEX;
 					LogMessage?.Invoke($"Reveal/Squid [{result}]");
@@ -201,7 +201,6 @@ namespace BattleSoupAI {
 				LogMessage("Reveal not performed.");
 				return PerformTask_Attack(info);
 			}
-
 
 			return result;
 		}
@@ -228,7 +227,12 @@ namespace BattleSoupAI {
 			// Sniper Ready
 			if (CoracleCooldown == 0) {
 				if (
-					TryAttackShip(info, ShipWithMinimalPotentialPos, Tile.RevealedShip, out var snipePos) ||
+					TryAttackShip(
+						info,
+						ShipWithMinimalPotentialPos,
+						Tile.RevealedShip,
+						out var snipePos
+					) ||
 					GetFirstTile(info.Tiles, Tile.RevealedShip, out snipePos)
 				) {
 					result.TargetPosition = snipePos;
@@ -240,7 +244,12 @@ namespace BattleSoupAI {
 
 			// Turtle Ready
 			if (TurtleCooldown == 0) {
-				if (TryAttackShip(info, ShipWithMinimalPotentialPos, Tile.RevealedShip | Tile.GeneralWater, out var tPos)) {
+				if (TryAttackShip(
+					info,
+					ShipWithMinimalPotentialPos,
+					Tile.RevealedShip | Tile.GeneralWater,
+					out var tPos
+				)) {
 					result.TargetPosition = tPos;
 					result.AbilityIndex = TURTLE_INDEX;
 					LogMessage?.Invoke($"Attack/Turtle [{result}]");
@@ -249,7 +258,12 @@ namespace BattleSoupAI {
 			}
 
 			// Use Normal Attack
-			if (TryAttackShip(info, ShipWithMinimalPotentialPos, Tile.RevealedShip | Tile.GeneralWater, out var attPos)) {
+			if (TryAttackShip(
+				info,
+				ShipWithMinimalPotentialPos,
+				Tile.RevealedShip | Tile.GeneralWater,
+				out var attPos
+			)) {
 				result.TargetPosition = attPos;
 				result.AbilityIndex = -1;
 				LogMessage?.Invoke($"Attack/Normal [{result}]");
@@ -261,24 +275,6 @@ namespace BattleSoupAI {
 			result.AbilityIndex = -1;
 			LogMessage?.Invoke($"Search/Normal(Attack Failed) [{result}]");
 			return result;
-		}
-
-
-		private bool TryAttackShip (BattleInfo info, int targetIndex, Tile filter, out Int2 pos) {
-			pos = default;
-			var posList = ExposedPotentialPos[targetIndex].Count > 0 ? ExposedPotentialPos[targetIndex] : HiddenPotentialPos[targetIndex];
-			if (posList.Count == 0) { return false; }
-			var body = info.Ships[targetIndex].Body;
-			foreach (var sPos in posList) {
-				foreach (var v in body) {
-					var _pos = sPos.GetPosition(v);
-					if (filter.HasFlag(info.Tiles[_pos.x, _pos.y])) {
-						pos = _pos;
-						return true;
-					}
-				}
-			}
-			return false;
 		}
 
 
