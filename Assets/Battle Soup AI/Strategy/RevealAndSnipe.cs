@@ -8,26 +8,13 @@ namespace BattleSoupAI {
 
 
 
-		#region --- SUB ---
-
-
-		private enum Task {
-			Search = 0,
-			Reveal = 1,
-			Attack = 2,
-
-		}
-
-
-		#endregion
-
-
-
-
 		#region --- VAR ---
 
 
 		// Const
+		private const string TASK_SEARCH = "S";
+		private const string TASK_REVEAL = "R";
+		private const string TASK_ATTACK = "A";
 		private const int CORACLE_INDEX = 0;
 		private const int WHALE_INDEX = 1;
 		private const int SQUID_INDEX = 2;
@@ -37,6 +24,10 @@ namespace BattleSoupAI {
 		public override string DisplayName => "Reveal & Snipe";
 		public override string Description => "Standard Reveal & Snipe strategy created by Moenen. Noob level, easy every time :)";
 		public override string[] FleetID => new string[] { "Coracle", "Whale", "KillerSquid", "SeaTurtle", };
+		protected int CoracleCooldown => Cooldowns[CORACLE_INDEX];
+		protected int WhaleCooldown => Cooldowns[WHALE_INDEX];
+		protected int SquidCooldown => Cooldowns[SQUID_INDEX];
+		protected int TurtleCooldown => Cooldowns[TURTLE_INDEX];
 
 
 		#endregion
@@ -47,23 +38,32 @@ namespace BattleSoupAI {
 		#region --- API ---
 
 
-		public override AnalyseResult Analyse (BattleInfo ownInfo, BattleInfo oppInfo, int usingAbilityIndex = -1) {
-
-			// Check and Cache
-			var result = base.Analyse(ownInfo, oppInfo);
-			if (!string.IsNullOrEmpty(result.ErrorMessage)) {
-				return result;
+		protected override string GetTask (BattleInfo info) {
+			if (ExposedShipCount == 0) {
+				// Ships All Hidden
+				return TASK_SEARCH;
+			} else if (FoundShipCount > 0) {
+				// Ship Found
+				return TASK_ATTACK;
+			} else {
+				// Ship Exposed but Not Found
+				if (TileCount_RevealedShip > 0) {
+					// Has Revealed
+					return TASK_ATTACK;
+				} else {
+					// No Revealed
+					return CoracleCooldown <= 2 ? TASK_REVEAL : TASK_ATTACK;
+				}
 			}
-
-			// Perform Task
-			return GetTask() switch {
-				Task.Search => PerformTask_Search(oppInfo),
-				Task.Reveal => PerformTask_Reveal(oppInfo),
-				Task.Attack => PerformTask_Attack(oppInfo),
-				_ => new AnalyseResult() { ErrorMessage = $"Task not performed" },
-			};
-
 		}
+
+
+		protected override AnalyseResult PerformTask (BattleInfo oppInfo, string taskID) => taskID switch {
+			TASK_SEARCH => PerformTask_Search(oppInfo),
+			TASK_REVEAL => PerformTask_Reveal(oppInfo),
+			TASK_ATTACK => PerformTask_Attack(oppInfo),
+			_ => AnalyseResult.NotPerformed,
+		};
 
 
 		#endregion
@@ -74,34 +74,9 @@ namespace BattleSoupAI {
 		#region --- LGC ---
 
 
-		private Task GetTask () {
-			if (ExposedShipCount == 0) {
-				// Ships All Hidden
-				return Task.Search;
-			} else if (FoundShipCount > 0) {
-				// Ship Found
-				return Task.Attack;
-			} else {
-				// Ship Exposed but Not Found
-				if (TileCount_RevealedShip > 0) {
-					// Has Revealed
-					return Task.Attack;
-				} else {
-					// No Revealed
-					return CoracleCooldown <= 2 ? Task.Reveal : Task.Attack;
-				}
-			}
-		}
-
-
 		private AnalyseResult PerformTask_Search (BattleInfo info) {
 
-			var result = new AnalyseResult() {
-				TargetPosition = default,
-				AbilityDirection = default,
-				AbilityIndex = -1,
-				ErrorMessage = "",
-			};
+			var result = AnalyseResult.None;
 
 			// Best Hidden Pos
 			var bestHiddenPos = HiddenValueMax[info.Ships.Length].pos;
@@ -154,12 +129,7 @@ namespace BattleSoupAI {
 
 		private AnalyseResult PerformTask_Reveal (BattleInfo info) {
 
-			var result = new AnalyseResult() {
-				TargetPosition = default,
-				AbilityDirection = default,
-				AbilityIndex = -1,
-				ErrorMessage = "",
-			};
+			var result = AnalyseResult.None;
 
 			// Best Hidden Pos
 			var bestHiddenPos = HiddenValueMax[info.Ships.Length].pos;
@@ -178,7 +148,7 @@ namespace BattleSoupAI {
 					result.AbilityIndex = WHALE_INDEX;
 					LogMessage?.Invoke($"Reveal/Whale [{result}]");
 				} else {
-					LogMessage("Reveal not performed.");
+					LogMessage?.Invoke("Reveal not performed.");
 					return PerformTask_Attack(info);
 				}
 			} else if (SquidCooldown == 0 && TileCount_RevealedShip + TileCount_RevealedWater > 0) {
@@ -188,7 +158,7 @@ namespace BattleSoupAI {
 					result.AbilityIndex = SQUID_INDEX;
 					LogMessage?.Invoke($"Reveal/Squid [{result}]");
 				} else {
-					LogMessage("Reveal not performed.");
+					LogMessage?.Invoke("Reveal not performed.");
 					return PerformTask_Attack(info);
 				}
 			} else if (TurtleCooldown == 0) {
@@ -198,7 +168,7 @@ namespace BattleSoupAI {
 				LogMessage?.Invoke($"Reveal/Turtle [{result}]");
 			} else {
 				// Perform Attack
-				LogMessage("Reveal not performed.");
+				LogMessage?.Invoke("Reveal not performed.");
 				return PerformTask_Attack(info);
 			}
 
@@ -208,12 +178,7 @@ namespace BattleSoupAI {
 
 		private AnalyseResult PerformTask_Attack (BattleInfo info) {
 
-			var result = new AnalyseResult() {
-				TargetPosition = default,
-				AbilityDirection = default,
-				AbilityIndex = -1,
-				ErrorMessage = "",
-			};
+			var result = AnalyseResult.None;
 
 			// Best Hidden Pos
 			var bestHiddenPos = HiddenValueMax[info.Ships.Length].pos;

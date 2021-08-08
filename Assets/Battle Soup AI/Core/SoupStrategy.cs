@@ -32,6 +32,18 @@ namespace BattleSoupAI {
 
 
 	public struct AnalyseResult {
+		public static readonly AnalyseResult None = new AnalyseResult() {
+			TargetPosition = default,
+			AbilityDirection = default,
+			AbilityIndex = -1,
+			ErrorMessage = "",
+		};
+		public static readonly AnalyseResult NotPerformed = new AnalyseResult() {
+			TargetPosition = default,
+			AbilityDirection = default,
+			AbilityIndex = -1,
+			ErrorMessage = "Task not performed",
+		};
 		public bool Success => string.IsNullOrEmpty(ErrorMessage);
 		public string ErrorMessage;
 		public Int2 TargetPosition;

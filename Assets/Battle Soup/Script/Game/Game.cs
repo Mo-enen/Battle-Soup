@@ -335,6 +335,7 @@ namespace BattleSoup {
 					}
 				} else {
 					Debug.LogWarning(result.ErrorMessage);
+					m_ShowMessage?.Invoke(result.ErrorMessage);
 					SwitchTurn();
 				}
 			}

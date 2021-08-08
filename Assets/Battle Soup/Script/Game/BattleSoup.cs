@@ -437,13 +437,13 @@ namespace BattleSoup {
 
 		public void UI_SetSelectingStrategyA (int index) {
 			StrategyIndexA.Value = Mathf.Clamp(index, 0, Strategies.Count - 1);
-			RefreshStrategyUI();
+			RefreshStrategyUI(true);
 		}
 
 
 		public void UI_SetSelectingStrategyB (int index) {
 			StrategyIndexB.Value = Mathf.Clamp(index, 0, Strategies.Count - 1);
-			RefreshStrategyUI();
+			RefreshStrategyUI(true);
 		}
 
 

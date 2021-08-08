@@ -7,26 +7,26 @@ namespace BattleSoupAI {
 
 
 		// Data
-		protected int CoracleCooldown = 0;
-		protected int WhaleCooldown = 0;
-		protected int SquidCooldown = 0;
-		protected int TurtleCooldown = 0;
 		protected int OwnAliveShipCount = 0;
 		protected int OpponentAliveShipCount = 0;
 		protected int ExposedShipCount = 0;
 		protected int FoundShipCount = 0;
 		protected int ShipWithMinimalPotentialPos = -1;
+		protected int TileCount_GeneralWater = 0;
 		protected int TileCount_RevealedWater = 0;
 		protected int TileCount_RevealedShip = 0;
 		protected int TileCount_HittedShip = 0;
 		protected ShipPosition?[] ShipFoundPosition = null;
 		protected List<ShipPosition>[] HiddenPotentialPos = null;
 		protected List<ShipPosition>[] ExposedPotentialPos = null;
+		protected int[] Cooldowns = null;
 		protected float[,,] HiddenValues = new float[0, 0, 0];
 		protected float[,,] ExposedValues = new float[0, 0, 0];
 		protected int[] MostExposed = null;
 		protected (Int2 pos, float max)[] HiddenValueMax = null;
 		protected (Int2 pos, float max)[] ExposedValueMax = null;
+		protected int UsingAbilityIndex = -1;
+
 
 
 		// API
@@ -38,11 +38,13 @@ namespace BattleSoupAI {
 				return new AnalyseResult() { ErrorMessage = msg, };
 			}
 
+			UsingAbilityIndex = usingAbilityIndex;
+
 			// Cooldown
-			CoracleCooldown = ownInfo.ShipsAlive[0] ? ownInfo.Cooldowns[0] : -1;
-			WhaleCooldown = ownInfo.ShipsAlive[1] ? ownInfo.Cooldowns[1] : -1;
-			SquidCooldown = ownInfo.ShipsAlive[2] ? ownInfo.Cooldowns[2] : -1;
-			TurtleCooldown = ownInfo.ShipsAlive[3] ? ownInfo.Cooldowns[3] : -1;
+			Cooldowns = new int[ownInfo.Cooldowns.Length];
+			for (int i = 0; i < ownInfo.Cooldowns.Length; i++) {
+				Cooldowns[i] = ownInfo.ShipsAlive[i] ? ownInfo.Cooldowns[i] : -1;
+			}
 
 			// Alive Ship Count
 			OwnAliveShipCount = ownInfo.AliveShipCount;
@@ -52,6 +54,7 @@ namespace BattleSoupAI {
 			TileCount_RevealedShip = 0;
 			TileCount_HittedShip = 0;
 			TileCount_RevealedWater = 0;
+			TileCount_GeneralWater = 0;
 			for (int y = 0; y < oppInfo.MapSize; y++) {
 				for (int x = 0; x < oppInfo.MapSize; x++) {
 					switch (oppInfo.Tiles[x, y]) {
@@ -60,6 +63,9 @@ namespace BattleSoupAI {
 							break;
 						case Tile.HittedShip:
 							TileCount_HittedShip++;
+							break;
+						case Tile.GeneralWater:
+							TileCount_GeneralWater++;
 							break;
 						case Tile.RevealedWater:
 							TileCount_RevealedWater++;
@@ -161,7 +167,7 @@ namespace BattleSoupAI {
 			// Ship with Minimal Potential-Pos-Count
 			ShipWithMinimalPotentialPos = GetShipWithMinimalPotentialPosCount(oppInfo, HiddenPotentialPos, ExposedPotentialPos);
 
-			return new AnalyseResult() { ErrorMessage = "", };
+			return PerformTask(oppInfo, GetTask(oppInfo));
 		}
 
 
@@ -193,6 +199,12 @@ namespace BattleSoupAI {
 
 			return "";
 		}
+
+
+		protected abstract string GetTask (BattleInfo oppInfo);
+
+
+		protected abstract AnalyseResult PerformTask (BattleInfo oppInfo, string taskID);
 
 
 		// Util
