@@ -22,6 +22,9 @@ namespace BattleSoupAI {
 		protected int[] Cooldowns = null;
 		protected float[,,] HiddenValues = new float[0, 0, 0];
 		protected float[,,] ExposedValues = new float[0, 0, 0];
+		protected int[,] SlimeValues = new int[0, 0];
+		protected int[,] SlimeValues_HittedOnly = new int[0, 0];
+		protected int[,] SlimeValues_RevealedOnly = new int[0, 0];
 		protected int[] MostExposed = null;
 		protected (Int2 pos, float max)[] HiddenValueMax = null;
 		protected (Int2 pos, float max)[] ExposedValueMax = null;
@@ -119,6 +122,11 @@ namespace BattleSoupAI {
 					ErrorMessage = "Fail to calculate exposed values",
 				};
 			}
+
+			// Slime
+			CalculateSlimeValues(oppInfo, Tile.All, ref SlimeValues);
+			CalculateSlimeValues(oppInfo, Tile.RevealedShip, ref SlimeValues_RevealedOnly);
+			CalculateSlimeValues(oppInfo, Tile.HittedShip, ref SlimeValues_HittedOnly);
 
 			// Get Most Exposed
 			if (MostExposed == null || MostExposed.Length != oppInfo.Ships.Length) {

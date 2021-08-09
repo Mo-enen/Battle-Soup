@@ -327,6 +327,7 @@ namespace BattleSoup {
 					GetSelectingShips() :
 					GetStrategyShips(group == Group.A ? Strategies[StrategyIndexA.Value] : Strategies[StrategyIndexB.Value]);
 
+				// Ability
 				for (int i = 0; i < ships.Length; i++) {
 					var ship = ships[i];
 					var grabber = Instantiate(m_Game.AbilityShip, container);
@@ -360,6 +361,7 @@ namespace BattleSoup {
 
 				}
 
+				// All
 				{
 					var grabber = Instantiate(m_Game.AbilityShip, container);
 					var rt = grabber.transform as RectTransform;
@@ -367,7 +369,7 @@ namespace BattleSoup {
 					rt.localRotation = Quaternion.identity;
 					rt.localScale = Vector3.one;
 					rt.SetAsLastSibling();
-					rt.name = "Iter";
+					rt.name = "All";
 
 					var btn = grabber.Grab<Button>();
 					btn.interactable = true;
@@ -376,15 +378,34 @@ namespace BattleSoup {
 						() => m_Game.Game.OnAbilityClick(group, ships.Length)
 					);
 
-					var icon = grabber.Grab<GreyImage>("Icon");
-					icon.sprite = m_UI.DevValueIterIcon;
-
+					grabber.Grab<GreyImage>("Icon").sprite = m_UI.DevValueIterIcon;
 					grabber.Grab<Text>("Cooldown").gameObject.SetActive(false);
 					grabber.Grab<RectTransform>("Red Panel").gameObject.SetActive(false);
 					grabber.Grab<Image>("Copy").gameObject.SetActive(false);
 				}
 
+				// Slime
+				{
+					var grabber = Instantiate(m_Game.AbilityShip, container);
+					var rt = grabber.transform as RectTransform;
+					rt.anchoredPosition3D = rt.anchoredPosition;
+					rt.localRotation = Quaternion.identity;
+					rt.localScale = Vector3.one;
+					rt.SetAsLastSibling();
+					rt.name = "Slime";
 
+					var btn = grabber.Grab<Button>();
+					btn.interactable = true;
+
+					btn.onClick.AddListener(
+						() => m_Game.Game.OnAbilityClick(group, ships.Length + 1)
+					);
+
+					grabber.Grab<GreyImage>("Icon").sprite = m_UI.DevValueSlimeIcon;
+					grabber.Grab<Text>("Cooldown").gameObject.SetActive(false);
+					grabber.Grab<RectTransform>("Red Panel").gameObject.SetActive(false);
+					grabber.Grab<Image>("Copy").gameObject.SetActive(false);
+				}
 
 			}
 

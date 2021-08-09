@@ -27,6 +27,7 @@ namespace BattleSoup {
 		private List<ShipPosition>[] ExposedPositions = new List<ShipPosition>[0];
 		private (float[,,] values, float min, float max) HiddenValues = (new float[0, 0, 0], 0, 0);
 		private (float[,,] values, float min, float max) ExposedValues = (new float[0, 0, 0], 0, 0);
+		private int[,] SlimeValues = new int[0, 0];
 
 
 		#endregion
@@ -70,6 +71,8 @@ namespace BattleSoup {
 				ref ExposedValues.values, out ExposedValues.min, out ExposedValues.max
 			)) { return false; }
 
+			strategy.CalculateSlimeValues(info, Tile.All, ref SlimeValues);
+
 			// Grid Size
 			m_PotentialValueRenderer.GridCountX = m_PotentialValueRenderer.GridCountY = info.MapSize;
 
@@ -79,18 +82,26 @@ namespace BattleSoup {
 
 		public void RefreshRenderer (int shipIndex) {
 			m_PotentialValueRenderer.ClearBlock();
-			if (HiddenValues.values == null || shipIndex < 0 || shipIndex >= HiddenValues.values.GetLength(0)) { return; }
+			if (HiddenValues.values == null || shipIndex < 0 || shipIndex >= HiddenValues.values.GetLength(0) + 1) { return; }
+			int valueCount = HiddenValues.values.GetLength(0);
 			int size = HiddenValues.values.GetLength(1);
 			int blockSpriteCount = m_PotentialValueRenderer.BlockSpriteCount;
 			for (int y = 0; y < size; y++) {
 				for (int x = 0; x < size; x++) {
+					float value;
 					bool exposed = true;
-					float value = ExposedValues.values[shipIndex, x, y];
-					if (value == 0) {
-						exposed = false;
-						value = HiddenValues.values[shipIndex, x, y];
+					if (shipIndex < valueCount) {
+						// Value
+						value = ExposedValues.values[shipIndex, x, y];
+						if (value == 0) {
+							exposed = false;
+							value = HiddenValues.values[shipIndex, x, y];
+						}
+					} else {
+						// Slime
+						value = SlimeValues[x, y];
 					}
-					if (value == 0) { continue; }
+					if (Mathf.Approximately(value, 0f)) { continue; }
 					float _vLerp = HiddenValues.min != HiddenValues.max ? (value - HiddenValues.min) / (HiddenValues.max - HiddenValues.min) : 0f;
 					var _color = Color.Lerp(
 						exposed ? m_MinValueTint_Exposed : m_MinValueTint_Hidden,
@@ -112,6 +123,7 @@ namespace BattleSoup {
 			m_PotentialValueRenderer.ClearBlock();
 			HiddenPositions = null;
 			ExposedPositions = null;
+			SlimeValues = null;
 			HiddenValues = (null, 0, 0);
 			ExposedValues = (null, 0, 0);
 		}

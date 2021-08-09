@@ -51,7 +51,13 @@ namespace BattleSoupAI {
 		// LGC
 		private AnalyseResult PerformTask_Search (BattleInfo info) {
 			var result = AnalyseResult.None;
+			if (TileCount_GeneralWater > (int)(info.MapSize * info.MapSize * 0.618f)) {
+				// Search with Sea Monster
 
+			} else {
+				// Search with
+
+			}
 
 
 

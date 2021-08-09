@@ -90,7 +90,7 @@ namespace BattleSoupAI {
 			// Check for Ability
 			if (WhaleCooldown == 0) {
 				// Use Whale
-				if (GetBestValuedTile(HiddenValues, info.Ships.Length, info.Tiles, Tile.All, Tile.All, out var bestWhalePos)) {
+				if (GetTileMVP(HiddenValues, info.Tiles, Tile.All, Tile.All, out var bestWhalePos)) {
 					result.TargetPosition = bestWhalePos;
 					result.AbilityIndex = WHALE_INDEX;
 					LogMessage?.Invoke($"Search/Whale [{result}]");
@@ -101,7 +101,7 @@ namespace BattleSoupAI {
 				}
 			} else if (SquidCooldown == 0 && TileCount_RevealedShip + TileCount_RevealedWater > 0) {
 				// Use Squid
-				if (GetBestValuedTile(HiddenValues, info.Ships.Length, info.Tiles, Tile.RevealedWater | Tile.RevealedShip, Tile.GeneralWater | Tile.RevealedShip, out var bestSquidPos)) {
+				if (GetTileMVP(HiddenValues, info.Tiles, Tile.RevealedWater | Tile.RevealedShip, Tile.GeneralWater | Tile.RevealedShip, out var bestSquidPos)) {
 					result.TargetPosition = bestSquidPos;
 					result.AbilityIndex = SQUID_INDEX;
 					LogMessage?.Invoke($"Search/Squid [{result}]");
@@ -143,7 +143,7 @@ namespace BattleSoupAI {
 			// Check for Ability
 			if (WhaleCooldown == 0) {
 				// Use Whale
-				if (GetBestValuedTile(HiddenValues, info.Ships.Length, info.Tiles, Tile.HittedShip, Tile.GeneralWater, out var bestWhalePos)) {
+				if (GetTileMVP(HiddenValues, info.Tiles, Tile.HittedShip, Tile.GeneralWater, out var bestWhalePos)) {
 					result.TargetPosition = bestWhalePos;
 					result.AbilityIndex = WHALE_INDEX;
 					LogMessage?.Invoke($"Reveal/Whale [{result}]");
@@ -153,7 +153,7 @@ namespace BattleSoupAI {
 				}
 			} else if (SquidCooldown == 0 && TileCount_RevealedShip + TileCount_RevealedWater > 0) {
 				// Use Squid
-				if (GetBestValuedTile(HiddenValues, info.Ships.Length, info.Tiles, Tile.RevealedWater | Tile.RevealedShip, Tile.GeneralWater | Tile.RevealedShip, out var bestSquidPos)) {
+				if (GetTileMVP(HiddenValues, info.Tiles, Tile.RevealedWater | Tile.RevealedShip, Tile.GeneralWater | Tile.RevealedShip, out var bestSquidPos)) {
 					result.TargetPosition = bestSquidPos;
 					result.AbilityIndex = SQUID_INDEX;
 					LogMessage?.Invoke($"Reveal/Squid [{result}]");
@@ -191,16 +191,26 @@ namespace BattleSoupAI {
 
 			// Sniper Ready
 			if (CoracleCooldown == 0) {
-				if (
-					TryAttackShip(
-						info,
-						ShipWithMinimalPotentialPos,
-						Tile.RevealedShip,
-						out var snipePos
-					) ||
-					GetFirstTile(info.Tiles, Tile.RevealedShip, out snipePos)
-				) {
-					result.TargetPosition = snipePos;
+				// Find Min Hit Slime Pos
+				int minSlime = int.MaxValue;
+				int minHit = int.MaxValue;
+				Int2 minPos = default;
+				for (int y = 0; y < info.MapSize; y++) {
+					for (int x = 0; x < info.MapSize; x++) {
+						if (info.Tiles[x, y] != Tile.RevealedShip) { continue; }
+						int value = SlimeValues_HittedOnly[x, y];
+						if (value <= 0) { continue; }
+						int hitCount = CountNeighborTile(info.Tiles, x, y, Tile.HittedShip);
+						if (value < minSlime || (value == minSlime && hitCount < minHit)) {
+							minSlime = value;
+							minHit = hitCount;
+							minPos.x = x;
+							minPos.y = y;
+						}
+					}
+				}
+				if (minSlime < int.MaxValue && (OpponentAliveShipCount <= 2 || minSlime <= 2)) {
+					result.TargetPosition = minPos;
 					result.AbilityIndex = CORACLE_INDEX;
 					LogMessage?.Invoke($"Attack/Snipe [{result}]");
 					return result;

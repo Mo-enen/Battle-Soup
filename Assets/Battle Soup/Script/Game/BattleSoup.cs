@@ -415,7 +415,7 @@ namespace BattleSoup {
 
 				}
 
-				for (int i = count; i < count + 1; i++) {
+				for (int i = count; i < count + 2; i++) {
 					var grabber = container.GetChild(i).GetComponent<Grabber>();
 					grabber.gameObject.SetActive(devMode);
 					if (devMode) {

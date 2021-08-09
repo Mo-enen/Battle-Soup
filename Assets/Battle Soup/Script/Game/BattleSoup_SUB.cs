@@ -103,6 +103,7 @@ namespace BattleSoup {
 			public Text StrategyDescriptionB;
 			public Button PositionShipResetButton;
 			public Sprite DevValueIterIcon;
+			public Sprite DevValueSlimeIcon;
 			public RectTransform StrategyFleetContainerA;
 			public RectTransform StrategyFleetContainerB;
 			public Image[] BattleAvatarA;

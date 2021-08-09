@@ -438,6 +438,57 @@ namespace BattleSoupAI {
 		}
 
 
+		public void CalculateSlimeValues (BattleInfo info, Tile filter, ref int[,] values) {
+			if (values == null || values.GetLength(0) != info.MapSize || values.GetLength(1) != info.MapSize) {
+				values = new int[info.MapSize, info.MapSize];
+			}
+			for (int y = 0; y < info.MapSize; y++) {
+				for (int x = 0; x < info.MapSize; x++) {
+					values[x, y] = -1;
+				}
+			}
+			var tiles = info.Tiles;
+			var queue = new Queue<Int2>();
+			int size = info.MapSize;
+			for (int y = 0; y < size; y++) {
+				for (int x = 0; x < size; x++) {
+					values[x, y] = GetSlimeValue(x, y);
+				}
+			}
+			// Func
+			int GetSlimeValue (int x, int y) {
+				var pivot = tiles[x, y];
+				if (pivot != Tile.HittedShip && pivot != Tile.RevealedShip) { return 0; }
+				int result = 0;
+				queue.Clear();
+				queue.Enqueue(new Int2(x, y));
+				var hash = new HashSet<Int2> { new Int2(x, y) };
+				while (queue.Count > 0) {
+					var pos = queue.Dequeue();
+					var tile = tiles[pos.x, pos.y];
+					if (tile == Tile.HittedShip || tile == Tile.RevealedShip) {
+						if (filter.HasFlag(tile)) {
+							result++;
+						}
+					}
+					for (int _j = pos.y - 1; _j <= pos.y + 1; _j++) {
+						for (int _i = pos.x - 1; _i <= pos.x + 1; _i++) {
+							if (_i < 0 || _j < 0 || _i >= size || _j >= size) { continue; }
+							if (_i == pos.x && _j == pos.y) { continue; }
+							if (hash.Contains(new Int2(_i, _j))) { continue; }
+							var _tile = tiles[_i, _j];
+							if (_tile == Tile.RevealedShip || _tile == Tile.HittedShip) {
+								queue.Enqueue(new Int2(_i, _j));
+								hash.Add(new Int2(_i, _j));
+							}
+						}
+					}
+				}
+				return result;
+			}
+		}
+
+
 		// Util
 		public int GetMostExposedPositionIndex (Ship ship, Tile[,] tiles, List<ShipPosition> positions) {
 			if (ship == null || positions == null || positions.Count == 0) { return -1; }
@@ -469,9 +520,12 @@ namespace BattleSoupAI {
 		}
 
 
-		public bool GetBestValuedTile (float[,,] values, int valueIndex, Tile[,] tiles, Tile filter, out Int2 pos) => GetBestValuedTile(values, valueIndex, tiles, filter, Tile.None, out pos);
-		public bool GetBestValuedTile (float[,,] values, int valueIndex, Tile[,] tiles, Tile filter, Tile neighbourFilter, out Int2 pos) {
+		public bool GetTileMVP (float[,,] values, Tile[,] tiles, Tile filter, out Int2 pos) => GetTileMVP(values, tiles, filter, Tile.None, out pos);
+		public bool GetTileMVP (float[,,] values, Tile[,] tiles, Tile filter, Tile neighbourFilter, out Int2 pos) => GetTileMVP(values, tiles, filter, neighbourFilter, null, out pos);
+		public bool GetTileMVP (float[,,] values, Tile[,] tiles, Tile filter, Tile neighbourFilter, List<Attack> attacks, out Int2 pos) {
 			int size = tiles.GetLength(0);
+			int valueIndex = values.GetLength(0) - 1;
+			bool hasAttacks = attacks != null && attacks.Count > 0;
 			float maxValue = 0;
 			bool success = false;
 			bool neighbour = neighbourFilter != Tile.None;
@@ -480,7 +534,6 @@ namespace BattleSoupAI {
 				for (int i = 0; i < size; i++) {
 					var tile = tiles[i, j];
 					if (!filter.HasFlag(tile)) { continue; }
-					if (neighbour && !CheckNeighbour(i, j)) { continue; }
 					float value = GetValue(i, j);
 					if (value > maxValue || (value == maxValue && Random.NextDouble() > 0.66666f)) {
 						maxValue = value;
@@ -495,35 +548,34 @@ namespace BattleSoupAI {
 			float GetValue (int _i, int _j) {
 				float result = values[valueIndex, _i, _j];
 				if (neighbour) {
-					if (_i - 1 >= 0) {
-						result += values[valueIndex, _i - 1, _j];
-					}
-					if (_j - 1 >= 0) {
-						result += values[valueIndex, _i, _j - 1];
-					}
-					if (_i + 1 < size) {
-						result += values[valueIndex, _i + 1, _j];
-					}
-					if (_j + 1 < size) {
-						result += values[valueIndex, _i, _j + 1];
+					if (!hasAttacks) {
+						// Default Cross
+						if (_i - 1 >= 0 && neighbourFilter.HasFlag(tiles[_i - 1, _j])) {
+							result += values[valueIndex, _i - 1, _j];
+						}
+						if (_j - 1 >= 0 && neighbourFilter.HasFlag(tiles[_i, _j - 1])) {
+							result += values[valueIndex, _i, _j - 1];
+						}
+						if (_i + 1 < size && neighbourFilter.HasFlag(tiles[_i + 1, _j])) {
+							result += values[valueIndex, _i + 1, _j];
+						}
+						if (_j + 1 < size && neighbourFilter.HasFlag(tiles[_i, _j + 1])) {
+							result += values[valueIndex, _i, _j + 1];
+						}
+					} else {
+						// Attacks
+						foreach (var att in attacks) {
+							if (att.Trigger == AttackTrigger.PassiveRandom || att.Trigger == AttackTrigger.Random) { continue; }
+							int _x = _i + att.X;
+							int _y = _j + att.Y;
+							if (_x < 0 || _x >= size || _y < 0 || _y >= size) { continue; }
+							var _tile = tiles[_x, _y];
+							if (!att.AvailableTarget.HasFlag(_tile) || !neighbourFilter.HasFlag(_tile)) { continue; }
+							result += values[valueIndex, _x, _y];
+						}
 					}
 				}
 				return result;
-			}
-			bool CheckNeighbour (int _i, int _j) {
-				if (_i - 1 >= 0 && !filter.HasFlag(tiles[_i - 1, _j])) {
-					return false;
-				}
-				if (_j - 1 >= 0 && !filter.HasFlag(tiles[_i, _j - 1])) {
-					return false;
-				}
-				if (_i + 1 < size && !filter.HasFlag(tiles[_i + 1, _j])) {
-					return false;
-				}
-				if (_j + 1 < size && !filter.HasFlag(tiles[_i, _j + 1])) {
-					return false;
-				}
-				return true;
 			}
 		}
 
@@ -655,6 +707,24 @@ namespace BattleSoupAI {
 				}
 			}
 			return false;
+		}
+
+
+		public int CountNeighborTile (Tile[,] tiles, int x, int y, Tile filter) {
+			int result = 0;
+			int size = tiles.GetLength(0);
+			int l = System.Math.Max(x - 1, 0);
+			int r = System.Math.Min(x + 1, size - 1);
+			int d = System.Math.Max(y - 1, 0);
+			int u = System.Math.Min(y + 1, size - 1);
+			for (int j = d; j <= u; j++) {
+				for (int i = l; i <= r; i++) {
+					if (filter.HasFlag(tiles[i, j])) {
+						result++;
+					}
+				}
+			}
+			return result;
 		}
 
 
