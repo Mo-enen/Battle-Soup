@@ -77,6 +77,9 @@ TextureImporter:
   - first:
       213: -6064967667912391024
     second: Sunk
+  - first:
+      213: 4451419428445612202
+    second: Shape
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -279,7 +282,7 @@ TextureImporter:
         width: 56
         height: 56
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -287,6 +290,27 @@ TextureImporter:
       bones: []
       spriteID: 0964ad32a08e4dba0800000000000000
       internalID: -6064967667912391024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Shape
+      rect:
+        serializedVersion: 2
+        x: 124
+        y: 62
+        width: 56
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aa8e5c2b26e96cd30800000000000000
+      internalID: 4451419428445612202
       vertices: []
       indices: 
       edges: []

@@ -42,6 +42,7 @@ namespace BattleSoup {
 				grab.Grab<Text>("Label").text = ship.DisplayName;
 				grab.Grab<Image>("Thumbnail").sprite = ship.Sprite;
 				grab.Grab<TipUI>().Content = ship.Description;
+				grab.Grab<BlocksRenderer>("Shape").AddBody(ship);
 			}
 
 			// Final
@@ -330,6 +331,8 @@ namespace BattleSoup {
 				// Ability
 				for (int i = 0; i < ships.Length; i++) {
 					var ship = ships[i];
+
+
 					var grabber = Instantiate(m_Game.AbilityShip, container);
 
 					var rt = grabber.transform as RectTransform;
@@ -355,6 +358,7 @@ namespace BattleSoup {
 					cooldown.gameObject.SetActive(ship.Ship.Ability.HasActive);
 					cooldown.text = ship.Ship.Ability.Cooldown.ToString();
 
+					grabber.Grab<BlocksRenderer>("Shape").AddBody(ship);
 					grabber.Grab<RectTransform>("Red Panel").gameObject.SetActive(false);
 					grabber.Grab<Image>("Copy").gameObject.SetActive(false);
 					grabber.Grab<Text>("Label").text = ship.DisplayName;

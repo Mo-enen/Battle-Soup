@@ -450,6 +450,12 @@ namespace BattleSoup {
 		public void UI_ClearShipSelection () => ClearShipSelection();
 
 
+		public void UI_Replay () {
+			CurrentState = GameState.Map;
+			UI_GotoNextState();
+		}
+
+
 		public void UI_QuitGame () {
 			QuitGameForReal = true;
 			Application.Quit();

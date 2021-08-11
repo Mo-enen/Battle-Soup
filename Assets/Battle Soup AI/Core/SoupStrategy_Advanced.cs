@@ -6,6 +6,14 @@ namespace BattleSoupAI {
 	public abstract class SoupStrategy_Advanced : SoupStrategy {
 
 
+		// SUB
+		public enum MVPConfig {
+			Hidden = 0,
+			Exposed = 1,
+			Both = 2,
+		}
+
+
 		// Data
 		protected int OwnAliveShipCount = 0;
 		protected int OpponentAliveShipCount = 0;
@@ -238,6 +246,90 @@ namespace BattleSoupAI {
 				}
 			}
 			return false;
+		}
+
+
+		public bool GetTileMVP (Tile[,] tiles, Tile filter, MVPConfig config, out Int2 pos) => GetTileMVP(tiles, filter, Tile.None, config, out pos);
+		public bool GetTileMVP (Tile[,] tiles, Tile filter, Tile neighbourFilter, MVPConfig config, out Int2 pos) => GetTileMVP(tiles, filter, neighbourFilter, null, config, out pos, out _);
+		public bool GetTileMVP (Tile[,] tiles, Tile filter, Tile neighbourFilter, List<Attack> attacks, MVPConfig config, out Int2 pos, out AbilityDirection direcion) {
+			var hdValues = HiddenValues;
+			var exValues = ExposedValues;
+			int size = tiles.GetLength(0);
+			int valueIndex = hdValues.GetLength(0) - 1;
+			bool hasAttacks = attacks != null && attacks.Count > 0;
+			float maxValue = 0;
+			bool success = false;
+			bool neighbour = neighbourFilter != Tile.None;
+			pos = default;
+			direcion = default;
+			for (int j = 0; j < size; j++) {
+				for (int i = 0; i < size; i++) {
+					var tile = tiles[i, j];
+					if (!filter.HasFlag(tile)) { continue; }
+					float value = GetValue(i, j, out var _direcion);
+					if (value > maxValue || (value == maxValue && Random.NextDouble() > 0.66666f)) {
+						maxValue = value;
+						pos.x = i;
+						pos.y = j;
+						success = true;
+						direcion = _direcion;
+					}
+				}
+			}
+			return success;
+			// Func
+			float GetConfigValue (int _i, int _j) {
+				float result = 0f;
+				if (config == MVPConfig.Hidden || config == MVPConfig.Both) {
+					result += hdValues[valueIndex, _i, _j];
+				}
+				if (config == MVPConfig.Exposed || config == MVPConfig.Both) {
+					result += exValues[valueIndex, _i, _j];
+				}
+				return result;
+			}
+			float GetValue (int _i, int _j, out AbilityDirection _dir) {
+				_dir = default;
+				float result = GetConfigValue(_i, _j);
+				if (neighbour) {
+					if (!hasAttacks) {
+						// Default Cross
+						if (_i - 1 >= 0 && neighbourFilter.HasFlag(tiles[_i - 1, _j])) {
+							result += GetConfigValue(_i - 1, _j);
+						}
+						if (_j - 1 >= 0 && neighbourFilter.HasFlag(tiles[_i, _j - 1])) {
+							result += GetConfigValue(_i, _j - 1);
+						}
+						if (_i + 1 < size && neighbourFilter.HasFlag(tiles[_i + 1, _j])) {
+							result += GetConfigValue(_i + 1, _j);
+						}
+						if (_j + 1 < size && neighbourFilter.HasFlag(tiles[_i, _j + 1])) {
+							result += GetConfigValue(_i, _j + 1);
+						}
+					} else {
+						// Attacks
+						float attResult = 0f;
+						for (int i = 0; i < 4; i++) {
+							float currentResult = 0;
+							var dir = (AbilityDirection)i;
+							foreach (var att in attacks) {
+								if (att.Trigger == AttackTrigger.PassiveRandom || att.Trigger == AttackTrigger.Random) { continue; }
+								var (_x, _y) = att.GetPosition(_i, _j, dir);
+								if (_x < 0 || _x >= size || _y < 0 || _y >= size) { continue; }
+								var _tile = tiles[_x, _y];
+								if (!att.AvailableTarget.HasFlag(_tile) || !neighbourFilter.HasFlag(_tile)) { continue; }
+								currentResult += GetConfigValue(_x, _y);
+							}
+							if (currentResult > attResult) {
+								attResult = currentResult;
+								_dir = dir;
+							}
+						}
+						result += attResult;
+					}
+				}
+				return result;
+			}
 		}
 
 

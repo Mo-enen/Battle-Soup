@@ -27,6 +27,8 @@ namespace BattleSoupAI {
 		public int[] Cooldowns;
 		public bool[] ShipsAlive;
 		public ShipPosition?[] KnownPositions;
+		public List<SonarPosition> Sonars;
+
 	}
 
 
@@ -82,7 +84,7 @@ namespace BattleSoupAI {
 		// Data
 		private int[,] RIP_ValuesCache = null;
 		private int[,,] RIP_ValuesCacheAlt = null;
-		private static System.Random Random = new System.Random();
+		protected static System.Random Random = new System.Random();
 
 
 		#endregion
@@ -163,7 +165,7 @@ namespace BattleSoupAI {
 			// Func
 			bool PositionAvailable (Ship _ship, ShipPosition _pos) {
 				// Border Check
-				var (min, max) = _ship.GetBounds(_pos);
+				var (min, max) = _ship.GetBounds(_pos.Flip);
 				if (_pos.Pivot.x < -min.x || _pos.Pivot.x > mapSize - max.x - 1 ||
 					_pos.Pivot.y < -min.y || _pos.Pivot.y > mapSize - max.y - 1
 				) {
@@ -520,66 +522,6 @@ namespace BattleSoupAI {
 		}
 
 
-		public bool GetTileMVP (float[,,] values, Tile[,] tiles, Tile filter, out Int2 pos) => GetTileMVP(values, tiles, filter, Tile.None, out pos);
-		public bool GetTileMVP (float[,,] values, Tile[,] tiles, Tile filter, Tile neighbourFilter, out Int2 pos) => GetTileMVP(values, tiles, filter, neighbourFilter, null, out pos);
-		public bool GetTileMVP (float[,,] values, Tile[,] tiles, Tile filter, Tile neighbourFilter, List<Attack> attacks, out Int2 pos) {
-			int size = tiles.GetLength(0);
-			int valueIndex = values.GetLength(0) - 1;
-			bool hasAttacks = attacks != null && attacks.Count > 0;
-			float maxValue = 0;
-			bool success = false;
-			bool neighbour = neighbourFilter != Tile.None;
-			pos = default;
-			for (int j = 0; j < size; j++) {
-				for (int i = 0; i < size; i++) {
-					var tile = tiles[i, j];
-					if (!filter.HasFlag(tile)) { continue; }
-					float value = GetValue(i, j);
-					if (value > maxValue || (value == maxValue && Random.NextDouble() > 0.66666f)) {
-						maxValue = value;
-						pos.x = i;
-						pos.y = j;
-						success = true;
-					}
-				}
-			}
-			return success;
-			// Func
-			float GetValue (int _i, int _j) {
-				float result = values[valueIndex, _i, _j];
-				if (neighbour) {
-					if (!hasAttacks) {
-						// Default Cross
-						if (_i - 1 >= 0 && neighbourFilter.HasFlag(tiles[_i - 1, _j])) {
-							result += values[valueIndex, _i - 1, _j];
-						}
-						if (_j - 1 >= 0 && neighbourFilter.HasFlag(tiles[_i, _j - 1])) {
-							result += values[valueIndex, _i, _j - 1];
-						}
-						if (_i + 1 < size && neighbourFilter.HasFlag(tiles[_i + 1, _j])) {
-							result += values[valueIndex, _i + 1, _j];
-						}
-						if (_j + 1 < size && neighbourFilter.HasFlag(tiles[_i, _j + 1])) {
-							result += values[valueIndex, _i, _j + 1];
-						}
-					} else {
-						// Attacks
-						foreach (var att in attacks) {
-							if (att.Trigger == AttackTrigger.PassiveRandom || att.Trigger == AttackTrigger.Random) { continue; }
-							int _x = _i + att.X;
-							int _y = _j + att.Y;
-							if (_x < 0 || _x >= size || _y < 0 || _y >= size) { continue; }
-							var _tile = tiles[_x, _y];
-							if (!att.AvailableTarget.HasFlag(_tile) || !neighbourFilter.HasFlag(_tile)) { continue; }
-							result += values[valueIndex, _x, _y];
-						}
-					}
-				}
-				return result;
-			}
-		}
-
-
 		public int GetShipWithMinimalPotentialPosCount (BattleInfo info, List<ShipPosition>[] hiddenPositions, List<ShipPosition>[] exposedPositions) => GetShipWithMinimalPotentialPosCount(info, hiddenPositions, exposedPositions, out _);
 
 
@@ -725,6 +667,70 @@ namespace BattleSoupAI {
 				}
 			}
 			return result;
+		}
+
+
+		public bool AveragePosition (Tile[,] tiles, Tile filter, out Float2 pos) {
+			Float2? resultPos = null;
+			int size = tiles.GetLength(0);
+			float count = 0f;
+			pos = default;
+			for (int j = 0; j < size; j++) {
+				for (int i = 0; i < size; i++) {
+					var tile = tiles[i, j];
+					if (!filter.HasFlag(tile)) { continue; }
+					if (!resultPos.HasValue) {
+						resultPos = new Float2(i, j);
+					} else {
+						resultPos += new Float2(i, j);
+					}
+					count++;
+				}
+			}
+			if (resultPos.HasValue && count > 0) {
+				resultPos /= count;
+				pos = resultPos.Value;
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+
+		public bool NearestPosition (Tile[,] tiles, int x, int y, Tile filter, out Int2 pos, out float sqrtDistance) {
+			pos = default;
+			sqrtDistance = float.MaxValue;
+			int size = tiles.GetLength(0);
+			bool success = false;
+			for (int j = 0; j < size; j++) {
+				for (int i = 0; i < size; i++) {
+					var tile = tiles[i, j];
+					if (!filter.HasFlag(tile)) { continue; }
+					float a = System.Math.Abs(x - i);
+					float b = System.Math.Abs(y - j);
+					float sqrtDis = a * a + b * b;
+					if (sqrtDis < sqrtDistance) {
+						sqrtDistance = sqrtDis;
+						pos.x = i;
+						pos.y = j;
+						success = true;
+					}
+				}
+			}
+			return success;
+		}
+
+
+		public bool ContainsTile (Tile[,] tiles, Tile filter) {
+			int size = tiles.GetLength(0);
+			for (int j = 0; j < size; j++) {
+				for (int i = 0; i < size; i++) {
+					if (filter.HasFlag(tiles[i, j])) {
+						return true;
+					}
+				}
+			}
+			return false;
 		}
 
 

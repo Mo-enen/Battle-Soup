@@ -245,7 +245,7 @@ namespace BattleSoup {
 			for (int i = 0; i < _Ships.Length; i++) {
 				var ship = _Ships[i];
 				var sPos = _Positions[i];
-				var (min, max) = ship.Ship.GetBounds(sPos);
+				var (min, max) = ship.Ship.GetBounds(sPos.Flip);
 				sPos.Pivot.x = Mathf.Clamp(sPos.Pivot.x, -min.x, mapSize - max.x - 1);
 				sPos.Pivot.y = Mathf.Clamp(sPos.Pivot.y, -min.y, mapSize - max.y - 1);
 				_Positions[i] = sPos;

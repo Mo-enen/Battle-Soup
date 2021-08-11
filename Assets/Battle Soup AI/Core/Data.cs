@@ -18,6 +18,77 @@ namespace BattleSoupAI {
 			this.x = x;
 			this.y = y;
 		}
+		public static Int2 operator + (Int2 a, Int2 b) {
+			a.x += b.x;
+			a.y += b.y;
+			return a;
+		}
+		public static Int2 operator - (Int2 a, Int2 b) {
+			a.x -= b.x;
+			a.y -= b.y;
+			return a;
+		}
+		public static Int2 operator * (Int2 a, Int2 b) {
+			a.x *= b.x;
+			a.y *= b.y;
+			return a;
+		}
+		public static Int2 operator / (Int2 a, Int2 b) {
+			a.x /= b.x;
+			a.y /= b.y;
+			return a;
+		}
+		public static Int2 operator * (Int2 a, int b) {
+			a.x *= b;
+			a.y *= b;
+			return a;
+		}
+		public static Int2 operator / (Int2 a, int b) {
+			a.x /= b;
+			a.y /= b;
+			return a;
+		}
+		public override string ToString () => $"({x},{y})";
+	}
+
+
+	public struct Float2 {
+		public float x;
+		public float y;
+		public Float2 (float x, float y) {
+			this.x = x;
+			this.y = y;
+		}
+		public static Float2 operator + (Float2 a, Float2 b) {
+			a.x += b.x;
+			a.y += b.y;
+			return a;
+		}
+		public static Float2 operator - (Float2 a, Float2 b) {
+			a.x -= b.x;
+			a.y -= b.y;
+			return a;
+		}
+		public static Float2 operator * (Float2 a, Float2 b) {
+			a.x *= b.x;
+			a.y *= b.y;
+			return a;
+		}
+		public static Float2 operator / (Float2 a, Float2 b) {
+			a.x /= b.x;
+			a.y /= b.y;
+			return a;
+		}
+		public static Float2 operator * (Float2 a, float b) {
+			a.x *= b;
+			a.y *= b;
+			return a;
+		}
+		public static Float2 operator / (Float2 a, float b) {
+			a.x /= b;
+			a.y /= b;
+			return a;
+		}
 	}
 
 
@@ -250,7 +321,7 @@ namespace BattleSoupAI {
 
 
 		// API
-		public (Int2 min, Int2 max) GetBounds (ShipPosition pos) {
+		public (Int2 min, Int2 max) GetBounds (bool flip) {
 			int minX = int.MaxValue;
 			int minY = int.MaxValue;
 			int maxX = int.MinValue;
@@ -261,7 +332,7 @@ namespace BattleSoupAI {
 				maxX = System.Math.Max(maxX, v.x);
 				maxY = System.Math.Max(maxY, v.y);
 			}
-			return pos.Flip ?
+			return flip ?
 				(new Int2(minY, minX), new Int2(maxY, maxX)) :
 				(new Int2(minX, minY), new Int2(maxX, maxY));
 		}

@@ -160,6 +160,7 @@ namespace BattleSoup {
 		[SerializeField] Image m_Face = null;
 		[SerializeField] Toggle m_CheatToggle = null;
 		[SerializeField] Toggle m_DevToggle = null;
+		[SerializeField] Button m_ReplayButton = null;
 		[SerializeField] Button m_AvAControlButton_Play = null;
 		[SerializeField] Button m_AvAControlButton_Pause = null;
 		[SerializeField] Button m_AvAControlButton_Next = null;
@@ -381,6 +382,7 @@ namespace BattleSoup {
 			InfoA.Cooldowns = DataA.Cooldowns;
 			InfoA.Tiles = DataA.Tiles;
 			InfoA.KnownPositions = DataA.KnownPositions;
+			InfoA.Sonars = DataA.Sonars;
 
 			InfoB.MapSize = DataB.Map.Size;
 			InfoB.Ships = DataB.Ships;
@@ -388,6 +390,7 @@ namespace BattleSoup {
 			InfoB.Cooldowns = DataB.Cooldowns;
 			InfoB.Tiles = DataB.Tiles;
 			InfoB.KnownPositions = DataB.KnownPositions;
+			InfoB.Sonars = DataB.Sonars;
 
 			m_CheatToggle.SetIsOnWithoutNotify(false);
 			m_DevToggle.SetIsOnWithoutNotify(false);
@@ -398,6 +401,7 @@ namespace BattleSoup {
 
 			m_CheatToggle.gameObject.SetActive(true);
 			m_DevToggle.gameObject.SetActive(true);
+			m_ReplayButton.gameObject.SetActive(false);
 
 			AvA_Playing = false;
 			AvA_GotoNext = false;
@@ -605,6 +609,7 @@ namespace BattleSoup {
 				m_AvAControlButton_Play.gameObject.SetActive(false);
 				m_AvAControlButton_Pause.gameObject.SetActive(false);
 				m_AvAControlButton_Next.gameObject.SetActive(false);
+				m_ReplayButton.gameObject.SetActive(true);
 				return;
 			}
 

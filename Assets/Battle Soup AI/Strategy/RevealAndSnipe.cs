@@ -90,36 +90,32 @@ namespace BattleSoupAI {
 			// Check for Ability
 			if (WhaleCooldown == 0) {
 				// Use Whale
-				if (GetTileMVP(HiddenValues, info.Tiles, Tile.All, Tile.All, out var bestWhalePos)) {
+				if (GetTileMVP(info.Tiles, Tile.All, Tile.All, MVPConfig.Hidden, out var bestWhalePos)) {
 					result.TargetPosition = bestWhalePos;
 					result.AbilityIndex = WHALE_INDEX;
-					LogMessage?.Invoke($"Search/Whale [{result}]");
 				} else {
 					result.TargetPosition = bestHiddenPos;
 					result.AbilityIndex = -1;
-					LogMessage?.Invoke($"Search/Normal(Whale Fail) [{result}]");
 				}
 			} else if (SquidCooldown == 0 && TileCount_RevealedShip + TileCount_RevealedWater > 0) {
 				// Use Squid
-				if (GetTileMVP(HiddenValues, info.Tiles, Tile.RevealedWater | Tile.RevealedShip, Tile.GeneralWater | Tile.RevealedShip, out var bestSquidPos)) {
+				if (GetTileMVP(info.Tiles, Tile.RevealedWater | Tile.RevealedShip, Tile.GeneralWater | Tile.RevealedShip, MVPConfig.Hidden, out var bestSquidPos)) {
 					result.TargetPosition = bestSquidPos;
 					result.AbilityIndex = SQUID_INDEX;
-					LogMessage?.Invoke($"Search/Squid [{result}]");
 				} else {
 					result.TargetPosition = bestHiddenPos;
 					result.AbilityIndex = -1;
-					LogMessage?.Invoke($"Search/Normal(Squid Fail) [{result}]");
 				}
 			} else if (TurtleCooldown == 0) {
 				// Use Turtle
 				result.TargetPosition = bestHiddenPos;
 				result.AbilityIndex = TURTLE_INDEX;
-				LogMessage?.Invoke($"Search/Turtle [{result}]");
+				////LogMessage?.Invoke($"Search/Turtle [{result}]");
 			} else {
 				// Use Normal Attack
 				result.TargetPosition = bestHiddenPos;
 				result.AbilityIndex = -1;
-				LogMessage?.Invoke($"Search/Normal [{result}]");
+				////LogMessage?.Invoke($"Search/Normal [{result}]");
 			}
 
 
@@ -143,32 +139,28 @@ namespace BattleSoupAI {
 			// Check for Ability
 			if (WhaleCooldown == 0) {
 				// Use Whale
-				if (GetTileMVP(HiddenValues, info.Tiles, Tile.HittedShip, Tile.GeneralWater, out var bestWhalePos)) {
+				if (GetTileMVP(info.Tiles, Tile.HittedShip, Tile.GeneralWater, MVPConfig.Hidden, out var bestWhalePos)) {
 					result.TargetPosition = bestWhalePos;
 					result.AbilityIndex = WHALE_INDEX;
-					LogMessage?.Invoke($"Reveal/Whale [{result}]");
 				} else {
-					LogMessage?.Invoke("Reveal not performed.");
 					return PerformTask_Attack(info);
 				}
 			} else if (SquidCooldown == 0 && TileCount_RevealedShip + TileCount_RevealedWater > 0) {
 				// Use Squid
-				if (GetTileMVP(HiddenValues, info.Tiles, Tile.RevealedWater | Tile.RevealedShip, Tile.GeneralWater | Tile.RevealedShip, out var bestSquidPos)) {
+				if (GetTileMVP(info.Tiles, Tile.RevealedWater | Tile.RevealedShip, Tile.GeneralWater | Tile.RevealedShip, MVPConfig.Hidden, out var bestSquidPos)) {
 					result.TargetPosition = bestSquidPos;
 					result.AbilityIndex = SQUID_INDEX;
-					LogMessage?.Invoke($"Reveal/Squid [{result}]");
 				} else {
-					LogMessage?.Invoke("Reveal not performed.");
 					return PerformTask_Attack(info);
 				}
 			} else if (TurtleCooldown == 0) {
 				// Use Turtle
 				result.TargetPosition = bestHiddenPos;
 				result.AbilityIndex = TURTLE_INDEX;
-				LogMessage?.Invoke($"Reveal/Turtle [{result}]");
+				//LogMessage?.Invoke($"Reveal/Turtle [{result}]");
 			} else {
 				// Perform Attack
-				LogMessage?.Invoke("Reveal not performed.");
+				//LogMessage?.Invoke("Reveal not performed.");
 				return PerformTask_Attack(info);
 			}
 
@@ -212,7 +204,7 @@ namespace BattleSoupAI {
 				if (minSlime < int.MaxValue && (OpponentAliveShipCount <= 2 || minSlime <= 2)) {
 					result.TargetPosition = minPos;
 					result.AbilityIndex = CORACLE_INDEX;
-					LogMessage?.Invoke($"Attack/Snipe [{result}]");
+					//LogMessage?.Invoke($"Attack/Snipe [{result}]");
 					return result;
 				}
 			}
@@ -227,7 +219,7 @@ namespace BattleSoupAI {
 				)) {
 					result.TargetPosition = tPos;
 					result.AbilityIndex = TURTLE_INDEX;
-					LogMessage?.Invoke($"Attack/Turtle [{result}]");
+					//LogMessage?.Invoke($"Attack/Turtle [{result}]");
 					return result;
 				}
 			}
@@ -241,14 +233,14 @@ namespace BattleSoupAI {
 			)) {
 				result.TargetPosition = attPos;
 				result.AbilityIndex = -1;
-				LogMessage?.Invoke($"Attack/Normal [{result}]");
+				//LogMessage?.Invoke($"Attack/Normal [{result}]");
 				return result;
 			}
 
 			// Search with Normal
 			result.TargetPosition = bestHiddenPos;
 			result.AbilityIndex = -1;
-			LogMessage?.Invoke($"Search/Normal(Attack Failed) [{result}]");
+			//LogMessage?.Invoke($"Search/Normal(Attack Failed) [{result}]");
 			return result;
 		}
 

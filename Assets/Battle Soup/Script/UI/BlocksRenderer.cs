@@ -172,6 +172,32 @@ namespace BattleSoup {
 		public void AddBlock (int x, int y, int id, Color color, float scale) => Blocks.Add(new Block(x, y, id, color, scale));
 
 
+		public void AddBody (ShipData shipData) {
+			var (bodyMin, bodyMax) = shipData.Ship.GetBounds(false);
+			var bodySize = bodyMax - bodyMin;
+			bool flip = false;
+			if (bodySize.x > bodySize.y) {
+				(bodyMin, bodyMax) = shipData.Ship.GetBounds(true);
+				bodySize = bodyMax - bodyMin;
+				flip = true;
+			}
+			GridCountX = bodySize.x + 1;
+			GridCountY = bodySize.y + 1;
+			rectTransform.SetSizeWithCurrentAnchors(
+				RectTransform.Axis.Horizontal,
+				GridCountX * 12
+			);
+			rectTransform.SetSizeWithCurrentAnchors(
+				RectTransform.Axis.Vertical,
+				GridCountY * 12
+			);
+			ClearBlock();
+			foreach (var v in shipData.Ship.Body) {
+				AddBlock(flip ? v.y : v.x, flip ? v.x : v.y, 0);
+			}
+		}
+
+
 		public void ClearBlock () {
 			if (Blocks.Count > 0) {
 				Blocks.Clear();
@@ -183,27 +209,6 @@ namespace BattleSoup {
 
 
 		#endregion
-
-
-
-
-		#region --- LGC ---
-
-
-
-
-		#endregion
-
-
-
-
-		#region --- UTL ---
-
-
-
-
-		#endregion
-
 
 
 
