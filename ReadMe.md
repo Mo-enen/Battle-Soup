@@ -1,12 +1,8 @@
 # <img src="_Res/Logo Small.png" alt="Logo" style="zoom:100%;" />    Battle Soup
 
-------
-
 > AI for [BattleTabs](https://battletabs.io)
 
-##### Download
-
-- Download latest release [HERE](https://github.com/Mo-enen/Battle-Soup/releases)
+Download latest version in [HERE](https://github.com/Mo-enen/Battle-Soup/releases)
 
 <img src="_Res/Screenshot 0.png" style="zoom:100%;" />
 
