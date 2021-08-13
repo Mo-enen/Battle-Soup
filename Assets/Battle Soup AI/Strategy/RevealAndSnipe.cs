@@ -15,6 +15,7 @@ namespace BattleSoupAI {
 		private const string TASK_SEARCH = "S";
 		private const string TASK_REVEAL = "R";
 		private const string TASK_ATTACK = "A";
+		private const string TASK_ATTACK_FOUNDED = "AF";
 		private const int CORACLE_INDEX = 0;
 		private const int WHALE_INDEX = 1;
 		private const int SQUID_INDEX = 2;
@@ -38,13 +39,13 @@ namespace BattleSoupAI {
 		#region --- API ---
 
 
-		protected override string GetTask (BattleInfo info) {
-			if (ExposedShipCount == 0) {
+		protected override string GetTask (BattleInfo ownInfo, BattleInfo info) {
+			if (FoundShipCount > OpponentSunkShipCount) {
+				// Ship Found
+				return TASK_ATTACK_FOUNDED;
+			} else if (ExposedShipCount == 0) {
 				// Ships All Hidden
 				return TASK_SEARCH;
-			} else if (FoundShipCount > 0) {
-				// Ship Found
-				return TASK_ATTACK;
 			} else {
 				// Ship Exposed but Not Found
 				if (TileCount_RevealedShip > 0) {
@@ -58,10 +59,11 @@ namespace BattleSoupAI {
 		}
 
 
-		protected override AnalyseResult PerformTask (BattleInfo oppInfo, string taskID) => taskID switch {
+		protected override AnalyseResult PerformTask (BattleInfo ownInfo, BattleInfo oppInfo, string taskID) => taskID switch {
 			TASK_SEARCH => PerformTask_Search(oppInfo),
 			TASK_REVEAL => PerformTask_Reveal(oppInfo),
 			TASK_ATTACK => PerformTask_Attack(oppInfo),
+			TASK_ATTACK_FOUNDED => PerformTask_AttackFounded(oppInfo),
 			_ => AnalyseResult.NotPerformed,
 		};
 
@@ -90,7 +92,7 @@ namespace BattleSoupAI {
 			// Check for Ability
 			if (WhaleCooldown == 0) {
 				// Use Whale
-				if (GetTileMVP(info.Tiles, Tile.All, Tile.All, MVPConfig.Hidden, out var bestWhalePos)) {
+				if (GetMVT(info.Tiles, Tile.All, Tile.All, MVPConfig.Hidden, out var bestWhalePos)) {
 					result.TargetPosition = bestWhalePos;
 					result.AbilityIndex = WHALE_INDEX;
 				} else {
@@ -99,7 +101,7 @@ namespace BattleSoupAI {
 				}
 			} else if (SquidCooldown == 0 && TileCount_RevealedShip + TileCount_RevealedWater > 0) {
 				// Use Squid
-				if (GetTileMVP(info.Tiles, Tile.RevealedWater | Tile.RevealedShip, Tile.GeneralWater | Tile.RevealedShip, MVPConfig.Hidden, out var bestSquidPos)) {
+				if (GetMVT(info.Tiles, Tile.RevealedWater | Tile.RevealedShip, Tile.GeneralWater | Tile.RevealedShip, MVPConfig.Hidden, out var bestSquidPos)) {
 					result.TargetPosition = bestSquidPos;
 					result.AbilityIndex = SQUID_INDEX;
 				} else {
@@ -110,12 +112,10 @@ namespace BattleSoupAI {
 				// Use Turtle
 				result.TargetPosition = bestHiddenPos;
 				result.AbilityIndex = TURTLE_INDEX;
-				////LogMessage?.Invoke($"Search/Turtle [{result}]");
 			} else {
 				// Use Normal Attack
 				result.TargetPosition = bestHiddenPos;
 				result.AbilityIndex = -1;
-				////LogMessage?.Invoke($"Search/Normal [{result}]");
 			}
 
 
@@ -139,7 +139,7 @@ namespace BattleSoupAI {
 			// Check for Ability
 			if (WhaleCooldown == 0) {
 				// Use Whale
-				if (GetTileMVP(info.Tiles, Tile.HittedShip, Tile.GeneralWater, MVPConfig.Hidden, out var bestWhalePos)) {
+				if (GetMVT(info.Tiles, Tile.HittedShip, Tile.GeneralWater, MVPConfig.Hidden, out var bestWhalePos)) {
 					result.TargetPosition = bestWhalePos;
 					result.AbilityIndex = WHALE_INDEX;
 				} else {
@@ -147,7 +147,7 @@ namespace BattleSoupAI {
 				}
 			} else if (SquidCooldown == 0 && TileCount_RevealedShip + TileCount_RevealedWater > 0) {
 				// Use Squid
-				if (GetTileMVP(info.Tiles, Tile.RevealedWater | Tile.RevealedShip, Tile.GeneralWater | Tile.RevealedShip, MVPConfig.Hidden, out var bestSquidPos)) {
+				if (GetMVT(info.Tiles, Tile.RevealedWater | Tile.RevealedShip, Tile.GeneralWater | Tile.RevealedShip, MVPConfig.Hidden, out var bestSquidPos)) {
 					result.TargetPosition = bestSquidPos;
 					result.AbilityIndex = SQUID_INDEX;
 				} else {
@@ -245,8 +245,82 @@ namespace BattleSoupAI {
 		}
 
 
-		#endregion
+		private AnalyseResult PerformTask_AttackFounded (BattleInfo info) {
 
+			var result = AnalyseResult.None;
+
+			// Coracle Ready
+			if (CoracleCooldown == 0) {
+				int targetIndex = -1;
+				int targetValue = 0;
+				// Find Target
+				for (int i = 0; i < ShipFoundPosition.Length; i++) {
+					var kPos = ShipFoundPosition[i];
+					if (!kPos.HasValue && info.ShipsAlive[i]) { continue; }
+					if (GetTileCountInShip(
+						info.Tiles, Tile.RevealedShip, info.Ships[i], kPos.Value
+					) <= 0) { continue; }
+					int hCount = GetTileCountInShip(info.Tiles, Tile.HittedShip | Tile.SunkShip, info.Ships[i], kPos.Value);
+					int value = info.Ships[i].Body.Length - hCount - info.Ships[i].TerminateHP;
+					if (value > targetValue) {
+						targetIndex = i;
+						targetValue = value;
+					}
+				}
+				// Snipe
+				if (targetIndex >= 0) {
+					var kPos = ShipFoundPosition[targetIndex];
+					if (GetFirstTileInShip(info.Tiles, Tile.RevealedShip, info.Ships[targetIndex], kPos.Value, out var posResult)) {
+						result.TargetPosition = posResult;
+						result.AbilityIndex = CORACLE_INDEX;
+						return result;
+					}
+				}
+			}
+
+			// Turtle Ready
+			if (TurtleCooldown == 0) {
+				for (int i = 0; i < ShipFoundPosition.Length; i++) {
+					var kPos = ShipFoundPosition[i];
+					if (!kPos.HasValue && info.ShipsAlive[i]) { continue; }
+					if (GetFirstTileInShip(info.Tiles, Tile.RevealedShip | Tile.GeneralWater, info.Ships[i], kPos.Value, out var posResult)) {
+						result.TargetPosition = posResult;
+						result.AbilityIndex = TURTLE_INDEX;
+						return result;
+					}
+				}
+			}
+
+			// Squid Ready
+			if (SquidCooldown == 0) {
+				for (int i = 0; i < ShipFoundPosition.Length; i++) {
+					var kPos = ShipFoundPosition[i];
+					if (!kPos.HasValue && info.ShipsAlive[i]) { continue; }
+					if (GetFirstTileInShip(info.Tiles, Tile.RevealedShip, info.Ships[i], kPos.Value, out var posResult)) {
+						result.TargetPosition = posResult;
+						result.AbilityIndex = SQUID_INDEX;
+						return result;
+					}
+				}
+			}
+
+			// Normal Attack
+			for (int i = 0; i < ShipFoundPosition.Length; i++) {
+				var kPos = ShipFoundPosition[i];
+				if (!kPos.HasValue && info.ShipsAlive[i]) { continue; }
+				if (GetFirstTileInShip(info.Tiles, Tile.RevealedShip | Tile.GeneralWater, info.Ships[i], kPos.Value, out var posResult)) {
+					result.TargetPosition = posResult;
+					result.AbilityIndex = -1;
+					return result;
+				}
+			}
+
+			// Failback
+			return PerformTask_Attack(info);
+		}
+
+
+		#endregion
 
 
 

@@ -557,57 +557,6 @@ namespace BattleSoupAI {
 		}
 
 
-		public int GetLiveShipCount (BattleInfo info) {
-			int result = 0;
-			for (int i = 0; i < info.ShipsAlive.Length; i++) {
-				bool alive = info.ShipsAlive[i];
-				if (alive) {
-					result++;
-				}
-			}
-			return result;
-		}
-
-
-		public bool TileCanBePartOfShipOrNot (Tile[,] tiles, int x, int y, Ship ship, bool mustAlive = true) {
-			int size = tiles.GetLength(0);
-			int shipBodyCount = ship.Body.Length;
-			int hittedCount;
-			foreach (var pivotBody in ship.Body) {
-				hittedCount = 0;
-				if (CheckShip(pivotBody, true) || CheckShip(pivotBody, false)) {
-					return true;
-				}
-			}
-			return false;
-			// Func
-			bool CheckShip (Int2 pivotBody, bool flip) {
-				foreach (var v in ship.Body) {
-					int _x = x + (flip ? -pivotBody.y + v.y : -pivotBody.x + v.x);
-					int _y = y + (flip ? -pivotBody.x + v.x : -pivotBody.y + v.y);
-					if (_x < 0 || _x >= size || _y < 0 || _y >= size) {
-						return false;
-					}
-					var tile = tiles[_x, _y];
-					bool sunkTile = tile == Tile.SunkShip;
-					bool hitTile = tile == Tile.HittedShip;
-					bool revealTile = tile == Tile.RevealedShip;
-					bool waterTile = tile == Tile.GeneralWater;
-					if (sunkTile || hitTile) {
-						hittedCount++;
-						if ((hittedCount >= shipBodyCount || sunkTile) && mustAlive) {
-							return false;
-						}
-					} else if (!revealTile && !waterTile) {
-						return false;
-					}
-				}
-				return true;
-			}
-
-		}
-
-
 		public (Int2 pos, float max) GetMaxValue (float[,,] values, int index) {
 			Int2 pos = default;
 			float max = 0;
@@ -649,6 +598,75 @@ namespace BattleSoupAI {
 				}
 			}
 			return false;
+		}
+
+
+		public bool GetFirstTileInShip (Tile[,] tiles, Tile filter, Ship ship, ShipPosition shipPos, out Int2 result) {
+			result = default;
+			foreach (var v in ship.Body) {
+				var pos = shipPos.GetPosition(v);
+				if (filter.HasFlag(tiles[pos.x, pos.y])) {
+					result = pos;
+					return true;
+				}
+			}
+			return false;
+		}
+
+
+		public bool GetMVTInShip (Tile[,] tiles, Ship ship, List<Attack> attacks, ShipPosition shipPos, out Int2 position, out AbilityDirection direction) {
+			position = default;
+			direction = default;
+			var hash = new HashSet<Int2>();
+			foreach (var v in ship.Body) {
+				var pos = shipPos.GetPosition(v);
+				if (!hash.Contains(pos)) {
+					hash.Add(pos);
+				}
+			}
+			int maxValue = 0;
+			int mapSize = tiles.GetLength(0);
+			var filter = Tile.RevealedShip | Tile.GeneralWater;
+			for (int j = 0; j < mapSize; j++) {
+				for (int i = 0; i < mapSize; i++) {
+					for (int dirIndex = 0; dirIndex < 4; dirIndex++) {
+						var dir = (AbilityDirection)dirIndex;
+						int value = GetValue(i, j, dir);
+						if (value > maxValue) {
+							maxValue = value;
+							position.x = i;
+							position.y = j;
+							direction = dir;
+						}
+					}
+				}
+			}
+			return false;
+			// Func
+			int GetValue (int _i, int _j, AbilityDirection _dir) {
+				int value = 0;
+				foreach (var att in attacks) {
+					if (att.Trigger == AttackTrigger.PassiveRandom || att.Trigger == AttackTrigger.Random) { continue; }
+					var (x, y) = att.GetPosition(_i, _j, _dir);
+					if (x < 0 || y < 0 || x >= mapSize || y >= mapSize) { continue; }
+					if (hash.Contains(new Int2(x, y)) && filter.HasFlag(tiles[x, y])) {
+						value++;
+					}
+				}
+				return value;
+			}
+		}
+
+
+		public int GetTileCountInShip (Tile[,] tiles, Tile filter, Ship ship, ShipPosition shipPos) {
+			int result = 0;
+			foreach (var v in ship.Body) {
+				var pos = shipPos.GetPosition(v);
+				if (filter.HasFlag(tiles[pos.x, pos.y])) {
+					result++;
+				}
+			}
+			return result;
 		}
 
 

@@ -11,6 +11,7 @@ namespace BattleSoupAI {
 		// Const
 		private const string TASK_SEARCH = "S";
 		private const string TASK_ATTACK = "A";
+		private const string TASK_ATTACK_FOUNDED = "AF";
 		private const int SAILBOAT_INDEX = 0;
 		private const int SEAMONSTER_INDEX = 1;
 		private const int LONGBOAT_INDEX = 2;
@@ -28,8 +29,11 @@ namespace BattleSoupAI {
 
 
 		// API
-		protected override string GetTask (BattleInfo info) {
-			if (UsingAbilityIndex >= 0) {
+		protected override string GetTask (BattleInfo ownInfo, BattleInfo info) {
+			if (FoundShipCount > OpponentSunkShipCount) {
+				// Ship Found
+				return TASK_ATTACK_FOUNDED;
+			} else if (UsingAbilityIndex >= 0) {
 				// Longboat Attacking
 				return TASK_ATTACK;
 			} else if (ExposedShipCount == 0) {
@@ -42,9 +46,10 @@ namespace BattleSoupAI {
 		}
 
 
-		protected override AnalyseResult PerformTask (BattleInfo oppInfo, string taskID) => taskID switch {
+		protected override AnalyseResult PerformTask (BattleInfo ownInfo, BattleInfo oppInfo, string taskID) => taskID switch {
 			TASK_SEARCH => PerformTask_Search(oppInfo),
 			TASK_ATTACK => PerformTask_Attack(oppInfo),
+			TASK_ATTACK_FOUNDED => PerformTask_AttackFounded(ownInfo, oppInfo),
 			_ => AnalyseResult.NotPerformed,
 		};
 
@@ -126,11 +131,19 @@ namespace BattleSoupAI {
 			var result = AnalyseResult.None;
 			bool mustUseLongboat = UsingAbilityIndex == LONGBOAT_INDEX;
 
+			var bestHiddenPos = HiddenValueMax[info.Ships.Length].pos;
+			if (
+				info.Tiles[bestHiddenPos.x, bestHiddenPos.y] != Tile.GeneralWater &&
+				!GetFirstTile(info.Tiles, Tile.GeneralWater | Tile.RevealedShip, out bestHiddenPos)
+			) {
+				bestHiddenPos = default;
+			}
+
 			if (mustUseLongboat || LongBoatCooldown == 0) {
 				// Attack with Longboat
 				if (
 					TileCount_RevealedShip + TileCount_HittedShip > 0 &&
-					GetTileMVP(info.Tiles, Tile.GeneralWater | Tile.RevealedShip, Tile.None, MVPConfig.Exposed, out var bestLongPos)
+					GetMVT(info.Tiles, Tile.GeneralWater | Tile.RevealedShip, Tile.None, MVPConfig.Exposed, out var bestLongPos)
 				) {
 					result.AbilityIndex = LONGBOAT_INDEX;
 					result.TargetPosition = bestLongPos;
@@ -138,10 +151,17 @@ namespace BattleSoupAI {
 				}
 			}
 
+			// Longboat Failback
+			if (mustUseLongboat) {
+				result.AbilityIndex = LONGBOAT_INDEX;
+				result.TargetPosition = bestHiddenPos;
+				return result;
+			}
+
 			if (SailBoatCooldown == 0) {
 				// Attack with Sailboat
 				var filter = Tile.GeneralWater | Tile.GeneralStone | Tile.RevealedShip;
-				if (GetTileMVP(
+				if (GetMVT(
 					info.Tiles, filter, filter, info.Ships[SAILBOAT_INDEX].Ability.Attacks,
 					MVPConfig.Both, out var bestSailPos, out var bestDir
 				)) {
@@ -165,16 +185,63 @@ namespace BattleSoupAI {
 			}
 
 			// Fallback Attack
-			var bestHiddenPos = HiddenValueMax[info.Ships.Length].pos;
-			if (
-				info.Tiles[bestHiddenPos.x, bestHiddenPos.y] != Tile.GeneralWater &&
-				!GetFirstTile(info.Tiles, Tile.GeneralWater | Tile.RevealedShip, out bestHiddenPos)
-			) {
-				bestHiddenPos = default;
-			}
 			result.AbilityIndex = -1;
 			result.TargetPosition = bestHiddenPos;
 			return result;
+		}
+
+
+		private AnalyseResult PerformTask_AttackFounded (BattleInfo ownInfo, BattleInfo oppInfo) {
+
+			var result = AnalyseResult.None;
+			bool mustUseLongboat = UsingAbilityIndex == LONGBOAT_INDEX;
+
+			// Attack with Longboat
+			if (mustUseLongboat || LongBoatCooldown == 0) {
+				for (int i = 0; i < ShipFoundPosition.Length; i++) {
+					var kPos = ShipFoundPosition[i];
+					if (!kPos.HasValue && oppInfo.ShipsAlive[i]) { continue; }
+					if (GetFirstTileInShip(oppInfo.Tiles, Tile.RevealedShip | Tile.GeneralWater, oppInfo.Ships[i], kPos.Value, out var posResult)) {
+						result.TargetPosition = posResult;
+						result.AbilityIndex = LONGBOAT_INDEX;
+						return result;
+					}
+				}
+			}
+
+			// Failback Longboat
+			if (mustUseLongboat) {
+				return PerformTask_Attack(oppInfo);
+			}
+
+			// Attack with Sailboat
+			if (SailBoatCooldown == 0) {
+				for (int i = 0; i < ShipFoundPosition.Length; i++) {
+					var kPos = ShipFoundPosition[i];
+					if (!kPos.HasValue && oppInfo.ShipsAlive[i]) { continue; }
+					if (GetMVTInShip(oppInfo.Tiles, oppInfo.Ships[i], ownInfo.Ships[SAILBOAT_INDEX].Ability.Attacks, kPos.Value, out var resultPos, out var resultDir)) {
+						result.TargetPosition = resultPos;
+						result.AbilityDirection = resultDir;
+						result.AbilityIndex = LONGBOAT_INDEX;
+						return result;
+					}
+				}
+			}
+
+			// Normal Attack
+			for (int i = 0; i < ShipFoundPosition.Length; i++) {
+				var kPos = ShipFoundPosition[i];
+				if (!kPos.HasValue && oppInfo.ShipsAlive[i]) { continue; }
+				if (GetFirstTileInShip(oppInfo.Tiles, Tile.RevealedShip | Tile.GeneralWater, oppInfo.Ships[i], kPos.Value, out var posResult)) {
+					result.TargetPosition = posResult;
+					result.AbilityIndex = -1;
+					return result;
+				}
+			}
+
+
+			// Failback
+			return PerformTask_Attack(oppInfo);
 		}
 
 

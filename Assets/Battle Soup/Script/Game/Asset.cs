@@ -114,6 +114,7 @@ namespace BattleSoup {
 					MapDatas.Add(new MapData(Mathf.Max(textureWidth, textureHeight), stones.ToArray()));
 				} catch { }
 			}
+			MapDatas.Sort((a, b) => a.Size.CompareTo(b.Size));
 			Resources.UnloadUnusedAssets();
 		}
 

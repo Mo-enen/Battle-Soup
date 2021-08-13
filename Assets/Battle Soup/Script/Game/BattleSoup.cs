@@ -33,7 +33,7 @@ namespace BattleSoup {
 		private bool QuitGameForReal = false;
 
 		// Saving
-		private readonly SavingString SelectedFleet = new SavingString("BattleSoup.SelectedFleet", "Coracle+KillerSquid+SeaTurtle+Whale");
+		private readonly SavingString SelectedFleet = new SavingString("BattleSoup.SelectedFleet", "Coracle+Whale+KillerSquid+SeaTurtle");
 		private readonly SavingBool UseSound = new SavingBool("BattleSoup.UseSound", true);
 		private readonly SavingBool AutoPlayAvA = new SavingBool("BattleSoup.AutoPlayAvA", true);
 		private readonly SavingInt SelectedMapA = new SavingInt("BattleSoup.SelectedMapA", 0);
@@ -59,7 +59,10 @@ namespace BattleSoup {
 			m_Game.Game.gameObject.SetActive(false);
 			m_Game.Game.SetupDelegate();
 			Game.GetShip = (key) => m_Game.Asset.GetShipData(key);
-			SoupStrategy.LogMessage = Debug.Log;
+			SoupStrategy.LogMessage = (msg) => {
+				Debug.Log(msg);
+				ShowMessage(msg);
+			};
 
 			// Quit Game Confirm
 			Application.wantsToQuit += () => {

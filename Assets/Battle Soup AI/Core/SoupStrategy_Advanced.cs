@@ -17,6 +17,7 @@ namespace BattleSoupAI {
 		// Data
 		protected int OwnAliveShipCount = 0;
 		protected int OpponentAliveShipCount = 0;
+		protected int OpponentSunkShipCount = 0;
 		protected int ExposedShipCount = 0;
 		protected int FoundShipCount = 0;
 		protected int ShipWithMinimalPotentialPos = -1;
@@ -43,147 +44,155 @@ namespace BattleSoupAI {
 		// API
 		public override AnalyseResult Analyse (BattleInfo ownInfo, BattleInfo oppInfo, int usingAbilityIndex = -1) {
 
-			// Check
-			string msg = AvailableCheck(ownInfo, oppInfo);
-			if (!string.IsNullOrEmpty(msg)) {
-				return new AnalyseResult() { ErrorMessage = msg, };
-			}
+			try {
 
-			UsingAbilityIndex = usingAbilityIndex;
+				// Check
+				string msg = AvailableCheck(ownInfo, oppInfo);
+				if (!string.IsNullOrEmpty(msg)) {
+					return new AnalyseResult() { ErrorMessage = msg, };
+				}
 
-			// Cooldown
-			Cooldowns = new int[ownInfo.Cooldowns.Length];
-			for (int i = 0; i < ownInfo.Cooldowns.Length; i++) {
-				Cooldowns[i] = ownInfo.ShipsAlive[i] ? ownInfo.Cooldowns[i] : -1;
-			}
+				UsingAbilityIndex = usingAbilityIndex;
 
-			// Alive Ship Count
-			OwnAliveShipCount = ownInfo.AliveShipCount;
-			OpponentAliveShipCount = oppInfo.AliveShipCount;
+				// Cooldown
+				Cooldowns = new int[ownInfo.Cooldowns.Length];
+				for (int i = 0; i < ownInfo.Cooldowns.Length; i++) {
+					Cooldowns[i] = ownInfo.ShipsAlive[i] ? ownInfo.Cooldowns[i] : -1;
+				}
 
-			// Revealed Tile Count
-			TileCount_RevealedShip = 0;
-			TileCount_HittedShip = 0;
-			TileCount_RevealedWater = 0;
-			TileCount_GeneralWater = 0;
-			for (int y = 0; y < oppInfo.MapSize; y++) {
-				for (int x = 0; x < oppInfo.MapSize; x++) {
-					switch (oppInfo.Tiles[x, y]) {
-						case Tile.RevealedShip:
-							TileCount_RevealedShip++;
-							break;
-						case Tile.HittedShip:
-							TileCount_HittedShip++;
-							break;
-						case Tile.GeneralWater:
-							TileCount_GeneralWater++;
-							break;
-						case Tile.RevealedWater:
-							TileCount_RevealedWater++;
-							break;
+				// Alive Ship Count
+				OwnAliveShipCount = ownInfo.AliveShipCount;
+				OpponentAliveShipCount = oppInfo.AliveShipCount;
+				OpponentSunkShipCount = oppInfo.Ships.Length - oppInfo.AliveShipCount;
+
+				// Revealed Tile Count
+				TileCount_RevealedShip = 0;
+				TileCount_HittedShip = 0;
+				TileCount_RevealedWater = 0;
+				TileCount_GeneralWater = 0;
+				for (int y = 0; y < oppInfo.MapSize; y++) {
+					for (int x = 0; x < oppInfo.MapSize; x++) {
+						switch (oppInfo.Tiles[x, y]) {
+							case Tile.RevealedShip:
+								TileCount_RevealedShip++;
+								break;
+							case Tile.HittedShip:
+								TileCount_HittedShip++;
+								break;
+							case Tile.GeneralWater:
+								TileCount_GeneralWater++;
+								break;
+							case Tile.RevealedWater:
+								TileCount_RevealedWater++;
+								break;
+						}
 					}
 				}
-			}
 
-			// Potential
-			if (!CalculatePotentialPositions(
-				oppInfo,
-				Tile.GeneralWater,
-				Tile.GeneralWater,
-				ref HiddenPotentialPos
-			)) {
-				return new AnalyseResult() {
-					ErrorMessage = "Fail to calculate hidden positions",
-				};
-			}
-			if (!CalculatePotentialPositions(
-				oppInfo,
-				Tile.HittedShip | Tile.RevealedShip,
-				Tile.GeneralWater | Tile.HittedShip | Tile.RevealedShip,
-				ref ExposedPotentialPos
-			)) {
-				return new AnalyseResult() {
-					ErrorMessage = "Fail to calculate exposed positions",
-				};
-			}
-			RemoveImpossiblePositions(
-				oppInfo, ref HiddenPotentialPos, ref ExposedPotentialPos
-			);
-
-			// Values
-			if (!CalculatePotentialValues(
-				oppInfo,
-				HiddenPotentialPos,
-				ref HiddenValues, out _, out _
-			)) {
-				return new AnalyseResult() {
-					ErrorMessage = "Fail to calculate hidden values",
-				};
-			}
-
-			if (!CalculatePotentialValues(
-				oppInfo,
-				ExposedPotentialPos,
-				ref ExposedValues, out _, out _
-			)) {
-				return new AnalyseResult() {
-					ErrorMessage = "Fail to calculate exposed values",
-				};
-			}
-
-			// Slime
-			CalculateSlimeValues(oppInfo, Tile.All, ref SlimeValues);
-			CalculateSlimeValues(oppInfo, Tile.RevealedShip, ref SlimeValues_RevealedOnly);
-			CalculateSlimeValues(oppInfo, Tile.HittedShip, ref SlimeValues_HittedOnly);
-
-			// Get Most Exposed
-			if (MostExposed == null || MostExposed.Length != oppInfo.Ships.Length) {
-				MostExposed = new int[oppInfo.Ships.Length];
-			}
-			for (int i = 0; i < oppInfo.Ships.Length; i++) {
-				MostExposed[i] = GetMostExposedPositionIndex(oppInfo.Ships[i], oppInfo.Tiles, ExposedPotentialPos[i]);
-			}
-
-			// Get Value Max
-			if (HiddenValueMax == null || HiddenValueMax.Length != oppInfo.Ships.Length + 1) {
-				HiddenValueMax = new (Int2, float)[oppInfo.Ships.Length + 1];
-			}
-			if (ExposedValueMax == null || ExposedValueMax.Length != oppInfo.Ships.Length + 1) {
-				ExposedValueMax = new (Int2, float)[oppInfo.Ships.Length + 1];
-			}
-			for (int i = 0; i < oppInfo.Ships.Length + 1; i++) {
-				HiddenValueMax[i] = GetMaxValue(HiddenValues, i);
-				ExposedValueMax[i] = GetMaxValue(ExposedValues, i);
-			}
-
-			// Exposed Ship Count
-			ExposedShipCount = 0;
-			for (int i = 0; i < ExposedPotentialPos.Length; i++) {
-				int count = ExposedPotentialPos[i].Count;
-				if (count > 0) {
-					ExposedShipCount++;
+				// Potential
+				if (!CalculatePotentialPositions(
+					oppInfo,
+					Tile.GeneralWater,
+					Tile.GeneralWater,
+					ref HiddenPotentialPos
+				)) {
+					return new AnalyseResult() {
+						ErrorMessage = "Fail to calculate hidden positions",
+					};
 				}
-			}
-
-			// Ship Found
-			FoundShipCount = 0;
-			if (ShipFoundPosition == null || ShipFoundPosition.Length != oppInfo.Ships.Length) {
-				ShipFoundPosition = new ShipPosition?[oppInfo.Ships.Length];
-			}
-			for (int i = 0; i < ShipFoundPosition.Length; i++) {
-				if (oppInfo.KnownPositions[i].HasValue) {
-					ShipFoundPosition[i] = oppInfo.KnownPositions[i].Value;
-					FoundShipCount++;
-				} else if (HiddenPotentialPos[i].Count + ExposedPotentialPos[i].Count == 1) {
-					ShipFoundPosition[i] = HiddenPotentialPos[i].Count > 0 ? HiddenPotentialPos[i][0] : ExposedPotentialPos[i][0];
-					FoundShipCount++;
+				if (!CalculatePotentialPositions(
+					oppInfo,
+					Tile.HittedShip | Tile.RevealedShip,
+					Tile.GeneralWater | Tile.HittedShip | Tile.RevealedShip,
+					ref ExposedPotentialPos
+				)) {
+					return new AnalyseResult() {
+						ErrorMessage = "Fail to calculate exposed positions",
+					};
 				}
+				RemoveImpossiblePositions(
+					oppInfo, ref HiddenPotentialPos, ref ExposedPotentialPos
+				);
+
+				// Values
+				if (!CalculatePotentialValues(
+					oppInfo,
+					HiddenPotentialPos,
+					ref HiddenValues, out _, out _
+				)) {
+					return new AnalyseResult() {
+						ErrorMessage = "Fail to calculate hidden values",
+					};
+				}
+
+				if (!CalculatePotentialValues(
+					oppInfo,
+					ExposedPotentialPos,
+					ref ExposedValues, out _, out _
+				)) {
+					return new AnalyseResult() {
+						ErrorMessage = "Fail to calculate exposed values",
+					};
+				}
+
+				// Slime
+				CalculateSlimeValues(oppInfo, Tile.All, ref SlimeValues);
+				CalculateSlimeValues(oppInfo, Tile.RevealedShip, ref SlimeValues_RevealedOnly);
+				CalculateSlimeValues(oppInfo, Tile.HittedShip, ref SlimeValues_HittedOnly);
+
+				// Get Most Exposed
+				if (MostExposed == null || MostExposed.Length != oppInfo.Ships.Length) {
+					MostExposed = new int[oppInfo.Ships.Length];
+				}
+				for (int i = 0; i < oppInfo.Ships.Length; i++) {
+					MostExposed[i] = GetMostExposedPositionIndex(oppInfo.Ships[i], oppInfo.Tiles, ExposedPotentialPos[i]);
+				}
+
+				// Get Value Max
+				if (HiddenValueMax == null || HiddenValueMax.Length != oppInfo.Ships.Length + 1) {
+					HiddenValueMax = new (Int2, float)[oppInfo.Ships.Length + 1];
+				}
+				if (ExposedValueMax == null || ExposedValueMax.Length != oppInfo.Ships.Length + 1) {
+					ExposedValueMax = new (Int2, float)[oppInfo.Ships.Length + 1];
+				}
+				for (int i = 0; i < oppInfo.Ships.Length + 1; i++) {
+					HiddenValueMax[i] = GetMaxValue(HiddenValues, i);
+					ExposedValueMax[i] = GetMaxValue(ExposedValues, i);
+				}
+
+				// Exposed Ship Count
+				ExposedShipCount = 0;
+				for (int i = 0; i < ExposedPotentialPos.Length; i++) {
+					int count = ExposedPotentialPos[i].Count;
+					if (count > 0) {
+						ExposedShipCount++;
+					}
+				}
+
+				// Ship Found
+				FoundShipCount = 0;
+				if (ShipFoundPosition == null || ShipFoundPosition.Length != oppInfo.Ships.Length) {
+					ShipFoundPosition = new ShipPosition?[oppInfo.Ships.Length];
+				}
+				for (int i = 0; i < ShipFoundPosition.Length; i++) {
+					if (oppInfo.KnownPositions[i].HasValue) {
+						ShipFoundPosition[i] = oppInfo.KnownPositions[i].Value;
+						FoundShipCount++;
+					} else if (HiddenPotentialPos[i].Count + ExposedPotentialPos[i].Count == 1) {
+						ShipFoundPosition[i] = HiddenPotentialPos[i].Count > 0 ? HiddenPotentialPos[i][0] : ExposedPotentialPos[i][0];
+						FoundShipCount++;
+					}
+				}
+
+				// Ship with Minimal Potential-Pos-Count
+				ShipWithMinimalPotentialPos = GetShipWithMinimalPotentialPosCount(oppInfo, HiddenPotentialPos, ExposedPotentialPos);
+
+				return PerformTask(ownInfo, oppInfo, GetTask(ownInfo, oppInfo));
+
+			} catch (System.Exception ex) {
+				LogMessage(ex.Message);
+				return default;
 			}
-
-			// Ship with Minimal Potential-Pos-Count
-			ShipWithMinimalPotentialPos = GetShipWithMinimalPotentialPosCount(oppInfo, HiddenPotentialPos, ExposedPotentialPos);
-
-			return PerformTask(oppInfo, GetTask(oppInfo));
 		}
 
 
@@ -217,10 +226,10 @@ namespace BattleSoupAI {
 		}
 
 
-		protected abstract string GetTask (BattleInfo oppInfo);
+		protected abstract string GetTask (BattleInfo ownInfo, BattleInfo oppInfo);
 
 
-		protected abstract AnalyseResult PerformTask (BattleInfo oppInfo, string taskID);
+		protected abstract AnalyseResult PerformTask (BattleInfo ownInfo, BattleInfo oppInfo, string taskID);
 
 
 		// Util
@@ -249,9 +258,9 @@ namespace BattleSoupAI {
 		}
 
 
-		public bool GetTileMVP (Tile[,] tiles, Tile filter, MVPConfig config, out Int2 pos) => GetTileMVP(tiles, filter, Tile.None, config, out pos);
-		public bool GetTileMVP (Tile[,] tiles, Tile filter, Tile neighbourFilter, MVPConfig config, out Int2 pos) => GetTileMVP(tiles, filter, neighbourFilter, null, config, out pos, out _);
-		public bool GetTileMVP (Tile[,] tiles, Tile filter, Tile neighbourFilter, List<Attack> attacks, MVPConfig config, out Int2 pos, out AbilityDirection direcion) {
+		public bool GetMVT (Tile[,] tiles, Tile filter, MVPConfig config, out Int2 pos) => GetMVT(tiles, filter, Tile.None, config, out pos);
+		public bool GetMVT (Tile[,] tiles, Tile filter, Tile neighbourFilter, MVPConfig config, out Int2 pos) => GetMVT(tiles, filter, neighbourFilter, null, config, out pos, out _);
+		public bool GetMVT (Tile[,] tiles, Tile filter, Tile neighbourFilter, List<Attack> attacks, MVPConfig config, out Int2 pos, out AbilityDirection direcion) {
 			var hdValues = HiddenValues;
 			var exValues = ExposedValues;
 			int size = tiles.GetLength(0);

@@ -4,7 +4,9 @@
 
 > AI for [BattleTabs](https://battletabs.io)
 
+##### Download
 
+- Download latest release [HERE](https://github.com/Mo-enen/Battle-Soup/releases)
 
 <img src="_Res/Screenshot 0.png" style="zoom:100%;" />
 
@@ -30,6 +32,7 @@
 - Unity Editor 2021.1.13f1c1
 - API Compatibility Level .NET 4.x
 - Decompress the zip file before use
+- Available on PC and Mac
 
 
 

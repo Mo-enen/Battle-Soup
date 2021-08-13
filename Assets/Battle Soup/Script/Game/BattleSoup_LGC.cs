@@ -146,7 +146,7 @@ namespace BattleSoup {
 			map = GetSelectingMap(group);
 			positions = null;
 			for (int i = 0; i < 36; i++) {
-				if (SoupStrategy.PositionShips_Random(
+				if (strategy.PositionShips(
 					map.Size, ships, map.Stones, out positions
 				)) { break; }
 			}
