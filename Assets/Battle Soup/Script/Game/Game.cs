@@ -774,8 +774,9 @@ namespace BattleSoup {
 				aData.AbilityAttackIndex++
 			) {
 				var attack = performAbility.Attacks[aData.AbilityAttackIndex];
-				AttackResult result = AttackResult.None;
+				var result = AttackResult.None;
 				bool isHit = attack.IsHitOpponent;
+				bool needBreak = false;
 				switch (attack.Trigger) {
 
 
@@ -824,19 +825,24 @@ namespace BattleSoup {
 						break;
 
 
-				}
+					case AttackTrigger.Break:
+						needBreak = true;
+						break;
 
-				// Break Check
-				if (
-					(performAbility.BreakOnMiss && isHit && result.HasFlag(AttackResult.Miss)) ||
-					(performAbility.BreakOnSunk && result.HasFlag(AttackResult.SunkShip))
-				) { break; }
+				}
 
 				// Win Check
 				if (AllShipsSunk(oppGroup)) {
 					SwitchTurn();
 					return true;
 				}
+
+				// Break Check
+				if (
+					needBreak ||
+					(performAbility.BreakOnMiss && isHit && result.HasFlag(AttackResult.Miss)) ||
+					(performAbility.BreakOnSunk && result.HasFlag(AttackResult.SunkShip))
+				) { break; }
 
 			}
 

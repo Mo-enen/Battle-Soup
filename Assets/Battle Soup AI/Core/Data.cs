@@ -146,6 +146,7 @@ namespace BattleSoupAI {
 		TiedUp = 1,
 		Random = 2,
 		PassiveRandom = 3,
+		Break = 4,
 
 	}
 
@@ -153,15 +154,18 @@ namespace BattleSoupAI {
 
 	[System.Serializable]
 	public struct Attack {
+
 		// Api
 		public bool IsHitOpponent => Type == AttackType.HitTile || Type == AttackType.HitWholeShip;
 		public bool IsRevealOpponent => Type == AttackType.RevealTile || Type == AttackType.RevealWholeShip;
+
 		// Ser-Api
 		public int X;
 		public int Y;
 		public AttackType Type;
 		public AttackTrigger Trigger;
 		public Tile AvailableTarget;
+
 		public (int x, int y) GetPosition (int targetX, int targetY, AbilityDirection direction) {
 			switch (direction) {
 				case AbilityDirection.Up:
@@ -183,6 +187,7 @@ namespace BattleSoupAI {
 			}
 			return (targetX, targetY);
 		}
+
 	}
 
 

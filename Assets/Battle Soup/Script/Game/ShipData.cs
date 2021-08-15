@@ -12,6 +12,7 @@ namespace BattleSoup {
 
 
 		// Api
+		public int Version => m_Version;
 		public Sprite Sprite { get; set; } = null;
 		public int SpriteIndex { get; set; } = 0;
 		public string DisplayName => m_DisplayName;
@@ -22,6 +23,7 @@ namespace BattleSoup {
 		}
 
 		// Ser
+		[SerializeField] int m_Version = 0;
 		[SerializeField] string m_DisplayName = "";
 		[SerializeField] string m_Description = "";
 		[SerializeField] Ship m_Ship = default;
