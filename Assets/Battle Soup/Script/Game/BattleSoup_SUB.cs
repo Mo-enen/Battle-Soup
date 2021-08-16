@@ -67,6 +67,7 @@ namespace BattleSoup {
 			public Game Game;
 			public Asset Asset;
 			public ShipPositionUI ShipPositionUI;
+			public ShipEditorUI ShipEditor;
 			public BattleSoupUI BattleSoupUIA;
 			public BattleSoupUI BattleSoupUIB;
 			public Grabber AbilityShip;

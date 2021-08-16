@@ -12,7 +12,7 @@ namespace BattleSoup {
 
 
 		// Api
-		public int Version => m_Version;
+		public int Version => m_Version; // Current 1
 		public Sprite Sprite { get; set; } = null;
 		public int SpriteIndex { get; set; } = 0;
 		public string DisplayName => m_DisplayName;

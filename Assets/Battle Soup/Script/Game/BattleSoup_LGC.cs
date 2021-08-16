@@ -301,7 +301,7 @@ namespace BattleSoup {
 			m_Panel.ShipPanel.gameObject.SetActive(state == GameState.Ship);
 			m_Panel.MapPanel.gameObject.SetActive(state == GameState.Map);
 			m_Panel.ShipPositionPanel.gameObject.SetActive(state == GameState.PositionShip);
-			m_Panel.BattleZonePanel.gameObject.SetActive(state == GameState.Playing);
+			m_Panel.BattleZonePanel.gameObject.SetActive(state == GameState.Playing || state == GameState.ShipEditor);
 			m_Panel.ShipEditorPanel.gameObject.SetActive(state == GameState.ShipEditor);
 		}
 
@@ -475,6 +475,50 @@ namespace BattleSoup {
 			if (rt.rect.height < height) {
 				rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
 			}
+		}
+
+
+		private void SetupShipEditor () {
+			if (string.IsNullOrEmpty(m_Game.ShipEditor.SelectingShipID)) {
+				m_Game.ShipEditor.SelectFirstShip();
+			}
+			var mapB = new MapData(8, new Int2[] { new Int2(0, 0), new Int2(6, 0), new Int2(3, 0), new Int2(0, 2), new Int2(0, 4), new Int2(0, 5), });
+			var shipsB = new ShipData[4] {
+				m_Game.Asset.GetShipData("Coracle"),
+				m_Game.Asset.GetShipData("Whale"),
+				m_Game.Asset.GetShipData("KillerSquid"),
+				m_Game.Asset.GetShipData("SeaTurtle")
+			};
+			SoupStrategy.PositionShips_Random(
+				mapB.Size,
+				ShipData.GetShips(shipsB),
+				mapB.Stones,
+				out var posB
+			);
+			m_Game.Game.Init(
+				BattleMode.PvA,
+				Strategies[StrategyIndexA.Value],
+				Strategies[StrategyIndexB.Value],
+				m_Game.Asset.MapDatas[0],
+				mapB,
+				new ShipData[1] { m_Game.Asset.GetShipData(m_Game.ShipEditor.SelectingShipID) },
+				shipsB,
+				new ShipPosition[1] { default },
+				posB,
+				true
+			);
+			m_Game.BattleSoupUIA.Init(false);
+			m_Game.BattleSoupUIB.Init(false);
+			m_Game.BattleSoupUIA.RefreshShipRenderer();
+			m_Game.BattleSoupUIB.RefreshShipRenderer();
+			RefreshBattleInfoUI();
+			ReloadAbilityUI();
+			UI_RefreshAbilityUI();
+		}
+
+
+		private void OnShipEditorSelectionChanged (string id) {
+			SetupShipEditor();
 		}
 
 

@@ -64,6 +64,9 @@ namespace BattleSoup {
 				ShowMessage(msg);
 			};
 
+			ShipEditorUI.GetShipDataEnu = () => m_Game.Asset.ShipMap.GetEnumerator();
+			ShipEditorUI.OnSelectionChanged = OnShipEditorSelectionChanged;
+
 			// Quit Game Confirm
 			Application.wantsToQuit += () => {
 #if UNITY_EDITOR
@@ -160,11 +163,11 @@ namespace BattleSoup {
 			switch (CurrentState) {
 
 
-				// BattleMode >> Ship/Map
+				// BattleMode >> Ship / Map
 				case GameState.BattleMode:
 					m_Game.Game.gameObject.SetActive(false);
 					if (CurrentBattleMode == BattleMode.PvA) {
-						// Goto Ship
+						// Goto Editor
 						RefreshShipButton();
 						RefreshPanelUI(GameState.Ship);
 						FixContainerVerticalSize(m_UI.ShipsButtonContainer, null);
@@ -241,7 +244,7 @@ namespace BattleSoup {
 						break;
 					}
 					if (CurrentBattleMode == BattleMode.PvA) {
-						m_Game.Game.Init(CurrentBattleMode, Strategies[StrategyIndexA.Value], Strategies[StrategyIndexB.Value], m_Game.ShipPositionUI.Map, mapB, GetSelectingShips(), shipsB, m_Game.ShipPositionUI.Positions, positionsB);
+						m_Game.Game.Init(CurrentBattleMode, Strategies[StrategyIndexA.Value], Strategies[StrategyIndexB.Value], m_Game.ShipPositionUI.Map, mapB, GetSelectingShips(), shipsB, m_Game.ShipPositionUI.Positions, positionsB, false);
 						if (AutoPlayAvA.Value) {
 							m_Game.Game.UI_PlayAvA();
 						}
@@ -250,7 +253,7 @@ namespace BattleSoup {
 							ShowMessage(errorA);
 							break;
 						}
-						m_Game.Game.Init(CurrentBattleMode, Strategies[StrategyIndexA.Value], Strategies[StrategyIndexB.Value], mapA, mapB, shipsA, shipsB, positionsA, positionsB);
+						m_Game.Game.Init(CurrentBattleMode, Strategies[StrategyIndexA.Value], Strategies[StrategyIndexB.Value], mapA, mapB, shipsA, shipsB, positionsA, positionsB, false);
 						if (AutoPlayAvA.Value) {
 							m_Game.Game.UI_PlayAvA();
 						}
@@ -312,7 +315,8 @@ namespace BattleSoup {
 
 
 		public void UI_OpenShipEditor () {
-			m_Game.Game.gameObject.SetActive(false);
+			SetupShipEditor();
+			m_Game.Game.gameObject.SetActive(true);
 			RefreshPanelUI(GameState.ShipEditor);
 			CurrentState = GameState.ShipEditor;
 		}

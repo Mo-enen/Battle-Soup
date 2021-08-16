@@ -191,6 +191,17 @@ namespace BattleSoupAI {
 	}
 
 
+	[System.Serializable]
+	public struct Condition {
+		public string Key;
+		public int TargetIndex;
+		public Condition (string key, int targetIndex) {
+			Key = key;
+			TargetIndex = targetIndex;
+		}
+	}
+
+
 
 	[System.Serializable]
 	public class Ability {
@@ -251,6 +262,7 @@ namespace BattleSoupAI {
 		}
 
 		// Api-Ser
+		public List<Condition> Conditions = new List<Condition>();
 		public List<Attack> Attacks = new List<Attack>();
 		public int Cooldown = 1;
 		public bool BreakOnSunk = false;

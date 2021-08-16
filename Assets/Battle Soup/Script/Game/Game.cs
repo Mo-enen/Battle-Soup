@@ -99,12 +99,13 @@ namespace BattleSoup {
 			public bool WaitForPicking;
 			public bool PickedPerformed;
 			public bool DoTiedup;
-
+			public bool ConditionChecked;
 			public void Clear () {
 				AbilityAttackIndex = 0;
 				WaitForPicking = false;
 				PickedPerformed = false;
 				DoTiedup = false;
+				ConditionChecked = false;
 			}
 
 		}
@@ -149,12 +150,15 @@ namespace BattleSoup {
 		public string PrevUsedAbilityB { get; private set; } = "";
 		public bool Cheated { get; set; } = false;
 		public bool DevMode { get; private set; } = false;
+		public bool ShipEditing { get; private set; } = false;
 		public int DevShipIndexA { get; private set; } = 0;
 		public int DevShipIndexB { get; private set; } = 0;
 
 		// Ser
 		[SerializeField] BattleSoupUI m_SoupA = null;
 		[SerializeField] BattleSoupUI m_SoupB = null;
+		[SerializeField] RectTransform m_InfoA = null;
+		[SerializeField] RectTransform m_InfoB = null;
 		[SerializeField] DevUI m_DevA = null;
 		[SerializeField] DevUI m_DevB = null;
 		[SerializeField] Image m_Face = null;
@@ -230,24 +234,6 @@ namespace BattleSoup {
 					RefreshControlButtons();
 				}
 			}
-
-
-
-			//if (m_SoupB.GetMapPositionInside(Input.mousePosition, out var pos)) {
-			//	string msg = $"({pos.x},{pos.y}) ";
-			//	for (int i = 0; i < DataB.Ships.Length; i++) {
-			//		bool result = DataB.Strategy.TileCanBePartOfShipOrNot(DataB.Tiles, pos.x, pos.y, DataB.Ships[i], true);
-			//		if (result) {
-			//			msg += i.ToString() + ", ";
-			//		}
-			//	}
-			//	Debug.Log(msg);
-			//}
-
-
-
-
-
 		}
 
 
@@ -365,10 +351,10 @@ namespace BattleSoup {
 		#region --- API ---
 
 
-		public void Init (BattleMode battleMode, SoupStrategy strategyA, SoupStrategy strategyB, MapData mapA, MapData mapB, ShipData[] shipsA, ShipData[] shipsB, ShipPosition[] positionsA, ShipPosition[] positionsB) {
+		public void Init (BattleMode battleMode, SoupStrategy strategyA, SoupStrategy strategyB, MapData mapA, MapData mapB, ShipData[] shipsA, ShipData[] shipsB, ShipPosition[] positionsA, ShipPosition[] positionsB, bool shipEditing) {
 
 			CurrentBattleMode = battleMode;
-			CurrentTurn = Random.value > 0.5f ? Group.A : Group.B;
+			CurrentTurn = shipEditing || Random.value > 0.5f ? Group.A : Group.B;
 			AbilityData.Clear();
 
 			DataA.Clear();
@@ -398,10 +384,14 @@ namespace BattleSoup {
 			PrevUsedAbilityB = "";
 			DevMode = false;
 			Cheated = false;
+			ShipEditing = shipEditing;
 
-			m_CheatToggle.gameObject.SetActive(true);
-			m_DevToggle.gameObject.SetActive(true);
+			m_CheatToggle.gameObject.SetActive(!shipEditing);
+			m_DevToggle.gameObject.SetActive(!shipEditing);
 			m_ReplayButton.gameObject.SetActive(false);
+			m_InfoA.gameObject.SetActive(!shipEditing);
+			m_InfoB.gameObject.SetActive(!shipEditing);
+			m_SoupA.gameObject.SetActive(!shipEditing);
 
 			AvA_Playing = false;
 			AvA_GotoNext = false;
@@ -413,6 +403,7 @@ namespace BattleSoup {
 			gameObject.SetActive(true);
 			strategyA.OnBattleStart(InfoA, InfoB);
 			strategyB.OnBattleStart(InfoB, InfoA);
+
 		}
 
 
@@ -573,7 +564,9 @@ namespace BattleSoup {
 				if (CurrentBattleMode == BattleMode.PvA) {
 					m_Face.gameObject.SetActive(true);
 					m_Face.sprite = m_Faces[Cheated ? 3 : 1];
-					m_ShowMessage.Invoke(Cheated ? "You cheated but still lose.\nThat sucks..." : "You Lose");
+					if (!ShipEditing) {
+						m_ShowMessage.Invoke(Cheated ? "You cheated but still lose.\nThat sucks..." : "You Lose");
+					}
 				} else {
 					m_Face.gameObject.SetActive(false);
 					m_Face.sprite = null;
@@ -585,7 +578,9 @@ namespace BattleSoup {
 				if (CurrentBattleMode == BattleMode.PvA) {
 					m_Face.gameObject.SetActive(true);
 					m_Face.sprite = m_Faces[Cheated ? 2 : 0];
-					m_ShowMessage.Invoke(Cheated ? "You didn't win.\nBecause you cheated." : "You Win");
+					if (!ShipEditing) {
+						m_ShowMessage.Invoke(Cheated ? "You didn't win.\nBecause you cheated." : "You Win");
+					}
 				} else {
 					m_Face.gameObject.SetActive(false);
 					m_Face.sprite = null;
@@ -609,21 +604,38 @@ namespace BattleSoup {
 				m_AvAControlButton_Play.gameObject.SetActive(false);
 				m_AvAControlButton_Pause.gameObject.SetActive(false);
 				m_AvAControlButton_Next.gameObject.SetActive(false);
-				m_ReplayButton.gameObject.SetActive(true);
+				m_ReplayButton.gameObject.SetActive(!ShipEditing);
+				if (ShipEditing) {
+					// Restart
+					Init(BattleMode.PvA, DataA.Strategy, DataB.Strategy,
+						DataA.Map, DataB.Map, DataA.ShipDatas, DataB.ShipDatas,
+						DataA.Positions, DataB.Positions, ShipEditing
+					);
+					CurrentTurn = Group.A;
+					RefreshAllSoupRenderers();
+					RefreshShipsAlive(-1, Group.A);
+					RefreshShipsAlive(-1, Group.B);
+				}
 				return;
 			}
 
 			// Cooldown
-			var cooldowns = CurrentTurn == Group.A ? DataA.Cooldowns : DataB.Cooldowns;
-			for (int i = 0; i < cooldowns.Length; i++) {
-				cooldowns[i] = Mathf.Max(cooldowns[i] - 1, 0);
+			if (!ShipEditing) {
+				var cooldowns = CurrentTurn == Group.A ? DataA.Cooldowns : DataB.Cooldowns;
+				for (int i = 0; i < cooldowns.Length; i++) {
+					cooldowns[i] = Mathf.Max(cooldowns[i] - 1, 0);
+				}
+			} else {
+				for (int i = 0; i < DataA.Cooldowns.Length; i++) {
+					DataA.Cooldowns[i] = 0;
+				}
 			}
 
 			// Refresh
 			RefreshAllSoupRenderers();
 
 			// Turn Change
-			CurrentTurn = CurrentTurn == Group.A ? Group.B : Group.A;
+			CurrentTurn = !ShipEditing && CurrentTurn == Group.A ? Group.B : Group.A;
 			m_RefreshUI.Invoke();
 		}
 
@@ -691,15 +703,21 @@ namespace BattleSoup {
 
 
 		private void RefreshControlButtons () {
-			m_AvAControlButton_Play.gameObject.SetActive(
-				CurrentBattleMode == BattleMode.AvA && !AvA_Playing && gameObject.activeSelf
-			);
-			m_AvAControlButton_Pause.gameObject.SetActive(
-				CurrentBattleMode == BattleMode.AvA && AvA_Playing && gameObject.activeSelf
-			);
-			m_AvAControlButton_Next.gameObject.SetActive(
-				CurrentBattleMode == BattleMode.AvA && gameObject.activeSelf
-			);
+			if (m_AvAControlButton_Play.gameObject != null) {
+				m_AvAControlButton_Play.gameObject.SetActive(
+					CurrentBattleMode == BattleMode.AvA && !AvA_Playing && gameObject.activeSelf
+				);
+			}
+			if (m_AvAControlButton_Pause.gameObject != null) {
+				m_AvAControlButton_Pause.gameObject.SetActive(
+					CurrentBattleMode == BattleMode.AvA && AvA_Playing && gameObject.activeSelf
+				);
+			}
+			if (m_AvAControlButton_Next.gameObject != null) {
+				m_AvAControlButton_Next.gameObject.SetActive(
+					CurrentBattleMode == BattleMode.AvA && gameObject.activeSelf
+				);
+			}
 		}
 
 
@@ -754,6 +772,11 @@ namespace BattleSoup {
 
 			if (aData.AbilityAttackIndex == 0) {
 				oppSoup.ClearBlinks();
+			}
+
+			if (!aData.ConditionChecked) {
+				aData.ConditionChecked = true;
+				aData.AbilityAttackIndex = CheckCondition(selfAbility.Conditions);
 			}
 
 			if (selfAbility.CopyOpponentLastUsed) {
@@ -1194,6 +1217,17 @@ namespace BattleSoup {
 				}
 				m_OnSonar.Invoke(wPos);
 			}
+		}
+
+
+		// Condition
+		private int CheckCondition (List<Condition> conditions) {
+			foreach (var condition in conditions) {
+
+
+
+			}
+			return 0;
 		}
 
 

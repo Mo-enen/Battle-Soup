@@ -34,7 +34,7 @@ Download latest version in [HERE](https://github.com/Mo-enen/Battle-Soup/release
 
 ##### Update
 
-`v0.0.1`
+`v1.0.0`
 
 -  `Player vs AI` and `AI vs AI` mode. 
 - Select ships without limitation. It can be more than 4 ships or less than 4 ships. Same ship can be select multiple times.
