@@ -20,11 +20,9 @@ namespace BattleSoup {
 		public void UI_SpawnParticle_ShipSunk (Vector3 pos) => SpawnParticle(3, pos);
 
 
-		public void SpawnParticle (int index, Vector3 pos) => Instantiate(
-			m_Particles[index], null
-		).transform.position = pos;
-
-
+		public void SpawnParticle (int index, Vector3 pos) {
+			Instantiate(m_Particles[index], null).transform.position = pos;
+		}
 
 
 	}

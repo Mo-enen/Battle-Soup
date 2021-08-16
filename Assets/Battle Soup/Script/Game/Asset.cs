@@ -21,6 +21,7 @@ namespace BattleSoup {
 		// Ser
 		[SerializeField] Material m_ShipMaterial = null;
 		[SerializeField] Texture2D m_ShipBlockTexture = null;
+		[SerializeField] Texture2D m_DefaultShipIcon = null;
 
 
 		#endregion
@@ -132,6 +133,57 @@ namespace BattleSoup {
 				return ShipMap[globalID];
 			}
 			return null;
+		}
+
+
+		public void CreateShipAsset (string globalID) {
+			string folder = Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Ships", globalID);
+			if (Util.DirectoryExists(folder)) { return; }
+			Util.CreateFolder(folder);
+			var shipData = new ShipData() {
+				DisplayName = "(New Ship)",
+				Description = "",
+				Version = ShipData.CURRENT_VERSION,
+				Ship = new Ship() {
+					Body = new Int2[1] { new Int2(0, 0) },
+					TerminateHP = 0,
+					Ability = new Ability() {
+						Attacks = new List<Attack>() { new Attack() {
+							 X = 0, Y = 0,
+							AvailableTarget = Tile.All,
+							Trigger = AttackTrigger.Picked,
+							Type = AttackType.HitTile,
+						} },
+					},
+				},
+			};
+			string json = JsonUtility.ToJson(shipData, true);
+			Util.TextToFile(json, Util.CombinePaths(folder, "Data.json"));
+			Util.ByteToFile(m_DefaultShipIcon.EncodeToPNG(), Util.CombinePaths(folder, "Icon.png"));
+			Awake_Ship();
+		}
+
+
+		public bool RenameShipAsset (string globalID, string newID) {
+			string oldFolder = Util.CombinePaths(
+				Util.GetRuntimeBuiltRootPath(), "Ships", globalID
+			);
+			string newFolder = Util.CombinePaths(
+				Util.GetRuntimeBuiltRootPath(), "Ships", newID
+			);
+			if (!Util.DirectoryExists(oldFolder) || Util.DirectoryExists(newFolder)) { return false; }
+			Util.MoveFolder(oldFolder, newFolder);
+			Awake_Ship();
+			return true;
+		}
+
+
+		public void SetShipIcon (string globalID, string path) {
+			string folder = Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Ships", globalID);
+			if (!Util.DirectoryExists(folder) || !Util.FileExists(path)) { return; }
+			Util.DeleteFile(Util.CombinePaths(folder, "Icon.png"));
+			Util.CopyFile(path, Util.CombinePaths(folder, "Icon.png"));
+			Awake_Ship();
 		}
 
 

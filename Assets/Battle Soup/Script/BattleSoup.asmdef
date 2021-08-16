@@ -5,7 +5,7 @@
         "BattleSoupAI",
         "Moenen.Standard",
         "UIGadget.Core",
-        "BetterCoroutine"
+        "MonoFileBrowser"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

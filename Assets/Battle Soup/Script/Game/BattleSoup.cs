@@ -64,8 +64,12 @@ namespace BattleSoup {
 				ShowMessage(msg);
 			};
 
-			ShipEditorUI.GetShipDataEnu = () => m_Game.Asset.ShipMap.GetEnumerator();
+			ShipEditorUI.GetShipDataMap = () => m_Game.Asset.ShipMap;
+			ShipEditorUI.CreateShipData = m_Game.Asset.CreateShipAsset;
+			ShipEditorUI.RenameShipData = m_Game.Asset.RenameShipAsset;
+			ShipEditorUI.SetShipIcon = m_Game.Asset.SetShipIcon;
 			ShipEditorUI.OnSelectionChanged = OnShipEditorSelectionChanged;
+
 
 			// Quit Game Confirm
 			Application.wantsToQuit += () => {
@@ -423,6 +427,7 @@ namespace BattleSoup {
 				}
 
 				for (int i = count; i < count + 2; i++) {
+					if (i >= container.childCount) { continue; }
 					var grabber = container.GetChild(i).GetComponent<Grabber>();
 					grabber.gameObject.SetActive(devMode);
 					if (devMode) {

@@ -9,21 +9,30 @@ namespace BattleSoup {
 	[System.Serializable]
 	public class ShipData {
 
-
+		public const int CURRENT_VERSION = 1;
 
 		// Api
-		public int Version => m_Version; // Current 1
 		public Sprite Sprite { get; set; } = null;
 		public int SpriteIndex { get; set; } = 0;
-		public string DisplayName => m_DisplayName;
-		public string Description => m_Description;
+		public int Version {
+			get => m_Version;
+			set => m_Version = value;
+		}
+		public string DisplayName {
+			get => m_DisplayName;
+			set => m_DisplayName = value;
+		}
+		public string Description {
+			get => m_Description;
+			set => m_Description = value;
+		}
 		public Ship Ship {
 			get => m_Ship;
 			set => m_Ship = value;
 		}
 
 		// Ser
-		[SerializeField] int m_Version = 0;
+		[SerializeField] int m_Version = CURRENT_VERSION;
 		[SerializeField] string m_DisplayName = "";
 		[SerializeField] string m_Description = "";
 		[SerializeField] Ship m_Ship = default;

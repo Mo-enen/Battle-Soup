@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.moenengames.monofilebrowser": {
+      "version": "file:MonoFileBrowser",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.moenengames.standard": {
       "version": "file:Standard",
       "depth": 0,

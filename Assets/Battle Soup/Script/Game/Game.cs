@@ -207,11 +207,6 @@ namespace BattleSoup {
 		}
 
 
-		private void OnDisable () {
-			RefreshControlButtons();
-		}
-
-
 		private void Update () {
 
 			Update_Aim();
@@ -403,6 +398,16 @@ namespace BattleSoup {
 			gameObject.SetActive(true);
 			strategyA.OnBattleStart(InfoA, InfoB);
 			strategyB.OnBattleStart(InfoB, InfoA);
+
+			var soupBRT = m_SoupB.transform as RectTransform;
+			soupBRT.anchorMin = soupBRT.anchorMax = new Vector2(
+				shipEditing ? 0f : 1f,
+				1f
+			);
+			soupBRT.pivot = new Vector2(shipEditing ? 0f : 1f, 1f);
+			soupBRT.anchoredPosition3D = new Vector2(0f, shipEditing ? -8f : -43f);
+			soupBRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, shipEditing ? 360f : 512f);
+			soupBRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, shipEditing ? 360f : 512f);
 
 		}
 
@@ -703,21 +708,15 @@ namespace BattleSoup {
 
 
 		private void RefreshControlButtons () {
-			if (m_AvAControlButton_Play.gameObject != null) {
-				m_AvAControlButton_Play.gameObject.SetActive(
-					CurrentBattleMode == BattleMode.AvA && !AvA_Playing && gameObject.activeSelf
-				);
-			}
-			if (m_AvAControlButton_Pause.gameObject != null) {
-				m_AvAControlButton_Pause.gameObject.SetActive(
-					CurrentBattleMode == BattleMode.AvA && AvA_Playing && gameObject.activeSelf
-				);
-			}
-			if (m_AvAControlButton_Next.gameObject != null) {
-				m_AvAControlButton_Next.gameObject.SetActive(
-					CurrentBattleMode == BattleMode.AvA && gameObject.activeSelf
-				);
-			}
+			m_AvAControlButton_Play.gameObject.SetActive(
+				CurrentBattleMode == BattleMode.AvA && !AvA_Playing && gameObject.activeSelf
+			);
+			m_AvAControlButton_Pause.gameObject.SetActive(
+				CurrentBattleMode == BattleMode.AvA && AvA_Playing && gameObject.activeSelf
+			);
+			m_AvAControlButton_Next.gameObject.SetActive(
+				CurrentBattleMode == BattleMode.AvA && gameObject.activeSelf
+			);
 		}
 
 
@@ -1065,7 +1064,7 @@ namespace BattleSoup {
 					RefreshShipsAlive(_shipIndex, targetGroup);
 					if (targetData.ShipsAlive[_shipIndex]) {
 						// No Sunk
-						m_OnShipHitted.Invoke(wPos);
+						InvokeMsg_ShipHitted(targetGroup, wPos);
 					} else {
 						// Sunk
 						sunkShip = true;
@@ -1075,9 +1074,9 @@ namespace BattleSoup {
 						);
 						targetData.KnownPositions[_shipIndex] = targetData.Positions[_shipIndex];
 						if (prevAlive) {
-							m_OnShipSunk.Invoke(wPos);
+							InvokeMsg_ShipSunk(targetGroup, wPos);
 						} else {
-							m_OnShipHitted.Invoke(wPos);
+							InvokeMsg_ShipHitted(targetGroup, wPos);
 						}
 					}
 					if (targetData.Ships[_shipIndex].Ability.ResetCooldownOnHit) {
@@ -1094,25 +1093,25 @@ namespace BattleSoup {
 						var tile = targetData.Tiles[_x, _y];
 						if (tile != Tile.HittedShip && tile != Tile.SunkShip) {
 							targetData.Tiles[_x, _y] = Tile.HittedShip;
-							m_OnShipHitted.Invoke(GetWorldPosition(_x, _y, targetGroup));
+							InvokeMsg_ShipHitted(targetGroup, GetWorldPosition(_x, _y, targetGroup));
 						}
 					}
 					RefreshShipsAlive(_shipIndex, targetGroup);
 					sunkShip = true;
 					SetTilesToSunk(targetData.Ships[_shipIndex], targetData.Positions[_shipIndex]);
 					targetData.KnownPositions[_shipIndex] = targetData.Positions[_shipIndex];
-					m_OnShipSunk.Invoke(wPos);
+					InvokeMsg_ShipSunk(targetGroup, wPos);
 				}
 				hitShip = true;
 			} else if (targetData.Map.HasStone(x, y)) {
 				// Hit Stone
 				targetData.Tiles[x, y] = Tile.RevealedStone;
-				m_OnWaterRevealed.Invoke(wPos);
+				InvokeMsg_WaterReveal(targetGroup, wPos);
 				hitShip = false;
 			} else {
 				// Hit Water
 				targetData.Tiles[x, y] = Tile.RevealedWater;
-				m_OnWaterRevealed.Invoke(wPos);
+				InvokeMsg_WaterReveal(targetGroup, wPos);
 				hitShip = false;
 			}
 			// Func
@@ -1136,7 +1135,7 @@ namespace BattleSoup {
 					if (tile != Tile.HittedShip && tile != Tile.SunkShip && tile != Tile.RevealedShip) {
 						data.Tiles[x, y] = Tile.RevealedShip;
 						if (useCallback) {
-							m_OnShipRevealed.Invoke(wPos);
+							InvokeMsg_ShipReveal(group, wPos);
 						}
 					}
 				} else {
@@ -1149,7 +1148,7 @@ namespace BattleSoup {
 				if (tile != Tile.RevealedStone) {
 					data.Tiles[x, y] = Tile.RevealedStone;
 					if (useCallback) {
-						m_OnWaterRevealed.Invoke(wPos);
+						InvokeMsg_WaterReveal(group, wPos);
 					}
 				}
 				revealedShip = false;
@@ -1158,7 +1157,7 @@ namespace BattleSoup {
 				if (tile != Tile.RevealedWater) {
 					data.Tiles[x, y] = Tile.RevealedWater;
 					if (useCallback) {
-						m_OnWaterRevealed.Invoke(wPos);
+						InvokeMsg_WaterReveal(group, wPos);
 					}
 				}
 				revealedShip = false;
@@ -1176,7 +1175,7 @@ namespace BattleSoup {
 				var tile = data.Tiles[_x, _y];
 				if (tile != Tile.RevealedShip && tile != Tile.HittedShip && tile != Tile.SunkShip) {
 					data.Tiles[_x, _y] = Tile.RevealedShip;
-					m_OnShipRevealed.Invoke(GetWorldPosition(_x, _y, group));
+					InvokeMsg_ShipReveal(group, GetWorldPosition(_x, _y, group));
 				}
 			}
 		}
@@ -1215,8 +1214,39 @@ namespace BattleSoup {
 					}
 					data.Sonars.Add(new SonarPosition(x, y, minDis));
 				}
-				m_OnSonar.Invoke(wPos);
+				InvokeMsg_Sonar(group, wPos);
 			}
+		}
+
+
+		// Message
+		private void InvokeMsg_ShipHitted (Group group, Vector3 pos) {
+			if (ShipEditing && group == Group.A) { return; }
+			m_OnShipHitted.Invoke(pos);
+		}
+
+
+		private void InvokeMsg_ShipReveal (Group group, Vector3 pos) {
+			if (ShipEditing && group == Group.A) { return; }
+			m_OnShipRevealed.Invoke(pos);
+		}
+
+
+		private void InvokeMsg_ShipSunk (Group group, Vector3 pos) {
+			if (ShipEditing && group == Group.A) { return; }
+			m_OnShipSunk.Invoke(pos);
+		}
+
+
+		private void InvokeMsg_WaterReveal (Group group, Vector3 pos) {
+			if (ShipEditing && group == Group.A) { return; }
+			m_OnWaterRevealed.Invoke(pos);
+		}
+
+
+		private void InvokeMsg_Sonar (Group group, Vector3 pos) {
+			if (ShipEditing && group == Group.A) { return; }
+			m_OnSonar.Invoke(pos);
 		}
 
 

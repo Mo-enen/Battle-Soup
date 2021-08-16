@@ -205,7 +205,10 @@ namespace BattleSoup {
 		}
 
 
-		public void SetSprites (Sprite[] sprites) => m_Blocks = sprites;
+		public void SetSprites (Sprite[] sprites) {
+			m_Blocks = sprites;
+			SetAllDirty();
+		}
 
 
 		#endregion
