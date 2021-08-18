@@ -10,7 +10,7 @@ namespace BattleSoup {
 	public class ShipData {
 
 		public const int CURRENT_VERSION = 1;
-
+		
 		// Api
 		public Sprite Sprite { get; set; } = null;
 		public int SpriteIndex { get; set; } = 0;
@@ -85,7 +85,6 @@ namespace BattleSoup {
 			}
 			return result;
 		}
-
 
 
 	}

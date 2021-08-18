@@ -145,8 +145,46 @@ namespace BattleSoupAI {
 		Picked = 0,
 		TiedUp = 1,
 		Random = 2,
-		PassiveRandom = 3,
 		Break = 4,
+
+	}
+
+
+	public enum SoupEventType {
+
+		CurrentShip_PerformAbility = 0,     // Finished
+		CurrentShip_GetHit = 1,             // Finished
+		CurrentShip_GetReveal = 2,          // Finished
+		CurrentShip_Sunk = 3,               // Finished
+
+		Own_NormalAttack = 4,               // Finished
+		Opponent_NormalAttack = 5,          // Finished
+
+
+
+
+	}
+
+
+	[System.Flags]
+	public enum EventCondition {
+
+		None = 0,
+
+		Own_AliveShipCount = 1 << 0,
+		Own_SunkShipCount = 2 << 0,
+		Opponent_AliveShipCount = 3 << 0,
+		Opponent_SunkShipCount = 4 << 0,
+		CurrentShip_HiddenTileCount = 5 << 0,
+		CurrentShip_HitTileCount = 6 << 0,
+		CurrentShip_RevealTileCount = 7 << 0,
+
+		Greater = 1 << 15,
+		GreaterOrEqual = 2 << 15,
+		Less = 3 << 15,
+		LessOrEqual = 4 << 15,
+		Equal = 5 << 15,
+		NotEqual = 6 << 15,
 
 	}
 
@@ -192,13 +230,13 @@ namespace BattleSoupAI {
 
 
 	[System.Serializable]
-	public struct Condition {
-		public string Key;
-		public int TargetIndex;
-		public Condition (string key, int targetIndex) {
-			Key = key;
-			TargetIndex = targetIndex;
-		}
+	public class Event {
+		public SoupEventType Type = SoupEventType.CurrentShip_PerformAbility;
+		public EventCondition Condition = EventCondition.None;
+		public bool ApplyConditionOnOpponent = false;
+		public int TargetIndex = 0;
+		public int IntParam = 0;
+		public string StringParam = "";
 	}
 
 
@@ -219,20 +257,6 @@ namespace BattleSoupAI {
 					}
 				}
 				return _HasActive.Value;
-			}
-		}
-		public bool HasPassive {
-			get {
-				if (!_HasPassive.HasValue) {
-					_HasPassive = false;
-					foreach (var att in Attacks) {
-						if (att.Trigger == AttackTrigger.PassiveRandom) {
-							_HasPassive = true;
-							break;
-						}
-					}
-				}
-				return _HasPassive.Value;
 			}
 		}
 		public bool NeedAim {
@@ -262,7 +286,7 @@ namespace BattleSoupAI {
 		}
 
 		// Api-Ser
-		public List<Condition> Conditions = new List<Condition>();
+		public List<Event> Events = new List<Event>();
 		public List<Attack> Attacks = new List<Attack>();
 		public int Cooldown = 1;
 		public bool BreakOnSunk = false;
@@ -272,7 +296,6 @@ namespace BattleSoupAI {
 
 		// Data
 		private bool? _HasActive;
-		private bool? _HasPassive;
 		private bool? _NeedAim;
 
 
@@ -363,6 +386,16 @@ namespace BattleSoupAI {
 				) { return true; }
 			}
 			return false;
+		}
+
+
+		public void GroundBodyToZero () {
+			var (min, _) = GetBounds(false);
+			if (min.x != 0 || min.y != 0) {
+				for (int i = 0; i < Body.Length; i++) {
+					Body[i] -= min;
+				}
+			}
 		}
 
 

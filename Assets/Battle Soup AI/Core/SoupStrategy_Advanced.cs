@@ -322,7 +322,7 @@ namespace BattleSoupAI {
 							float currentResult = 0;
 							var dir = (AbilityDirection)i;
 							foreach (var att in attacks) {
-								if (att.Trigger == AttackTrigger.PassiveRandom || att.Trigger == AttackTrigger.Random) { continue; }
+								if (att.Trigger == AttackTrigger.Random) { continue; }
 								var (_x, _y) = att.GetPosition(_i, _j, dir);
 								if (_x < 0 || _x >= size || _y < 0 || _y >= size) { continue; }
 								var _tile = tiles[_x, _y];

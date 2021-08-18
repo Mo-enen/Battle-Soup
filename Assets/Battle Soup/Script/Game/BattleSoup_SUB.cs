@@ -15,6 +15,11 @@ namespace BattleSoup {
 	}
 
 
+	public static class GroupExtension {
+		public static Group Opposite (this Group group) => group == Group.A ? Group.B : Group.A;
+	}
+
+
 	public enum BattleMode {
 		PvA = 0,
 		AvA = 1,
@@ -85,6 +90,7 @@ namespace BattleSoup {
 			public RectTransform AbilityContainerB;
 			public RectTransform MessageRoot;
 			public Grabber ShipSelectionItem;
+			public Grabber ShipButtonTemplate;
 			public Text MapLabelA;
 			public Text MapLabelB;
 			public Button StartButton_Ship;

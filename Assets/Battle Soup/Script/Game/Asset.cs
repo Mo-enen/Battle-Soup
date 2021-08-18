@@ -58,6 +58,7 @@ namespace BattleSoup {
 					var iconTexture = new Texture2D(1, 1);
 					if (!iconTexture.LoadImage(iconByte, false)) { continue; }
 					shipData.Ship.GlobalID = key;
+					shipData.Ship.GroundBodyToZero();
 					iconList.Add(iconTexture);
 					ShipMap.Add(key, shipData);
 					shipList.Add(shipData);
@@ -128,6 +129,9 @@ namespace BattleSoup {
 		#region --- API ---
 
 
+		public void ReloadAllShipAssets () => Awake_Ship();
+
+
 		public ShipData GetShipData (string globalID) {
 			if (ShipMap.ContainsKey(globalID)) {
 				return ShipMap[globalID];
@@ -141,8 +145,8 @@ namespace BattleSoup {
 			if (Util.DirectoryExists(folder)) { return; }
 			Util.CreateFolder(folder);
 			var shipData = new ShipData() {
-				DisplayName = "(New Ship)",
-				Description = "",
+				DisplayName = "New Ship",
+				Description = "(No Description)",
 				Version = ShipData.CURRENT_VERSION,
 				Ship = new Ship() {
 					Body = new Int2[1] { new Int2(0, 0) },
@@ -160,7 +164,6 @@ namespace BattleSoup {
 			string json = JsonUtility.ToJson(shipData, true);
 			Util.TextToFile(json, Util.CombinePaths(folder, "Data.json"));
 			Util.ByteToFile(m_DefaultShipIcon.EncodeToPNG(), Util.CombinePaths(folder, "Icon.png"));
-			Awake_Ship();
 		}
 
 
@@ -173,7 +176,6 @@ namespace BattleSoup {
 			);
 			if (!Util.DirectoryExists(oldFolder) || Util.DirectoryExists(newFolder)) { return false; }
 			Util.MoveFolder(oldFolder, newFolder);
-			Awake_Ship();
 			return true;
 		}
 
@@ -183,7 +185,25 @@ namespace BattleSoup {
 			if (!Util.DirectoryExists(folder) || !Util.FileExists(path)) { return; }
 			Util.DeleteFile(Util.CombinePaths(folder, "Icon.png"));
 			Util.CopyFile(path, Util.CombinePaths(folder, "Icon.png"));
-			Awake_Ship();
+		}
+
+
+		public void SaveAssetData (string globalID) {
+			string folder = Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Ships", globalID);
+			string jsonPath = Util.CombinePaths(Util.CombinePaths(folder, "Data.json"));
+			if (!Util.DirectoryExists(folder) || !ShipMap.ContainsKey(globalID)) { return; }
+			string json = JsonUtility.ToJson(ShipMap[globalID], true);
+			if (string.IsNullOrEmpty(json)) { return; }
+			Util.TextToFile(json, jsonPath);
+		}
+
+
+		public void DeleteShipData (string globalID) {
+			string root = Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Ships");
+			int folderCount = Util.GetFolderCount(root, "*", System.IO.SearchOption.TopDirectoryOnly);
+			if (folderCount <= 1) { return; }
+			string folder = Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Ships", globalID);
+			Util.DeleteFolder(folder);
 		}
 
 

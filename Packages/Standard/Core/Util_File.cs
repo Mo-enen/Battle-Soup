@@ -202,6 +202,14 @@ namespace Moenen.Standard {
 		}
 
 
+		public static int GetFolderCount (string path, string search = "*", SearchOption option = SearchOption.TopDirectoryOnly) {
+			if (DirectoryExists(path)) {
+				return Directory.EnumerateDirectories(path, search, option).Count();
+			}
+			return 0;
+		}
+
+
 		public static void MoveFile (string from, string to) {
 			if (from != to && FileExists(from)) {
 				File.Move(from, to);

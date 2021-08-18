@@ -65,10 +65,27 @@ namespace BattleSoup {
 			};
 
 			ShipEditorUI.GetShipDataMap = () => m_Game.Asset.ShipMap;
-			ShipEditorUI.CreateShipData = m_Game.Asset.CreateShipAsset;
-			ShipEditorUI.RenameShipData = m_Game.Asset.RenameShipAsset;
-			ShipEditorUI.SetShipIcon = m_Game.Asset.SetShipIcon;
+			ShipEditorUI.CreateShipData = (id) => {
+				m_Game.Asset.CreateShipAsset(id);
+				m_Game.Asset.ReloadAllShipAssets();
+			};
+			ShipEditorUI.RenameShipData = (id, newID) => {
+				bool success = m_Game.Asset.RenameShipAsset(id, newID);
+				if (success) {
+					m_Game.Asset.ReloadAllShipAssets();
+				}
+				return success;
+			};
+			ShipEditorUI.SetShipIcon = (id, path) => {
+				m_Game.Asset.SetShipIcon(id, path);
+				m_Game.Asset.ReloadAllShipAssets();
+			};
+			ShipEditorUI.DeleteShipData = (id) => {
+				m_Game.Asset.DeleteShipData(id);
+				m_Game.Asset.ReloadAllShipAssets();
+			};
 			ShipEditorUI.OnSelectionChanged = OnShipEditorSelectionChanged;
+			ShipEditorUI.SaveAssetData = m_Game.Asset.SaveAssetData;
 
 
 			// Quit Game Confirm
@@ -292,6 +309,11 @@ namespace BattleSoup {
 		public void UI_GotoPrevState () {
 			switch (CurrentState) {
 				case GameState.ShipEditor:
+					m_Game.Asset.ReloadAllShipAssets();
+					ReloadShipButtons();
+					RefreshPanelUI(GameState.BattleMode);
+					CurrentState = GameState.BattleMode;
+					break;
 				case GameState.Ship:
 					RefreshPanelUI(GameState.BattleMode);
 					CurrentState = GameState.BattleMode;

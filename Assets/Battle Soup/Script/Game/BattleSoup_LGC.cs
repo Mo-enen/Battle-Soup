@@ -20,33 +20,25 @@ namespace BattleSoup {
 			var shipMap = m_Game.Asset.ShipMap;
 
 			// Clear UI
-			var template = container.GetChild(0) as RectTransform;
-			template.SetParent(null);
-			int childCount = container.childCount;
-			for (int i = 0; i < childCount; i++) {
-				DestroyImmediate(container.GetChild(0).gameObject, false);
-			}
+			container.DestroyAllChirldrenImmediate();
 
 			// Create UI
 			foreach (var pair in shipMap) {
 				var ship = pair.Value;
-				var rt = Instantiate(template.gameObject, container).transform as RectTransform;
+				var grab = Instantiate(m_UI.ShipButtonTemplate, container);
+				var rt = grab.transform as RectTransform;
 				rt.anchoredPosition3D = rt.anchoredPosition;
 				rt.localScale = Vector3.one;
 				rt.localRotation = Quaternion.identity;
 				rt.SetAsLastSibling();
 				rt.gameObject.name = pair.Key;
 				// Label
-				var grab = rt.GetComponent<Grabber>();
 				grab.Grab<Button>().onClick.AddListener(() => AddShipToSelection(rt.name));
 				grab.Grab<Text>("Label").text = ship.DisplayName;
 				grab.Grab<Image>("Thumbnail").sprite = ship.Sprite;
 				grab.Grab<TipUI>().Content = ship.Description;
 				grab.Grab<BlocksRenderer>("Shape").AddBody(ship);
 			}
-
-			// Final
-			DestroyImmediate(template.gameObject, false);
 
 		}
 
@@ -480,7 +472,7 @@ namespace BattleSoup {
 
 		private void SetupShipEditor () {
 			if (string.IsNullOrEmpty(m_Game.ShipEditor.SelectingShipID)) {
-				m_Game.ShipEditor.SelectFirstShip();
+				m_Game.ShipEditor.SelectFirstShip(out _);
 			}
 			var mapB = new MapData(8, new Int2[] { new Int2(0, 0), new Int2(6, 0), new Int2(3, 0), new Int2(0, 2), new Int2(0, 4), new Int2(0, 5), });
 			var shipsB = new ShipData[4] {

@@ -646,7 +646,7 @@ namespace BattleSoupAI {
 			int GetValue (int _i, int _j, AbilityDirection _dir) {
 				int value = 0;
 				foreach (var att in attacks) {
-					if (att.Trigger == AttackTrigger.PassiveRandom || att.Trigger == AttackTrigger.Random) { continue; }
+					if (att.Trigger == AttackTrigger.Random) { continue; }
 					var (x, y) = att.GetPosition(_i, _j, _dir);
 					if (x < 0 || y < 0 || x >= mapSize || y >= mapSize) { continue; }
 					if (hash.Contains(new Int2(x, y)) && filter.HasFlag(tiles[x, y])) {
