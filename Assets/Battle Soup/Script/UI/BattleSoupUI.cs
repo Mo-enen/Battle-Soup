@@ -51,6 +51,7 @@ namespace BattleSoup {
 		public BoolHandler GetCheating { get; set; } = null;
 		public ShipDataHandler GetPrevUseShip { get; set; } = null;
 		public bool SunkOnly { get; set; } = false;
+		public bool UseAbilityHint { get; set; } = true;
 
 		// Ser
 		[SerializeField] MapRenderer m_MapRenderer = null;
@@ -222,7 +223,7 @@ namespace BattleSoup {
 					m_AimRenderer.SetVerticesDirty();
 				}
 			}
-			bool showHint = ability != null;
+			bool showHint = ability != null && UseAbilityHint;
 			if (m_AbilityAimHint != null && m_AbilityAimHint.gameObject.activeSelf != showHint) {
 				m_AbilityAimHint.gameObject.SetActive(showHint);
 			}

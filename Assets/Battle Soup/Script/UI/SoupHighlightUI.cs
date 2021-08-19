@@ -4,15 +4,29 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using Moenen.Standard;
 using UnityEngine.UI;
+using UIGadget;
+
 
 namespace BattleSoup {
 	public class SoupHighlightUI : MonoBehaviour, IPointerEnterHandler {
 
 
-
+		// Short
+		private int Size {
+			get {
+				if (m_Map != null) {
+					return m_Map.GridCountX;
+				}
+				if (m_Grid != null) {
+					return m_Grid.X;
+				}
+				return 0;
+			}
+		}
 
 		// Ser
 		[SerializeField] MapRenderer m_Map = null;
+		[SerializeField] VectorGrid m_Grid = null;
 		[SerializeField] RectTransform m_Highlight = null;
 
 		// Data
@@ -33,13 +47,15 @@ namespace BattleSoup {
 			if (MouseCor != null) {
 				StopCoroutine(MouseCor);
 			}
-			MouseCor = StartCoroutine(MouseInside(m_Map.GridCountX));
+			MouseCor = StartCoroutine(MouseInside());
 			// Func
-			IEnumerator MouseInside (int mapSize) {
+			IEnumerator MouseInside () {
 				m_Highlight.gameObject.SetActive(true);
 				while (true) {
 					var pos = (transform as RectTransform).Get01Position(Input.mousePosition, Camera.main);
 					if (pos.x <= 0f || pos.y <= 0f || pos.x >= 1f || pos.y >= 1f) { break; }
+
+					int mapSize = Size;
 
 					pos.x = Mathf.Floor(pos.x * mapSize) / mapSize;
 					pos.y = Mathf.Floor(pos.y * mapSize) / mapSize;
@@ -61,7 +77,7 @@ namespace BattleSoup {
 
 
 		public void Blink (int x, int y, Color color, Sprite sprite, float alpha = 0f, float duration = 0.618f, int count = 4) {
-			StartCoroutine(Blinking(x, y, m_Map.GridCountX));
+			StartCoroutine(Blinking(x, y, Size));
 			IEnumerator Blinking (int _x, int _y, int _size) {
 				var rt = new GameObject("Blinking", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image)).transform as RectTransform;
 				rt.SetParent(transform);

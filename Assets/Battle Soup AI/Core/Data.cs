@@ -12,6 +12,7 @@ namespace BattleSoupAI {
 
 	[System.Serializable]
 	public struct Int2 {
+		public static readonly Int2 Zero = new Int2(0, 0);
 		public int x;
 		public int y;
 		public Int2 (int x, int y) {

@@ -1,25 +1,17 @@
 ﻿{
     "m_Version": 1,
-    "m_DisplayName": "Crafty Crab",
-    "m_Description": "While not destroyed, your cannon attack also reveals a random unknown tile.",
+    "m_DisplayName": "Miku III",
+    "m_Description": "Testing Miku Ship;",
     "m_Ship": {
         "TerminateHP": 0,
         "Body": [
             {
                 "x": 1,
+                "y": 1
+            },
+            {
+                "x": 0,
                 "y": 0
-            },
-            {
-                "x": 0,
-                "y": 1
-            },
-            {
-                "x": 0,
-                "y": 2
-            },
-            {
-                "x": 1,
-                "y": 1
             }
         ],
         "Ability": {
@@ -28,12 +20,12 @@
                 {
                     "X": 0,
                     "Y": 0,
-                    "Type": 1,
-                    "Trigger": 3,
-                    "AvailableTarget": 1
+                    "Type": 0,
+                    "Trigger": 0,
+                    "AvailableTarget": 127
                 }
             ],
-            "Cooldown": 0,
+            "Cooldown": 1,
             "BreakOnSunk": false,
             "BreakOnMiss": false,
             "ResetCooldownOnHit": false,

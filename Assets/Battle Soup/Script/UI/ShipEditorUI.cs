@@ -5,7 +5,7 @@ using UIGadget;
 using UnityEngine.UI;
 using Moenen.Standard;
 using MonoFileBrowser;
-
+using BattleSoupAI;
 
 namespace BattleSoup {
 	public class ShipEditorUI : MonoBehaviour {
@@ -69,8 +69,11 @@ namespace BattleSoup {
 		}
 
 		// Ser
+		[SerializeField] Game m_Game = null;
 		[SerializeField] RectTransform m_NavContent = null;
+		[SerializeField] RectTransform m_AbilityHighlight = null;
 		[SerializeField] Grabber m_NavTemplate = null;
+		[SerializeField] ShipBodyEditorUI m_ShipBodyEditor = null;
 		[SerializeField] InfoContentData m_InfoContentData = default;
 		[SerializeField] Toggle[] m_Titles = null;
 		[SerializeField] RectTransform[] m_Panels = null;
@@ -91,6 +94,15 @@ namespace BattleSoup {
 
 		private void OnEnable () {
 			RefreshContentUI();
+		}
+
+
+		private void Update () {
+			// Ability Highlight
+			bool highlight = m_Game.AbilityShipIndex >= 0;
+			if (m_AbilityHighlight.gameObject.activeSelf != highlight) {
+				m_AbilityHighlight.gameObject.SetActive(highlight);
+			}
 		}
 
 
@@ -137,6 +149,11 @@ namespace BattleSoup {
 			ReloadNav();
 			RefreshNavUI();
 			RefreshContentUI();
+		}
+
+
+		public void UI_UseAbility () {
+			m_Game.OnAbilityClick(Group.A, 0);
 		}
 
 
@@ -245,6 +262,16 @@ namespace BattleSoup {
 		}
 
 
+		public void UI_BodyChanged (Int2[] body) {
+			var sData = SelectingShipData;
+			if (sData == null) { return; }
+			sData.Ship.Body = body;
+			SaveData();
+			RefreshContentUI();
+		}
+
+
+		// Misc
 		public void SelectFirstShip (out string secondShip) {
 			secondShip = "";
 			var map = GetShipDataMap();
@@ -345,8 +372,8 @@ namespace BattleSoup {
 			m_InfoContentData.BreakOnSunk.SetIsOnWithoutNotify(sData.Ship.Ability.BreakOnSunk);
 			m_InfoContentData.BreakOnMiss.SetIsOnWithoutNotify(sData.Ship.Ability.BreakOnMiss);
 			m_InfoContentData.ResetCooldownOnHit.SetIsOnWithoutNotify(sData.Ship.Ability.ResetCooldownOnHit);
+			m_ShipBodyEditor.RefreshUI(sData.Ship);
 			m_InfoContentData.CopyOpponentLastUsed.SetIsOnWithoutNotify(sData.Ship.Ability.CopyOpponentLastUsed);
-
 			m_InfoContentData.BreakOnSunk.transform.parent.gameObject.SetActive(!sData.Ship.Ability.CopyOpponentLastUsed);
 			m_InfoContentData.BreakOnMiss.transform.parent.gameObject.SetActive(!sData.Ship.Ability.CopyOpponentLastUsed);
 			m_InfoContentData.ResetCooldownOnHit.transform.parent.gameObject.SetActive(!sData.Ship.Ability.CopyOpponentLastUsed);
@@ -362,7 +389,6 @@ namespace BattleSoup {
 				m_Panels[1].gameObject.SetActive(false);
 				m_Panels[2].gameObject.SetActive(false);
 			}
-
 
 
 		}

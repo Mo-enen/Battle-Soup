@@ -251,7 +251,6 @@ namespace BattleSoup {
 
 
 		private void Update () {
-
 			Update_Aim();
 			if (CurrentBattleMode == BattleMode.PvA) {
 				// PvA
@@ -455,6 +454,9 @@ namespace BattleSoup {
 			soupBRT.anchoredPosition3D = new Vector2(0f, shipEditing ? -8f : -43f);
 			soupBRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, shipEditing ? 360f : 512f);
 			soupBRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, shipEditing ? 360f : 512f);
+
+			m_SoupA.UseAbilityHint = !shipEditing;
+			m_SoupB.UseAbilityHint = !shipEditing;
 
 		}
 
@@ -916,7 +918,7 @@ namespace BattleSoup {
 
 		private void CancelAbility (bool forceCancel) {
 			int attIndex = AbilityData.AbilityAttackIndex;
-			if (forceCancel || attIndex == 0) {
+			if (forceCancel || attIndex == 0 || ShipEditing) {
 				AbilityShipIndex = -1;
 				AbilityData.Clear();
 				if (forceCancel && attIndex != 0) {

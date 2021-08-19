@@ -20,6 +20,8 @@ namespace Moenen.Standard {
 		public static string GetRuntimeBuiltRootPath () {
 #if UNITY_EDITOR
 			return CombinePaths(GetParentPath(Application.dataPath), "_Built", $"{Application.productName} v{Application.version}");
+#elif UNITY_STANDALONE_OSX
+			return Application.dataPath;
 #else
 			return GetParentPath(Application.dataPath);
 #endif
