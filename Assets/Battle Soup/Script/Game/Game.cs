@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using BattleSoupAI;
-
+using System.Linq;
 
 namespace BattleSoup {
 	public class Game : MonoBehaviour {
@@ -288,7 +288,7 @@ namespace BattleSoup {
 								AbilityData.PickedPerformed = false;
 								AbilityData.WaitForPicking = false;
 								if (PerformAbility(pos.x, pos.y, out _)) {
-									InvokeEvent(SoupEventType.CurrentShip_PerformAbility, CurrentTurn, AbilityShipIndex);
+									InvokeEvent(SoupEvent.CurrentShip_PerformAbility, CurrentTurn, AbilityShipIndex);
 									SwitchTurn();
 								} else {
 									AbilityData.WaitForPicking = true;
@@ -296,8 +296,8 @@ namespace BattleSoup {
 								}
 							} else if (AttackTile(DEFAULT_ATTACK, pos.x, pos.y, Group.B) != AttackResult.None) {
 								// Normal Attack
-								InvokeEvent(SoupEventType.Own_NormalAttack, CurrentTurn, -1);
-								InvokeEvent(SoupEventType.Opponent_NormalAttack, CurrentTurn.Opposite(), -1);
+								InvokeEvent(SoupEvent.Own_NormalAttack);
+								InvokeEvent(SoupEvent.Opponent_NormalAttack);
 								SwitchTurn();
 								m_SoupB.ClearBlinks();
 								m_SoupB.Blink(pos.x, pos.y, Color.white, m_AttackBlink, 0.5f);
@@ -331,8 +331,8 @@ namespace BattleSoup {
 					if (result.AbilityIndex < 0) {
 						// Normal Attack
 						AttackTile(DEFAULT_ATTACK, result.TargetPosition.x, result.TargetPosition.y, oppGroup);
-						InvokeEvent(SoupEventType.Own_NormalAttack, CurrentTurn, -1);
-						InvokeEvent(SoupEventType.Opponent_NormalAttack, CurrentTurn.Opposite(), -1);
+						InvokeEvent(SoupEvent.Own_NormalAttack);
+						InvokeEvent(SoupEvent.Opponent_NormalAttack);
 						SwitchTurn();
 					} else if (CheckAbilityAvailable(group, result.AbilityIndex)) {
 						bool combo = AbilityShipIndex >= 0;
@@ -350,7 +350,7 @@ namespace BattleSoup {
 								AbilityData.PickedPerformed = false;
 								AbilityData.WaitForPicking = false;
 								if (PerformAbility(result.TargetPosition.x, result.TargetPosition.y, out bool error) || error) {
-									InvokeEvent(SoupEventType.CurrentShip_PerformAbility, CurrentTurn, AbilityShipIndex);
+									InvokeEvent(SoupEvent.CurrentShip_PerformAbility, CurrentTurn, AbilityShipIndex);
 									SwitchTurn();
 								} else {
 									AbilityData.WaitForPicking = true;
@@ -690,7 +690,10 @@ namespace BattleSoup {
 
 			// Turn Change
 			CurrentTurn = !ShipEditing && CurrentTurn == Group.A ? Group.B : Group.A;
+			InvokeEvent(SoupEvent.Own_TurnStart);
+			InvokeEvent(SoupEvent.Opponent_TurnStart);
 			m_RefreshUI.Invoke();
+
 		}
 
 
@@ -1099,7 +1102,7 @@ namespace BattleSoup {
 					RefreshShipsAlive(_shipIndex, targetGroup);
 					if (targetData.ShipsAlive[_shipIndex]) {
 						// No Sunk
-						InvokeEvent(SoupEventType.CurrentShip_GetHit, targetGroup, _shipIndex);
+						InvokeEvent(SoupEvent.CurrentShip_GetHit, targetGroup, _shipIndex);
 						InvokeMsg_ShipHitted(targetGroup, wPos);
 					} else {
 						// Sunk
@@ -1110,7 +1113,7 @@ namespace BattleSoup {
 						);
 						targetData.KnownPositions[_shipIndex] = targetData.Positions[_shipIndex];
 						if (prevAlive) {
-							InvokeEvent(SoupEventType.CurrentShip_Sunk, targetGroup, _shipIndex);
+							InvokeEvent(SoupEvent.CurrentShip_Sunk, targetGroup, _shipIndex);
 							InvokeMsg_ShipSunk(targetGroup, wPos);
 						} else {
 							InvokeMsg_ShipHitted(targetGroup, wPos);
@@ -1136,13 +1139,13 @@ namespace BattleSoup {
 						}
 					}
 					if (getHit) {
-						InvokeEvent(SoupEventType.CurrentShip_GetHit, targetGroup, _shipIndex);
+						InvokeEvent(SoupEvent.CurrentShip_GetHit, targetGroup, _shipIndex);
 					}
 					RefreshShipsAlive(_shipIndex, targetGroup);
 					sunkShip = true;
 					SetTilesToSunk(targetData.Ships[_shipIndex], targetData.Positions[_shipIndex]);
 					targetData.KnownPositions[_shipIndex] = targetData.Positions[_shipIndex];
-					InvokeEvent(SoupEventType.CurrentShip_Sunk, targetGroup, _shipIndex);
+					InvokeEvent(SoupEvent.CurrentShip_Sunk, targetGroup, _shipIndex);
 					InvokeMsg_ShipSunk(targetGroup, wPos);
 				}
 				hitShip = true;
@@ -1178,7 +1181,7 @@ namespace BattleSoup {
 					if (tile != Tile.HittedShip && tile != Tile.SunkShip && tile != Tile.RevealedShip) {
 						data.Tiles[x, y] = Tile.RevealedShip;
 						if (useCallback) {
-							InvokeEvent(SoupEventType.CurrentShip_GetReveal, targetGroup, _shipIndex);
+							InvokeEvent(SoupEvent.CurrentShip_GetReveal, targetGroup, _shipIndex);
 							InvokeMsg_ShipReveal(targetGroup, wPos);
 						}
 					}
@@ -1219,7 +1222,7 @@ namespace BattleSoup {
 				var tile = data.Tiles[_x, _y];
 				if (tile != Tile.RevealedShip && tile != Tile.HittedShip && tile != Tile.SunkShip) {
 					data.Tiles[_x, _y] = Tile.RevealedShip;
-					InvokeEvent(SoupEventType.CurrentShip_GetReveal, targetGroup, shipIndex);
+					InvokeEvent(SoupEvent.CurrentShip_GetReveal, targetGroup, shipIndex);
 					InvokeMsg_ShipReveal(targetGroup, GetWorldPosition(_x, _y, targetGroup));
 				}
 			}
@@ -1296,29 +1299,51 @@ namespace BattleSoup {
 
 
 		// Event
-		private void InvokeEvent (SoupEventType type, Group ownGroup, int currentIndex) {
-			InvokeEvent_Data(DataA);
-			InvokeEvent_Data(DataB);
+		private void InvokeEvent (SoupEvent type) => InvokeEvent(type, null, -1);
+
+
+		private void InvokeEvent (SoupEvent type, Group? ownGroup, int currentIndex) {
+			if (ownGroup.HasValue) {
+				if (currentIndex >= 0) {
+					InvokeEvent_Data(ownGroup.Value == Group.A ? DataA : DataB, ownGroup.Value);
+				}
+			} else {
+				InvokeEvent_Data(DataA, Group.A);
+				InvokeEvent_Data(DataB, Group.B);
+			}
 			// Func
-			void InvokeEvent_Data (GameData data) {
+			void InvokeEvent_Data (GameData data, Group group) {
 				foreach (var ship in data.Ships) {
 					int eCount = ship.Ability.Events.Count;
 					for (int i = 0; i < eCount; i++) {
 						var ev = ship.Ability.Events[i];
 						if (ev.Type != type) { continue; }
-						if (CheckCondition(ev.Condition, ownGroup, currentIndex, ev.IntParam)) {
-							var oldTurn = CurrentTurn;
-							int oldAbilityIndex = AbilityShipIndex;
-							CurrentTurn = ownGroup;
-							AbilityShipIndex = currentIndex;
-							AbilityData.AbilityAttackIndex = ev.TargetIndex;
-							AbilityData.WaitForPicking = true;
-							AbilityData.PickedPerformed = true;
-							AbilityData.Pickless = true;
-							AbilityDirection = AbilityDirection.Up;
-							PerformAbility(0, 0, out _);
-							CurrentTurn = oldTurn;
-							AbilityShipIndex = oldAbilityIndex;
+						if (CheckCondition(
+							ev.Condition,
+							ev.ConditionCompare,
+							ev.ApplyConditionOnOpponent ? group.Opposite() : group,
+							currentIndex,
+							ev.IntParam
+						)) {
+							// Perform
+							switch (ev.Action) {
+								case EventAction.PerformAttack: {
+									var oldTurn = CurrentTurn;
+									int oldAbilityIndex = AbilityShipIndex;
+									CurrentTurn = group;
+									AbilityShipIndex = currentIndex;
+									AbilityData.AbilityAttackIndex = ev.ActionParam;
+									AbilityData.WaitForPicking = true;
+									AbilityData.PickedPerformed = true;
+									AbilityData.Pickless = true;
+									AbilityDirection = AbilityDirection.Up;
+									PerformAbility(0, 0, out _);
+									CurrentTurn = oldTurn;
+									AbilityShipIndex = oldAbilityIndex;
+									break;
+								}
+							}
+							if (ev.BreakAfterPerform) { break; }
 						}
 					}
 				}
@@ -1326,56 +1351,38 @@ namespace BattleSoup {
 		}
 
 
-		private bool CheckCondition (EventCondition condition, Group group, int shipIndex, int paramInt) {
+		private bool CheckCondition (EventCondition condition, EventConditionCompare compare, Group group, int shipIndex, int paramInt) {
 
-			var compare =
-				condition.HasFlag(EventCondition.Equal) ? EventCondition.Equal :
-				condition.HasFlag(EventCondition.NotEqual) ? EventCondition.NotEqual :
-				condition.HasFlag(EventCondition.Greater) ? EventCondition.Greater :
-				condition.HasFlag(EventCondition.Less) ? EventCondition.Less :
-				condition.HasFlag(EventCondition.GreaterOrEqual) ? EventCondition.GreaterOrEqual :
-				condition.HasFlag(EventCondition.LessOrEqual) ? EventCondition.LessOrEqual :
-				EventCondition.None;
-
-			if (compare == EventCondition.None) { return false; }
-
-			var ownData = group == Group.A ? DataA : DataB;
-			var oppData = group == Group.B ? DataA : DataB;
+			var data = group == Group.A ? DataA : DataB;
 
 			return condition switch {
 
-				EventCondition _c when _c.HasFlag(EventCondition.Own_AliveShipCount) =>
-					CheckConpare(ownData.GetAliveShipCount()),
+				EventCondition _c when _c.HasFlag(EventCondition.AliveShipCount) =>
+					CheckConpare(data.GetAliveShipCount()),
 
-				EventCondition _c when _c.HasFlag(EventCondition.Own_SunkShipCount) =>
-					CheckConpare(ownData.GetSunkShipCount()),
-
-				EventCondition _c when _c.HasFlag(EventCondition.Opponent_AliveShipCount) =>
-					CheckConpare(oppData.GetAliveShipCount()),
-
-				EventCondition _c when _c.HasFlag(EventCondition.Opponent_SunkShipCount) =>
-					CheckConpare(oppData.GetSunkShipCount()),
+				EventCondition _c when _c.HasFlag(EventCondition.SunkShipCount) =>
+					CheckConpare(data.GetSunkShipCount()),
 
 				EventCondition _c when _c.HasFlag(EventCondition.CurrentShip_HiddenTileCount) =>
-					CheckConpare(ownData.GetTileCount(shipIndex, Tile.GeneralWater)),
+					CheckConpare(data.GetTileCount(shipIndex, Tile.GeneralWater)),
 
 				EventCondition _c when _c.HasFlag(EventCondition.CurrentShip_HitTileCount) =>
-					CheckConpare(ownData.GetTileCount(shipIndex, Tile.HittedShip)),
+					CheckConpare(data.GetTileCount(shipIndex, Tile.HittedShip)),
 
 				EventCondition _c when _c.HasFlag(EventCondition.CurrentShip_RevealTileCount) =>
-					CheckConpare(ownData.GetTileCount(shipIndex, Tile.RevealedShip)),
+					CheckConpare(data.GetTileCount(shipIndex, Tile.RevealedShip)),
 
 				_ => false,
 			};
 
 			// Func
 			bool CheckConpare (int value) => compare switch {
-				EventCondition.Equal => value == paramInt,
-				EventCondition.NotEqual => value != paramInt,
-				EventCondition.Less => value < paramInt,
-				EventCondition.LessOrEqual => value <= paramInt,
-				EventCondition.Greater => value > paramInt,
-				EventCondition.GreaterOrEqual => value >= paramInt,
+				EventConditionCompare.Equal => value == paramInt,
+				EventConditionCompare.NotEqual => value != paramInt,
+				EventConditionCompare.Less => value < paramInt,
+				EventConditionCompare.LessOrEqual => value <= paramInt,
+				EventConditionCompare.Greater => value > paramInt,
+				EventConditionCompare.GreaterOrEqual => value >= paramInt,
 				_ => false,
 			};
 		}

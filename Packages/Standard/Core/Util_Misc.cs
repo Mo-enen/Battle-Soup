@@ -243,6 +243,31 @@ namespace Moenen.Standard {
 		}
 
 
+		public static string GetDisplayName (string name) {
+
+			// Remove "m_" at Start
+			if (name.Length > 2 && name[0] == 'm' && name[1] == '_') {
+				name = name.Substring(2, name.Length - 2);
+			}
+
+			// Replace "_" to " "
+			name = name.Replace('_', ' ');
+
+			// Add " " Space Between "a Aa"
+			for (int i = 0; i < name.Length - 1; i++) {
+				if (
+					name[i] != ' ' &&
+					!char.IsUpper(name[i]) &&
+					char.IsUpper(name[i + 1])
+				) {
+					name = name.Insert(i + 1, " ");
+					i++;
+				}
+			}
+
+			return name;
+		}
+
 
 		// Ref
 		public static void InvokeMethod<T> (T obj, string methodName, params object[] param) {

@@ -7,6 +7,7 @@ using Moenen.Standard;
 using MonoFileBrowser;
 using BattleSoupAI;
 
+
 namespace BattleSoup {
 	public class ShipEditorUI : MonoBehaviour {
 
@@ -75,8 +76,18 @@ namespace BattleSoup {
 		[SerializeField] Grabber m_NavTemplate = null;
 		[SerializeField] ShipBodyEditorUI m_ShipBodyEditor = null;
 		[SerializeField] InfoContentData m_InfoContentData = default;
+		[SerializeField] Grabber m_EventTemplate = null;
+		[SerializeField] RectTransform m_EventContainer = null;
 		[SerializeField] Toggle[] m_Titles = null;
 		[SerializeField] RectTransform[] m_Panels = null;
+
+
+		// Data
+		private readonly List<Dropdown.OptionData> EventTypeOptions = new List<Dropdown.OptionData>();
+		private readonly List<Dropdown.OptionData> EventConditionOptions0 = new List<Dropdown.OptionData>();
+		private readonly List<Dropdown.OptionData> EventConditionOptions1 = new List<Dropdown.OptionData>();
+		private readonly List<Dropdown.OptionData> EventConditionOptions2 = new List<Dropdown.OptionData>();
+		private readonly List<Dropdown.OptionData> EventActionOptions = new List<Dropdown.OptionData>();
 
 
 		#endregion
@@ -89,11 +100,17 @@ namespace BattleSoup {
 
 		private void Awake () {
 			ReloadNav();
+			RefreshEventPanel();
+			Awake_Options();
+			m_Panels[0].gameObject.SetActive(true);
+			m_Panels[1].gameObject.SetActive(false);
+			m_Panels[2].gameObject.SetActive(false);
 		}
 
 
 		private void OnEnable () {
 			RefreshContentUI();
+			RefreshEventPanel();
 		}
 
 
@@ -103,6 +120,64 @@ namespace BattleSoup {
 			if (m_AbilityHighlight.gameObject.activeSelf != highlight) {
 				m_AbilityHighlight.gameObject.SetActive(highlight);
 			}
+		}
+
+
+		private void Awake_Options () {
+
+			// Event Type
+			EventTypeOptions.Clear();
+			foreach (var codeName in System.Enum.GetNames(typeof(SoupEvent))) {
+				string displayName = Util.GetDisplayName(codeName);
+				EventTypeOptions.Add(new Dropdown.OptionData(displayName));
+			}
+
+			// Con0
+			EventConditionOptions0.Clear();
+			EventConditionOptions0.Add(new Dropdown.OptionData("Own"));
+			EventConditionOptions0.Add(new Dropdown.OptionData("Opponent"));
+
+			// Con1
+			EventConditionOptions1.Clear();
+			foreach (var codeName in System.Enum.GetNames(typeof(EventCondition))) {
+				string displayName = Util.GetDisplayName(codeName);
+				EventConditionOptions1.Add(new Dropdown.OptionData(displayName));
+			}
+
+			// Con2
+			EventConditionOptions2.Clear();
+			int con2Len = System.Enum.GetNames(typeof(EventConditionCompare)).Length;
+			for (int i = 0; i < con2Len; i++) {
+				switch ((EventConditionCompare)i) {
+					case EventConditionCompare.Greater:
+						EventConditionOptions2.Add(new Dropdown.OptionData("£¾"));
+						break;
+					case EventConditionCompare.GreaterOrEqual:
+						EventConditionOptions2.Add(new Dropdown.OptionData("¡Ý"));
+						break;
+					case EventConditionCompare.Less:
+						EventConditionOptions2.Add(new Dropdown.OptionData("£¼"));
+						break;
+					case EventConditionCompare.LessOrEqual:
+						EventConditionOptions2.Add(new Dropdown.OptionData("¡Ü"));
+						break;
+					case EventConditionCompare.Equal:
+						EventConditionOptions2.Add(new Dropdown.OptionData("="));
+						break;
+					case EventConditionCompare.NotEqual:
+						EventConditionOptions2.Add(new Dropdown.OptionData("¡Ù"));
+						break;
+				}
+			}
+
+			// Action Type
+			EventActionOptions.Clear();
+			foreach (var codeName in System.Enum.GetNames(typeof(EventAction))) {
+				string displayName = Util.GetDisplayName(codeName);
+				EventActionOptions.Add(new Dropdown.OptionData(displayName));
+			}
+
+
 		}
 
 
@@ -133,6 +208,7 @@ namespace BattleSoup {
 				SelectShip(id);
 				RefreshNavUI();
 				RefreshContentUI();
+				RefreshEventPanel();
 			}
 
 		}
@@ -149,6 +225,7 @@ namespace BattleSoup {
 			ReloadNav();
 			RefreshNavUI();
 			RefreshContentUI();
+			RefreshEventPanel();
 		}
 
 
@@ -157,7 +234,22 @@ namespace BattleSoup {
 		}
 
 
-		// Info Content
+		// Misc
+		public void SelectFirstShip (out string secondShip) {
+			secondShip = "";
+			var map = GetShipDataMap();
+			var keys = new List<string>(map.Keys);
+			if (keys.Count > 0) {
+				keys.Sort((a, b) => a.CompareTo(b));
+				SelectingShipID = keys[0];
+				if (keys.Count > 1) {
+					secondShip = keys[1];
+				}
+			}
+		}
+
+
+		// Info Panel
 		public void UI_RenameSelectingShip (string newName) {
 			bool success = RenameShipData(SelectingShipID, newName);
 			if (success) {
@@ -166,6 +258,7 @@ namespace BattleSoup {
 					SelectShip(newName);
 					RefreshContentUI();
 					RefreshNavUI();
+					RefreshEventPanel();
 				}
 			}
 		}
@@ -271,17 +364,121 @@ namespace BattleSoup {
 		}
 
 
-		// Misc
-		public void SelectFirstShip (out string secondShip) {
-			secondShip = "";
-			var map = GetShipDataMap();
-			var keys = new List<string>(map.Keys);
-			if (keys.Count > 0) {
-				keys.Sort((a, b) => a.CompareTo(b));
-				SelectingShipID = keys[0];
-				if (keys.Count > 1) {
-					secondShip = keys[1];
-				}
+		// Event Panel
+		public void UI_NewEvent () {
+			var sData = SelectingShipData;
+			if (sData == null) { return; }
+			sData.Ship.Ability.Events.Add(new BattleSoupAI.Event() {
+				Type = SoupEvent.CurrentShip_PerformAbility,
+				Condition = EventCondition.None,
+				Action = EventAction.PerformAttack,
+				IntParam = 0,
+				ActionParam = 0,
+				BreakAfterPerform = false,
+				ApplyConditionOnOpponent = false,
+			});
+			SaveData();
+			RefreshEventPanel();
+		}
+
+
+		private void SetEventType (int index, SoupEvent type) {
+			var sData = SelectingShipData;
+			if (sData == null) { return; }
+			sData.Ship.Ability.Events[index].Type = type;
+			SaveData();
+			RefreshEventPanel();
+		}
+
+
+		private void SetEventCondition0 (int index, bool forOwn) {
+			var sData = SelectingShipData;
+			if (sData == null) { return; }
+			sData.Ship.Ability.Events[index].ApplyConditionOnOpponent = !forOwn;
+			SaveData();
+			RefreshEventPanel();
+		}
+
+
+		private void SetEventCondition1 (int index, EventCondition condition) {
+			var sData = SelectingShipData;
+			if (sData == null) { return; }
+			sData.Ship.Ability.Events[index].Condition = condition;
+			SaveData();
+			RefreshEventPanel();
+		}
+
+
+		private void SetEventCondition2 (int index, EventConditionCompare compare) {
+			var sData = SelectingShipData;
+			if (sData == null) { return; }
+			sData.Ship.Ability.Events[index].ConditionCompare = compare;
+			SaveData();
+			RefreshEventPanel();
+		}
+
+
+		private void SetEventCondition3 (int index, string str) {
+			var sData = SelectingShipData;
+			if (sData == null) { return; }
+			if (int.TryParse(str, out int value)) {
+				sData.Ship.Ability.Events[index].IntParam = value;
+				SaveData();
+				RefreshEventPanel();
+			}
+		}
+
+
+		private void SetEventActionType (int index, EventAction action) {
+			var sData = SelectingShipData;
+			if (sData == null) { return; }
+			sData.Ship.Ability.Events[index].Action = action;
+			SaveData();
+			RefreshEventPanel();
+		}
+
+
+		private void SetEventActionParam (int index, string str) {
+			var sData = SelectingShipData;
+			if (sData == null) { return; }
+			if (int.TryParse(str, out int value)) {
+				sData.Ship.Ability.Events[index].ActionParam = value;
+				SaveData();
+				RefreshEventPanel();
+			}
+		}
+
+
+		private void SetBreakAfterPerform (int index, bool breakAfterPerform) {
+			var sData = SelectingShipData;
+			if (sData == null) { return; }
+			sData.Ship.Ability.Events[index].BreakAfterPerform = breakAfterPerform;
+			SaveData();
+			RefreshEventPanel();
+		}
+
+
+		private void MoveEventUI (int index, bool up) {
+			var sData = SelectingShipData;
+			if (sData == null) { return; }
+			var events = sData.Ship.Ability.Events;
+			int newIndex = up ? index - 1 : index + 1;
+			if (index >= 0 && index < events.Count && newIndex >= 0 && newIndex < events.Count) {
+				(events[index], events[newIndex]) = (events[newIndex], events[index]);
+				SaveData();
+				RefreshEventPanel();
+			}
+		}
+
+
+		private void DeleteEvent (int index) {
+			var sData = SelectingShipData;
+			if (sData == null) { return; }
+			var events = sData.Ship.Ability.Events;
+			if (index >= 0 && index < events.Count) {
+				events.RemoveAt(index);
+				SaveData();
+				RefreshEventPanel();
 			}
 		}
 
@@ -339,6 +536,7 @@ namespace BattleSoup {
 						SelectShip(rt.name);
 						RefreshNavUI();
 						RefreshContentUI();
+						RefreshEventPanel();
 					}
 				});
 			}
@@ -390,6 +588,132 @@ namespace BattleSoup {
 				m_Panels[2].gameObject.SetActive(false);
 			}
 
+
+		}
+
+
+		private void RefreshEventPanel () {
+
+			var sData = SelectingShipData;
+			if (sData == null) { return; }
+			var container = m_EventContainer;
+			var events = sData.Ship.Ability.Events;
+
+			// Fix Item Count
+			if (container.childCount < events.Count) {
+				int count = events.Count - container.childCount;
+				for (int i = 0; i < count; i++) {
+					SpawnNewEventItem();
+				}
+			} else if (container.childCount > events.Count) {
+				int count = container.childCount - events.Count;
+				for (int i = 0; i < count; i++) {
+					DestroyImmediate(container.GetChild(events.Count).gameObject, false);
+				}
+			}
+
+			// Refresh UI
+			int childCount = container.childCount;
+			for (int i = 0; i < childCount; i++) {
+				var ev = events[i];
+				var grab = container.GetChild(i).GetComponent<Grabber>();
+				var eType = grab.Grab<Dropdown>("Event Type");
+				var con0 = grab.Grab<Dropdown>("Condition 0");
+				var con1 = grab.Grab<Dropdown>("Condition 1");
+				var con2 = grab.Grab<Dropdown>("Condition 2");
+				var con3 = grab.Grab<InputField>("Condition 3");
+				var aType = grab.Grab<Dropdown>("Action Type");
+				var aParam = grab.Grab<InputField>("Action Param");
+				var bap = grab.Grab<Toggle>("BreakAfterPerform");
+				eType.SetValueWithoutNotify((int)ev.Type);
+				con0.SetValueWithoutNotify(ev.ApplyConditionOnOpponent ? 1 : 0);
+				con1.SetValueWithoutNotify((int)ev.Condition);
+				con2.SetValueWithoutNotify((int)ev.ConditionCompare);
+				con3.SetTextWithoutNotify(ev.IntParam.ToString());
+				aType.SetValueWithoutNotify((int)ev.Action);
+				aParam.SetTextWithoutNotify(ev.ActionParam.ToString());
+				bap.SetIsOnWithoutNotify(ev.BreakAfterPerform);
+				con0.gameObject.SetActive(
+					ev.Condition != EventCondition.None &&
+					ev.Condition != EventCondition.CurrentShip_HiddenTileCount &&
+					ev.Condition != EventCondition.CurrentShip_HitTileCount &&
+					ev.Condition != EventCondition.CurrentShip_RevealTileCount
+				);
+				con2.gameObject.SetActive(ev.Condition != EventCondition.None);
+				con3.gameObject.SetActive(ev.Condition != EventCondition.None);
+
+			}
+
+		}
+
+
+		private void SpawnNewEventItem () {
+
+			var container = m_EventContainer;
+			var grab = Instantiate(m_EventTemplate, container);
+			var rt = grab.transform as RectTransform;
+			rt.anchoredPosition3D = rt.anchoredPosition;
+			rt.localRotation = Quaternion.identity;
+			rt.localScale = Vector3.one;
+			rt.SetAsLastSibling();
+
+			// Event Type
+			var eType = grab.Grab<Dropdown>("Event Type");
+			eType.AddOptions(EventTypeOptions);
+			eType.onValueChanged.AddListener((value) => SetEventType(
+				rt.GetSiblingIndex(), (SoupEvent)value
+			));
+
+			// Condition 0
+			var cDrop0 = grab.Grab<Dropdown>("Condition 0");
+			cDrop0.AddOptions(EventConditionOptions0);
+			cDrop0.onValueChanged.AddListener((value) => SetEventCondition0(
+				rt.GetSiblingIndex(), cDrop0.value == 0
+			));
+
+			// Condition 1
+			var cDrop1 = grab.Grab<Dropdown>("Condition 1");
+			cDrop1.AddOptions(EventConditionOptions1);
+			cDrop1.onValueChanged.AddListener((value) => SetEventCondition1(
+				rt.GetSiblingIndex(), (EventCondition)cDrop1.value
+			));
+
+			// Condition 2
+			var cDrop2 = grab.Grab<Dropdown>("Condition 2");
+			cDrop2.AddOptions(EventConditionOptions2);
+			cDrop2.onValueChanged.AddListener((value) => SetEventCondition2(
+				rt.GetSiblingIndex(), (EventConditionCompare)cDrop2.value
+			));
+
+			// Condition 3
+			var cInput3 = grab.Grab<InputField>("Condition 3");
+			cInput3.onEndEdit.AddListener((text) => SetEventCondition3(rt.GetSiblingIndex(), text));
+
+			// Action Type
+			var aType = grab.Grab<Dropdown>("Action Type");
+			aType.AddOptions(EventActionOptions);
+			aType.onValueChanged.AddListener((value) => SetEventActionType(
+				rt.GetSiblingIndex(), (EventAction)aType.value
+			));
+
+			// Action Param
+			var aParam = grab.Grab<InputField>("Action Param");
+			aParam.onEndEdit.AddListener((text) => SetEventActionParam(rt.GetSiblingIndex(), text));
+
+			// Break After Perform
+			var bap = grab.Grab<Toggle>("BreakAfterPerform");
+			bap.onValueChanged.AddListener((isOn) => SetBreakAfterPerform(rt.GetSiblingIndex(), isOn));
+
+			// Misc Buttons
+			grab.Grab<Button>("Delete Event Real").onClick.AddListener(
+				() => DeleteEvent(rt.GetSiblingIndex())
+			);
+			grab.Grab<Button>("Move Up").onClick.AddListener(
+				() => MoveEventUI(rt.GetSiblingIndex(), true)
+			);
+			grab.Grab<Button>("Move Down").onClick.AddListener(
+				() => MoveEventUI(rt.GetSiblingIndex(), false)
+			);
 
 		}
 

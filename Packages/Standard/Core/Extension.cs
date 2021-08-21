@@ -6,7 +6,7 @@ using UnityEngine;
 
 
 namespace Moenen.Standard {
-	public static class EditorExtension {
+	public static class Extension {
 
 
 

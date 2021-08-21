@@ -151,7 +151,7 @@ namespace BattleSoupAI {
 	}
 
 
-	public enum SoupEventType {
+	public enum SoupEvent {
 
 		CurrentShip_PerformAbility = 0,     // Finished
 		CurrentShip_GetHit = 1,             // Finished
@@ -159,33 +159,40 @@ namespace BattleSoupAI {
 		CurrentShip_Sunk = 3,               // Finished
 
 		Own_NormalAttack = 4,               // Finished
-		Opponent_NormalAttack = 5,          // Finished
+		Own_TurnStart = 5,                  // Finished
 
-
-
+		Opponent_NormalAttack = 6,          // Finished
+		Opponent_TurnStart = 7,             // Finished
 
 	}
 
 
-	[System.Flags]
 	public enum EventCondition {
-
 		None = 0,
+		AliveShipCount = 1,
+		SunkShipCount = 2,
+		CurrentShip_HiddenTileCount = 3,
+		CurrentShip_HitTileCount = 4,
+		CurrentShip_RevealTileCount = 5,
 
-		Own_AliveShipCount = 1 << 0,
-		Own_SunkShipCount = 2 << 0,
-		Opponent_AliveShipCount = 3 << 0,
-		Opponent_SunkShipCount = 4 << 0,
-		CurrentShip_HiddenTileCount = 5 << 0,
-		CurrentShip_HitTileCount = 6 << 0,
-		CurrentShip_RevealTileCount = 7 << 0,
+	}
 
-		Greater = 1 << 15,
-		GreaterOrEqual = 2 << 15,
-		Less = 3 << 15,
-		LessOrEqual = 4 << 15,
-		Equal = 5 << 15,
-		NotEqual = 6 << 15,
+
+	public enum EventConditionCompare {
+		Greater = 0,
+		GreaterOrEqual = 1,
+		Less = 2,
+		LessOrEqual = 3,
+		Equal = 4,
+		NotEqual = 5,
+
+	}
+
+
+	public enum EventAction {
+
+		PerformAttack = 0,
+
 
 	}
 
@@ -232,12 +239,14 @@ namespace BattleSoupAI {
 
 	[System.Serializable]
 	public class Event {
-		public SoupEventType Type = SoupEventType.CurrentShip_PerformAbility;
+		public SoupEvent Type = SoupEvent.CurrentShip_PerformAbility;
 		public EventCondition Condition = EventCondition.None;
+		public EventConditionCompare ConditionCompare = EventConditionCompare.Equal;
+		public EventAction Action = EventAction.PerformAttack;
 		public bool ApplyConditionOnOpponent = false;
-		public int TargetIndex = 0;
+		public bool BreakAfterPerform = false;
 		public int IntParam = 0;
-		public string StringParam = "";
+		public int ActionParam = 0;
 	}
 
 
