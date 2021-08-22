@@ -59,6 +59,7 @@ namespace BattleSoup {
 					if (!iconTexture.LoadImage(iconByte, false)) { continue; }
 					shipData.Ship.GlobalID = key;
 					shipData.Ship.GroundBodyToZero();
+					shipData.Ship.Ability.ValidAttacks();
 					iconList.Add(iconTexture);
 					ShipMap.Add(key, shipData);
 					shipList.Add(shipData);

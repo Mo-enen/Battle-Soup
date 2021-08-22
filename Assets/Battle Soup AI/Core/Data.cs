@@ -153,16 +153,15 @@ namespace BattleSoupAI {
 
 	public enum SoupEvent {
 
-		CurrentShip_PerformAbility = 0,     // Finished
-		CurrentShip_GetHit = 1,             // Finished
-		CurrentShip_GetReveal = 2,          // Finished
-		CurrentShip_Sunk = 3,               // Finished
+		CurrentShip_GetHit = 0,             // Finished
+		CurrentShip_GetReveal = 1,          // Finished
+		CurrentShip_Sunk = 2,               // Finished
 
-		Own_NormalAttack = 4,               // Finished
-		Own_TurnStart = 5,                  // Finished
+		Own_NormalAttack = 3,               // Finished
+		Own_TurnStart = 4,                  // Finished
 
-		Opponent_NormalAttack = 6,          // Finished
-		Opponent_TurnStart = 7,             // Finished
+		Opponent_NormalAttack = 5,          // Finished
+		Opponent_TurnStart = 6,             // Finished
 
 	}
 
@@ -199,7 +198,7 @@ namespace BattleSoupAI {
 
 
 	[System.Serializable]
-	public struct Attack {
+	public class Attack {
 
 		// Api
 		public bool IsHitOpponent => Type == AttackType.HitTile || Type == AttackType.HitWholeShip;
@@ -239,7 +238,7 @@ namespace BattleSoupAI {
 
 	[System.Serializable]
 	public class Event {
-		public SoupEvent Type = SoupEvent.CurrentShip_PerformAbility;
+		public SoupEvent Type = SoupEvent.Own_NormalAttack;
 		public EventCondition Condition = EventCondition.None;
 		public EventConditionCompare ConditionCompare = EventConditionCompare.Equal;
 		public EventAction Action = EventAction.PerformAttack;
@@ -307,6 +306,15 @@ namespace BattleSoupAI {
 		// Data
 		private bool? _HasActive;
 		private bool? _NeedAim;
+
+
+		// API
+		public void ValidAttacks () {
+			for (int i = 0; i < Attacks.Capacity; i++) {
+				var att = Attacks[i];
+				att.AvailableTarget = Tile.All & att.AvailableTarget;
+			}
+		}
 
 
 	}

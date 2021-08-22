@@ -12,6 +12,7 @@ namespace Moenen.Standard {
 
 		// Number
 		public static bool GetBit (this ulong value, int index) => (value & (1UL << index)) != 0;
+		public static bool GetBit (this uint value, int index) => (value & (1U << index)) != 0;
 		public static bool GetBit (this int value, int index) => (value & (1 << index)) != 0;
 
 
@@ -20,12 +21,18 @@ namespace Moenen.Standard {
 			var val = 1UL << index;
 			return bitValue ? (value | val) : (value & ~val);
 		}
+		public static uint SettedBitValue (this uint value, int index, bool bitValue) {
+			if (index < 0 || index > 63) { return value; }
+			var val = 1U << index;
+			return bitValue ? (value | val) : (value & ~val);
+		}
 		public static int SettedBitValue (this int value, int index, bool bitValue) {
 			if (index < 0 || index > 31) { return value; }
 			var val = 1 << index;
 			return bitValue ? (value | val) : (value & ~val);
 		}
 		public static void SetBitValue (this ref ulong value, int index, bool bitValue) => value = value.SettedBitValue(index, bitValue);
+		public static void SetBitValue (this ref uint value, int index, bool bitValue) => value = value.SettedBitValue(index, bitValue);
 		public static void SetBitValue (this ref int value, int index, bool bitValue) => value = value.SettedBitValue(index, bitValue);
 
 
