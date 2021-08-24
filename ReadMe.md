@@ -12,6 +12,8 @@ Download latest version in [HERE](https://github.com/Mo-enen/Battle-Soup/release
 
 <img src="_Res/Screenshot 3.png" style="zoom:100%;" />
 
+<img src="_Res/Screenshot 4.png" style="zoom:100%;" />
+
 
 
 ##### Contact
@@ -25,10 +27,10 @@ Download latest version in [HERE](https://github.com/Mo-enen/Battle-Soup/release
 
 ##### Develop Requirement
 
-- Unity Editor 2021.1.17f1c1
-- API Compatibility Level .NET 4.x
-- Decompress the zip file before use
-- Available on PC only
+- Unity Editor 2021.1.17f1c1.
+- API Compatibility Level .NET 4.x.
+- Decompress the zip file before use.
+- Available on PC only.
 
 
 
@@ -38,7 +40,9 @@ Download latest version in [HERE](https://github.com/Mo-enen/Battle-Soup/release
 
 - Ship editor available now. Create your own ship with custom body shape, ability and icon image.
 
+- Minor changes on ability logic.
 
+     
 
 `v1.0.0`
 
