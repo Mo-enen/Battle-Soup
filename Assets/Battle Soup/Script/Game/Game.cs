@@ -155,14 +155,7 @@ namespace BattleSoup {
 		}
 
 
-		private enum AttackResult {
-			None = 0,
-			Miss = 1,
-			HitShip = 2,
-			RevealShip = 3,
-			SunkShip = 4,
-			Keep = 5,
-		}
+
 
 
 		#endregion
@@ -227,7 +220,7 @@ namespace BattleSoup {
 		private readonly BattleInfo InfoA = new BattleInfo();
 		private readonly BattleInfo InfoB = new BattleInfo();
 		private readonly Vector3[] WorldCornerCaches = new Vector3[4];
-		private readonly AbilityPerformData AbilityData = new AbilityPerformData();
+		private AbilityPerformData AbilityData = new AbilityPerformData();
 		private BattleMode CurrentBattleMode = BattleMode.PvA;
 		private bool AvA_Playing = false;
 		private bool AvA_GotoNext = false;
@@ -288,6 +281,10 @@ namespace BattleSoup {
 								AbilityData.PickedPerformed = false;
 								AbilityData.WaitForPicking = false;
 								if (PerformAbility(pos.x, pos.y, out _)) {
+									FillAbility(CurrentTurn, AbilityShipIndex);
+									InvokeEvent(SoupEvent.CurrentShip_PerformAbility, CurrentTurn, AbilityShipIndex);
+									InvokeEvent(SoupEvent.Own_PerformAbility, CurrentTurn);
+									InvokeEvent(SoupEvent.Opponent_PerformAbility, CurrentTurn.Opposite());
 									SwitchTurn();
 								} else {
 									AbilityData.WaitForPicking = true;
@@ -349,6 +346,10 @@ namespace BattleSoup {
 								AbilityData.PickedPerformed = false;
 								AbilityData.WaitForPicking = false;
 								if (PerformAbility(result.TargetPosition.x, result.TargetPosition.y, out bool error) || error) {
+									FillAbility(CurrentTurn, AbilityShipIndex);
+									InvokeEvent(SoupEvent.CurrentShip_PerformAbility, CurrentTurn, AbilityShipIndex);
+									InvokeEvent(SoupEvent.Own_PerformAbility, CurrentTurn);
+									InvokeEvent(SoupEvent.Opponent_PerformAbility, CurrentTurn.Opposite());
 									SwitchTurn();
 								} else {
 									AbilityData.WaitForPicking = true;
@@ -449,7 +450,7 @@ namespace BattleSoup {
 				1f
 			);
 			soupBRT.pivot = new Vector2(shipEditing ? 0f : 1f, 1f);
-			soupBRT.anchoredPosition3D = new Vector2(0f, shipEditing ? -8f : -43f);
+			soupBRT.anchoredPosition3D = new Vector2(0f, shipEditing ? -36f : -43f);
 			soupBRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, shipEditing ? 360f : 512f);
 			soupBRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, shipEditing ? 360f : 512f);
 
@@ -473,8 +474,9 @@ namespace BattleSoup {
 			m_SoupA.GetSonars = () => DataA.Sonars;
 			m_SoupB.GetSonars = () => DataB.Sonars;
 			m_SoupA.GetCurrentAbility = m_SoupB.GetCurrentAbility = () => {
-				if (AbilityShipIndex >= 0) {
-					return (CurrentTurn == Group.A ? DataA : DataB).Ships[AbilityShipIndex].Ability;
+				var data = CurrentTurn == Group.A ? DataA : DataB;
+				if (AbilityShipIndex >= 0 && AbilityShipIndex < data.Ships.Length) {
+					return data.Ships[AbilityShipIndex].Ability;
 				}
 				return null;
 			};
@@ -577,7 +579,7 @@ namespace BattleSoup {
 					shipIndex >= 0
 				) {
 					var ship = DataA.Ships[shipIndex];
-					if (ship.Ability.HasActive || ship.Ability.CopyOpponentLastUsed) {
+					if (ship.Ability.CanBeTrigger || ship.Ability.CopyOpponentLastUsed) {
 						AbilityFirstTrigger(shipIndex);
 					}
 				}
@@ -590,6 +592,14 @@ namespace BattleSoup {
 				m_DevA.RefreshRenderer(DevShipIndexA);
 				m_DevB.RefreshRenderer(DevShipIndexB);
 				m_RefreshUI.Invoke();
+			}
+		}
+
+
+		public void FillAbility (Group group, int index) {
+			var data = group == Group.A ? DataA : DataB;
+			if (index >= 0 && index < data.Ships.Length) {
+				data.Cooldowns[index] = data.Ships[index].Ability.Cooldown;
 			}
 		}
 
@@ -822,10 +832,10 @@ namespace BattleSoup {
 				aData.AbilityAttackIndex < performingAbility.Attacks.Count;
 				aData.AbilityAttackIndex++
 			) {
+
 				var attack = performingAbility.Attacks[aData.AbilityAttackIndex];
 				var result = AttackResult.None;
-				bool isHit = attack.IsHitOpponent;
-				bool needBreak = false;
+
 				switch (attack.Trigger) {
 
 
@@ -879,11 +889,6 @@ namespace BattleSoup {
 						}
 						break;
 
-
-					case AttackTrigger.Break:
-						needBreak = true;
-						break;
-
 				}
 
 				// Win Check
@@ -894,15 +899,14 @@ namespace BattleSoup {
 
 				// Break Check
 				if (
-					needBreak ||
-					(performingAbility.BreakOnMiss && isHit && result.HasFlag(AttackResult.Miss)) ||
-					(performingAbility.BreakOnSunk && result.HasFlag(AttackResult.SunkShip))
+					attack.Trigger == AttackTrigger.Break ||
+					(result != AttackResult.None && attack.BreakingResult.HasFlag(result))
 				) { break; }
 
 			}
 
 			// Prev Use
-			if (performingAbility.HasActive) {
+			if (performingAbility.CanBeTrigger) {
 				if (CurrentTurn == Group.A) {
 					PrevUsedAbilityA = performID;
 				} else {
@@ -911,7 +915,6 @@ namespace BattleSoup {
 			}
 
 			// Final
-			data.Cooldowns[AbilityShipIndex] = selfAbility.Cooldown;
 			aData.Clear();
 			return true;
 		}
@@ -938,6 +941,10 @@ namespace BattleSoup {
 			AbilityData.PickedPerformed = true;
 			AbilityDirection = AbilityDirection.Up;
 			if (PerformAbility(0, 0, out _)) {
+				FillAbility(CurrentTurn, AbilityShipIndex);
+				InvokeEvent(SoupEvent.CurrentShip_PerformAbility, CurrentTurn, AbilityShipIndex);
+				InvokeEvent(SoupEvent.Own_PerformAbility, CurrentTurn);
+				InvokeEvent(SoupEvent.Opponent_PerformAbility, CurrentTurn.Opposite());
 				SwitchTurn();
 				m_RefreshUI.Invoke();
 				return true;
@@ -1009,10 +1016,10 @@ namespace BattleSoup {
 					HitTile(x, y, targetGroup, data, attack.Type == AttackType.HitWholeShip, out var hitShip, out var sunkShip);
 					needRefreshShip = sunkShip;
 					needRefreshHit = true;
-					result = hitShip ? AttackResult.HitShip : AttackResult.Miss;
-					if (sunkShip) {
-						result |= AttackResult.SunkShip;
-					}
+					result =
+						sunkShip ? AttackResult.Sunk :
+						hitShip ? AttackResult.Hit :
+						AttackResult.Miss;
 					Blink(x, y, true);
 					break;
 				}
@@ -1020,7 +1027,7 @@ namespace BattleSoup {
 				case AttackType.RevealWholeShip: {
 					RevealTile(x, y, targetGroup, data, attack.Type == AttackType.RevealWholeShip, true, out var revealShip);
 					needRefreshHit = true;
-					result = revealShip ? AttackResult.RevealShip : AttackResult.Miss;
+					result = revealShip ? AttackResult.Reveal : AttackResult.Miss;
 					if (attack.Type == AttackType.RevealWholeShip) {
 						needRefreshShip = true;
 					}
@@ -1031,15 +1038,16 @@ namespace BattleSoup {
 					SonarTile(x, y, targetGroup, data, out var hitShip, out var sunkShip);
 					needRefreshHit = true;
 					needRefreshSonar = true;
-					result = hitShip ? AttackResult.HitShip : AttackResult.Miss;
-					if (sunkShip) {
-						result |= AttackResult.SunkShip;
-					}
+					result =
+						sunkShip ? AttackResult.Sunk :
+						hitShip ? AttackResult.Hit :
+						AttackResult.Miss;
 					Blink(x, y, true);
 					break;
 				}
 				case AttackType.RevealOwnUnoccupiedTile: {
-					RevealTile(x, y, ownGroup, ownData, false, true, out _);
+					RevealTile(x, y, ownGroup, ownData, false, true, out var revealShip);
+					result = revealShip ? AttackResult.Reveal : AttackResult.Miss;
 					ownSoup.RefreshHitRenderer();
 					break;
 				}
@@ -1047,6 +1055,7 @@ namespace BattleSoup {
 					if (attackFromShipIndex < 0) { break; }
 					RevealWholeShip(ownData, attackFromShipIndex, ownGroup);
 					ownSoup.RefreshHitRenderer();
+					result = AttackResult.Reveal;
 					break;
 				}
 				case AttackType.DoNothing: {
@@ -1315,18 +1324,33 @@ namespace BattleSoup {
 						// Perform
 						switch (ev.Action) {
 							case EventAction.PerformAttack: {
+
+								var oldData = AbilityData;
 								var oldTurn = CurrentTurn;
-								int oldAbilityIndex = AbilityShipIndex;
+								var oldAbilityIndex = AbilityShipIndex;
+								var oldAbilityDir = AbilityDirection;
+
+								AbilityData = new AbilityPerformData() {
+									AbilityAttackIndex = ev.ActionParam,
+									WaitForPicking = true,
+									PickedPerformed = true,
+									Pickless = true,
+									DoTiedup = false,
+									Performed = false,
+									PrevAttackedPos = default,
+									TiedPos = default,
+								};
 								CurrentTurn = ownGroup;
 								AbilityShipIndex = shipIndex;
-								AbilityData.AbilityAttackIndex = ev.ActionParam;
-								AbilityData.WaitForPicking = true;
-								AbilityData.PickedPerformed = true;
-								AbilityData.Pickless = true;
 								AbilityDirection = AbilityDirection.Up;
+
 								PerformAbility(0, 0, out _);
+
+								AbilityData = oldData;
 								CurrentTurn = oldTurn;
 								AbilityShipIndex = oldAbilityIndex;
+								AbilityDirection = oldAbilityDir;
+
 								break;
 							}
 						}

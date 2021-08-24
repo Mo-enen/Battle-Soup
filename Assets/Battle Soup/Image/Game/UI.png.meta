@@ -71,6 +71,12 @@ TextureImporter:
   - first:
       213: 238177201661318622
     second: Text Own
+  - first:
+      213: 9084407170249120912
+    second: Plus Icon
+  - first:
+      213: -4464969597253999955
+    second: Folder Icon
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -630,7 +636,7 @@ TextureImporter:
         width: 82
         height: 30
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -638,6 +644,48 @@ TextureImporter:
       bones: []
       spriteID: ed59e9a27ec2e4300800000000000000
       internalID: 238177201661318622
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Plus Icon
+      rect:
+        serializedVersion: 2
+        x: 108
+        y: 245
+        width: 21
+        height: 19
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 09cd5b9a03c421e70800000000000000
+      internalID: 9084407170249120912
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Folder Icon
+      rect:
+        serializedVersion: 2
+        x: 140
+        y: 249
+        width: 107
+        height: 83
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: da2a1c6cecd3902c0800000000000000
+      internalID: -4464969597253999955
       vertices: []
       indices: 
       edges: []

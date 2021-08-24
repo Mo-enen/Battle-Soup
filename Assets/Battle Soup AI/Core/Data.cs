@@ -146,22 +146,25 @@ namespace BattleSoupAI {
 		Picked = 0,
 		TiedUp = 1,
 		Random = 2,
-		Break = 4,
+		Break = 3,
 
 	}
 
 
 	public enum SoupEvent {
 
-		CurrentShip_GetHit = 0,             // Finished
-		CurrentShip_GetReveal = 1,          // Finished
-		CurrentShip_Sunk = 2,               // Finished
+		CurrentShip_PerformAbility = 0,     // Finished
+		CurrentShip_GetHit = 1,             // Finished
+		CurrentShip_GetReveal = 2,          // Finished
+		CurrentShip_Sunk = 3,               // Finished
 
-		Own_NormalAttack = 3,               // Finished
-		Own_TurnStart = 4,                  // Finished
+		Own_PerformAbility = 4,             // Finished
+		Own_NormalAttack = 5,               // Finished
+		Own_TurnStart = 6,                  // Finished
 
-		Opponent_NormalAttack = 5,          // Finished
-		Opponent_TurnStart = 6,             // Finished
+		Opponent_PerformAbility = 7,        // Finished
+		Opponent_NormalAttack = 8,          // Finished
+		Opponent_TurnStart = 9,             // Finished
 
 	}
 
@@ -188,11 +191,22 @@ namespace BattleSoupAI {
 	}
 
 
-	public enum EventAction {
 
+	public enum EventAction {
 		PerformAttack = 0,
 
+	}
 
+
+
+	[System.Flags]
+	public enum AttackResult {
+		None = 0,
+		Miss = 1 << 0,
+		Hit = 1 << 1,
+		Reveal = 1 << 2,
+		Sunk = 1 << 3,
+		Keep = 1 << 4,
 	}
 
 
@@ -210,7 +224,9 @@ namespace BattleSoupAI {
 		public AttackType Type;
 		public AttackTrigger Trigger;
 		public Tile AvailableTarget;
+		public AttackResult BreakingResult;
 
+		// API
 		public (int x, int y) GetPosition (int targetX, int targetY, AbilityDirection direction) {
 			switch (direction) {
 				case AbilityDirection.Up:
@@ -233,6 +249,15 @@ namespace BattleSoupAI {
 			return (targetX, targetY);
 		}
 
+		public Attack Duplicate () => new Attack() {
+			X = X,
+			Y = Y,
+			Type = Type,
+			Trigger = Trigger,
+			AvailableTarget = AvailableTarget,
+			BreakingResult = BreakingResult,
+		};
+
 	}
 
 
@@ -246,6 +271,16 @@ namespace BattleSoupAI {
 		public bool BreakAfterPerform = false;
 		public int IntParam = 0;
 		public int ActionParam = 0;
+		public Event Duplicate () => new Event() {
+			Type = this.Type,
+			Condition = this.Condition,
+			ConditionCompare = this.ConditionCompare,
+			Action = this.Action,
+			ApplyConditionOnOpponent = this.ApplyConditionOnOpponent,
+			BreakAfterPerform = this.BreakAfterPerform,
+			IntParam = this.IntParam,
+			ActionParam = this.ActionParam,
+		};
 	}
 
 
@@ -254,20 +289,7 @@ namespace BattleSoupAI {
 	public class Ability {
 
 		// Api
-		public bool HasActive {
-			get {
-				if (!_HasActive.HasValue) {
-					_HasActive = false;
-					foreach (var att in Attacks) {
-						if (att.Trigger == AttackTrigger.Picked || att.Trigger == AttackTrigger.Random) {
-							_HasActive = true;
-							break;
-						}
-					}
-				}
-				return _HasActive.Value;
-			}
-		}
+		public bool CanBeTrigger => Attacks != null && Attacks.Count > 0 && Attacks[0].Trigger != AttackTrigger.Break;
 		public bool NeedAim {
 			get {
 				if (!_NeedAim.HasValue) {
@@ -298,21 +320,20 @@ namespace BattleSoupAI {
 		public List<Event> Events = new List<Event>();
 		public List<Attack> Attacks = new List<Attack>();
 		public int Cooldown = 1;
-		public bool BreakOnSunk = false;
-		public bool BreakOnMiss = false;
 		public bool ResetCooldownOnHit = false;
 		public bool CopyOpponentLastUsed = false;
 
 		// Data
-		private bool? _HasActive;
 		private bool? _NeedAim;
 
 
 		// API
 		public void ValidAttacks () {
+			var validBreakingResult = AttackResult.Hit | AttackResult.Miss | AttackResult.Sunk | AttackResult.Reveal;
 			for (int i = 0; i < Attacks.Capacity; i++) {
 				var att = Attacks[i];
 				att.AvailableTarget = Tile.All & att.AvailableTarget;
+				att.BreakingResult = validBreakingResult & att.BreakingResult;
 			}
 		}
 

@@ -32,8 +32,6 @@ namespace BattleSoup {
 			public InputField Description;
 			public InputField TerminateHP;
 			public InputField Cooldown;
-			public Toggle BreakOnSunk;
-			public Toggle BreakOnMiss;
 			public Toggle ResetCooldownOnHit;
 			public Toggle CopyOpponentLastUsed;
 			public ShipBodyEditorUI ShipBodyEditor;
@@ -343,24 +341,6 @@ namespace BattleSoup {
 		}
 
 
-		public void UI_SetBreakOnSunk (bool isOn) {
-			var sData = SelectingShipData;
-			if (sData == null) { return; }
-			sData.Ship.Ability.BreakOnSunk = isOn;
-			SaveData();
-			RefreshContentUI();
-		}
-
-
-		public void UI_SetBreakOnMiss (bool isOn) {
-			var sData = SelectingShipData;
-			if (sData == null) { return; }
-			sData.Ship.Ability.BreakOnMiss = isOn;
-			SaveData();
-			RefreshContentUI();
-		}
-
-
 		public void UI_SetResetCooldownOnHit (bool isOn) {
 			var sData = SelectingShipData;
 			if (sData == null) { return; }
@@ -507,6 +487,18 @@ namespace BattleSoup {
 		}
 
 
+		private void DuplicateEvent (int index) {
+			var sData = SelectingShipData;
+			if (sData == null) { return; }
+			var events = sData.Ship.Ability.Events;
+			if (index >= 0 && index < events.Count) {
+				events.Insert(index, events[index].Duplicate());
+				SaveData();
+				RefreshEventPanel();
+			}
+		}
+
+
 		// Attack Panel
 		public void UI_NewAttack () {
 			var sData = SelectingShipData;
@@ -545,6 +537,15 @@ namespace BattleSoup {
 			var sData = SelectingShipData;
 			if (sData == null) { return; }
 			sData.Ship.Ability.Attacks[index].AvailableTarget = (Tile)targetBit;
+			SaveData();
+			RefreshAttackPanel();
+		}
+
+
+		private void SetBreakResult (int index, uint targetBit) {
+			var sData = SelectingShipData;
+			if (sData == null) { return; }
+			sData.Ship.Ability.Attacks[index].BreakingResult = (AttackResult)targetBit;
 			SaveData();
 			RefreshAttackPanel();
 		}
@@ -591,6 +592,18 @@ namespace BattleSoup {
 			var attacks = sData.Ship.Ability.Attacks;
 			if (index >= 0 && index < attacks.Count) {
 				attacks.RemoveAt(index);
+				SaveData();
+				RefreshAttackPanel();
+			}
+		}
+
+
+		private void DuplicateAttack (int index) {
+			var sData = SelectingShipData;
+			if (sData == null) { return; }
+			var attacks = sData.Ship.Ability.Attacks;
+			if (index >= 0 && index < attacks.Count) {
+				attacks.Insert(index, attacks[index].Duplicate());
 				SaveData();
 				RefreshAttackPanel();
 			}
@@ -682,13 +695,9 @@ namespace BattleSoup {
 			m_InfoContentData.Description.SetTextWithoutNotify(sData.Description);
 			m_InfoContentData.TerminateHP.SetTextWithoutNotify(sData.Ship.TerminateHP.ToString());
 			m_InfoContentData.Cooldown.SetTextWithoutNotify(sData.Ship.Ability.Cooldown.ToString());
-			m_InfoContentData.BreakOnSunk.SetIsOnWithoutNotify(sData.Ship.Ability.BreakOnSunk);
-			m_InfoContentData.BreakOnMiss.SetIsOnWithoutNotify(sData.Ship.Ability.BreakOnMiss);
 			m_InfoContentData.ResetCooldownOnHit.SetIsOnWithoutNotify(sData.Ship.Ability.ResetCooldownOnHit);
 			m_InfoContentData.ShipBodyEditor.RefreshUI(sData.Ship);
 			m_InfoContentData.CopyOpponentLastUsed.SetIsOnWithoutNotify(sData.Ship.Ability.CopyOpponentLastUsed);
-			m_InfoContentData.BreakOnSunk.transform.parent.gameObject.SetActive(!sData.Ship.Ability.CopyOpponentLastUsed);
-			m_InfoContentData.BreakOnMiss.transform.parent.gameObject.SetActive(!sData.Ship.Ability.CopyOpponentLastUsed);
 			m_InfoContentData.ResetCooldownOnHit.transform.parent.gameObject.SetActive(!sData.Ship.Ability.CopyOpponentLastUsed);
 
 			m_Titles[0].gameObject.SetActive(true);
@@ -829,7 +838,9 @@ namespace BattleSoup {
 			grab.Grab<Button>("Move Down").onClick.AddListener(
 				() => MoveEventUI(rt.GetSiblingIndex(), false)
 			);
-
+			grab.Grab<Button>("Duplicate").onClick.AddListener(
+				() => DuplicateEvent(rt.GetSiblingIndex())
+			);
 		}
 
 
@@ -856,24 +867,47 @@ namespace BattleSoup {
 			// Refresh UI
 			int childCount = container.childCount;
 			for (int i = 0; i < childCount; i++) {
+
 				var att = attacks[i];
 				var grab = container.GetChild(i).GetComponent<Grabber>();
+
 				var indexTxt = grab.Grab<Text>("Index");
-				var aType = grab.Grab<Dropdown>("Attack Type");
 				var aTrigger = grab.Grab<Dropdown>("Attack Trigger");
+				var aType = grab.Grab<Dropdown>("Attack Type");
 				var aTarget = grab.Grab<DropdownEx>("Available Target");
-				var mIcons = grab.Grab<MultiDropIconsUI>("Multi Icons");
+				var bResult = grab.Grab<DropdownEx>("Breaking Result");
+				var mIcons0 = grab.Grab<MultiDropIconsUI>("Available Target Icons");
+				var mIcons1 = grab.Grab<MultiDropIconsUI>("Breaking Result Icons");
 				var xField = grab.Grab<InputField>("X");
 				var yField = grab.Grab<InputField>("Y");
+
 				indexTxt.text = i.ToString();
-				aType.SetValueWithoutNotify((int)att.Type);
 				aTrigger.SetValueWithoutNotify((int)att.Trigger);
+				aType.SetValueWithoutNotify((int)att.Type);
 				aTarget.SetValueWithoutNotify((uint)att.AvailableTarget);
-				mIcons.RefreshUI();
+				bResult.SetValueWithoutNotify((uint)att.BreakingResult);
+				mIcons0.RefreshUI();
+				mIcons1.RefreshUI();
 				xField.SetTextWithoutNotify(att.X.ToString());
 				yField.SetTextWithoutNotify(att.Y.ToString());
-				xField.transform.parent.gameObject.SetActive(att.Trigger == AttackTrigger.Picked || att.Trigger == AttackTrigger.TiedUp);
-				yField.transform.parent.gameObject.SetActive(att.Trigger == AttackTrigger.Picked || att.Trigger == AttackTrigger.TiedUp);
+
+				aType.transform.parent.gameObject.SetActive(att.Trigger != AttackTrigger.Break);
+				aTarget.transform.parent.gameObject.SetActive(
+					att.Trigger != AttackTrigger.Break &&
+					att.Type != AttackType.RevealSelf
+				);
+				xField.transform.parent.gameObject.SetActive(
+					(att.Trigger == AttackTrigger.Picked || att.Trigger == AttackTrigger.TiedUp) &&
+					att.Type != AttackType.RevealSelf
+				);
+				yField.transform.parent.gameObject.SetActive(
+					(att.Trigger == AttackTrigger.Picked || att.Trigger == AttackTrigger.TiedUp) &&
+					att.Type != AttackType.RevealSelf
+				);
+				bResult.transform.parent.gameObject.SetActive(
+					att.Trigger != AttackTrigger.Break
+				);
+
 			}
 
 		}
@@ -910,6 +944,12 @@ namespace BattleSoup {
 				rt.GetSiblingIndex(), value
 			));
 
+			// Breaking Result
+			var bResult = grab.Grab<DropdownEx>("Breaking Result");
+			bResult.onValueChanged.AddListener((value) => SetBreakResult(
+				rt.GetSiblingIndex(), value
+			));
+
 			// Position
 			var xInput = grab.Grab<InputField>("X");
 			var yInput = grab.Grab<InputField>("Y");
@@ -929,6 +969,9 @@ namespace BattleSoup {
 			);
 			grab.Grab<Button>("Move Down").onClick.AddListener(
 				() => MoveAttackUI(rt.GetSiblingIndex(), false)
+			);
+			grab.Grab<Button>("Duplicate").onClick.AddListener(
+				() => DuplicateAttack(rt.GetSiblingIndex())
 			);
 		}
 

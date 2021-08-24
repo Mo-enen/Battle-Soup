@@ -88,6 +88,7 @@ namespace BattleSoup {
 			public RectTransform MapsToggleContainerB;
 			public RectTransform AbilityContainerA;
 			public RectTransform AbilityContainerB;
+			public CanvasScaler MainScaler;
 			public RectTransform MessageRoot;
 			public Grabber ShipSelectionItem;
 			public Grabber ShipButtonTemplate;
@@ -115,6 +116,7 @@ namespace BattleSoup {
 			public RectTransform StrategyFleetContainerB;
 			public Image[] BattleAvatarA;
 			public Image[] BattleAvatarB;
+			public Toggle[] UiScaleToggles;
 		}
 
 

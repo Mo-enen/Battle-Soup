@@ -335,7 +335,7 @@ namespace BattleSoup {
 					rt.name = ship.DisplayName;
 
 					var btn = grabber.Grab<Button>();
-					btn.interactable = ship.Ship.Ability.HasActive && ship.Ship.Ability.Cooldown <= 0;
+					btn.interactable = ship.Ship.Ability.CanBeTrigger && ship.Ship.Ability.Cooldown <= 0;
 
 					int _index = i;
 					btn.onClick.AddListener(
@@ -344,10 +344,10 @@ namespace BattleSoup {
 
 					var icon = grabber.Grab<GreyImage>("Icon");
 					icon.sprite = ship.Sprite;
-					icon.SetGrey(ship.Ship.Ability.HasActive && !btn.interactable);
+					icon.SetGrey(ship.Ship.Ability.CanBeTrigger && !btn.interactable);
 
 					var cooldown = grabber.Grab<Text>("Cooldown");
-					cooldown.gameObject.SetActive(ship.Ship.Ability.HasActive);
+					cooldown.gameObject.SetActive(ship.Ship.Ability.CanBeTrigger);
 					cooldown.text = ship.Ship.Ability.Cooldown.ToString();
 
 					grabber.Grab<BlocksRenderer>("Shape").AddBody(ship);

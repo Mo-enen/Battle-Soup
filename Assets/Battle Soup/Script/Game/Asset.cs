@@ -154,10 +154,11 @@ namespace BattleSoup {
 					TerminateHP = 0,
 					Ability = new Ability() {
 						Attacks = new List<Attack>() { new Attack() {
-							 X = 0, Y = 0,
+							X = 0, Y = 0,
 							AvailableTarget = Tile.All,
 							Trigger = AttackTrigger.Picked,
 							Type = AttackType.HitTile,
+							BreakingResult = AttackResult.None,
 						} },
 					},
 				},

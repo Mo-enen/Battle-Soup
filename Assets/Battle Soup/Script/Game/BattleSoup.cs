@@ -40,6 +40,7 @@ namespace BattleSoup {
 		private readonly SavingInt SelectedMapB = new SavingInt("BattleSoup.SelectedMapB", 0);
 		private readonly SavingInt StrategyIndexA = new SavingInt("BattleSoup.StrategyIndexA", 0);
 		private readonly SavingInt StrategyIndexB = new SavingInt("BattleSoup.StrategyIndexB", 0);
+		private readonly SavingInt UiScaleIndex = new SavingInt("BattleSoup.UiScaleIndex", 2);
 
 
 		#endregion
@@ -87,7 +88,6 @@ namespace BattleSoup {
 			ShipEditorUI.OnSelectionChanged = OnShipEditorSelectionChanged;
 			ShipEditorUI.SaveAssetData = m_Game.Asset.SaveAssetData;
 
-
 			// Quit Game Confirm
 			Application.wantsToQuit += () => {
 #if UNITY_EDITOR
@@ -101,10 +101,16 @@ namespace BattleSoup {
 #endif
 			};
 
-			// Sound
+			// Setting
 			AudioListener.volume = UseSound.Value ? 1f : 0f;
 			m_UI.SoundTG.SetIsOnWithoutNotify(UseSound.Value);
 			m_UI.AutoPlayAvATG.SetIsOnWithoutNotify(AutoPlayAvA.Value);
+			m_UI.UiScaleToggles[0].SetIsOnWithoutNotify(UiScaleIndex.Value == 0);
+			m_UI.UiScaleToggles[1].SetIsOnWithoutNotify(UiScaleIndex.Value == 1);
+			m_UI.UiScaleToggles[2].SetIsOnWithoutNotify(UiScaleIndex.Value == 2);
+			UI_SetUIScale_Large(UiScaleIndex.Value == 2);
+			UI_SetUIScale_Normal(UiScaleIndex.Value == 1);
+			UI_SetUIScale_Small(UiScaleIndex.Value == 0);
 
 			// System
 			Application.targetFrameRate = 30;
@@ -413,17 +419,17 @@ namespace BattleSoup {
 					if (!devMode) {
 						btn.interactable =
 							alive && cooldown <= 0 &&
-							(ability.HasActive || (ability.CopyOpponentLastUsed && !string.IsNullOrEmpty(opPrevUseID)));
+							(ability.CanBeTrigger || (ability.CopyOpponentLastUsed && !string.IsNullOrEmpty(opPrevUseID)));
 					} else {
 						btn.interactable = alive;
 					}
 
 					var cooldownTxt = grabber.Grab<Text>("Cooldown");
-					cooldownTxt.gameObject.SetActive(!devMode && alive && (ability.CopyOpponentLastUsed || ability.HasActive));
+					cooldownTxt.gameObject.SetActive(!devMode && alive && (ability.CopyOpponentLastUsed || ability.CanBeTrigger));
 					cooldownTxt.text = cooldown > 0 ? cooldown.ToString() : "";
 
 					grabber.Grab<GreyImage>("Icon").SetGrey(
-						!devMode && ability.HasActive && !btn.interactable
+						!devMode && ability.CanBeTrigger && !btn.interactable
 					);
 					grabber.Grab<RectTransform>("Red Panel").gameObject.SetActive(
 						!devMode && !m_Game.Game.CheckShipAlive(i, group)
@@ -484,6 +490,11 @@ namespace BattleSoup {
 		public void UI_ClearShipSelection () => ClearShipSelection();
 
 
+		public void UI_OpenShipFolder () => Application.OpenURL(Util.GetUrl(Util.CombinePaths(
+			Util.GetRuntimeBuiltRootPath(), "Ships"
+		)));
+
+
 		public void UI_Replay () {
 			CurrentState = GameState.Map;
 			UI_GotoNextState();
@@ -505,6 +516,27 @@ namespace BattleSoup {
 
 		public void UI_AutoPlayAvAToggle (bool isOn) {
 			AutoPlayAvA.Value = isOn;
+		}
+
+
+		public void UI_SetUIScale_Large (bool isOn) {
+			if (!isOn) { return; }
+			m_UI.MainScaler.referenceResolution = new Vector2(1200, 1200);
+			UiScaleIndex.Value = 2;
+		}
+
+
+		public void UI_SetUIScale_Normal (bool isOn) {
+			if (!isOn) { return; }
+			m_UI.MainScaler.referenceResolution = new Vector2(1600, 1200);
+			UiScaleIndex.Value = 1;
+		}
+
+
+		public void UI_SetUIScale_Small (bool isOn) {
+			if (!isOn) { return; }
+			m_UI.MainScaler.referenceResolution = new Vector2(2200, 1200);
+			UiScaleIndex.Value = 0;
 		}
 
 
