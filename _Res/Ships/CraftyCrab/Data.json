@@ -23,13 +23,31 @@
             }
         ],
         "Ability": {
-            "Events": [],
+            "Events": [
+                {
+                    "Type": 5,
+                    "Condition": 0,
+                    "ConditionCompare": 4,
+                    "Action": 0,
+                    "ApplyConditionOnOpponent": false,
+                    "BreakAfterPerform": false,
+                    "IntParam": 0,
+                    "ActionParam": 1
+                }
+            ],
             "Attacks": [
                 {
                     "X": 0,
                     "Y": 0,
                     "Type": 1,
                     "Trigger": 3,
+                    "AvailableTarget": 1
+                },
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 1,
+                    "Trigger": 2,
                     "AvailableTarget": 1
                 }
             ],

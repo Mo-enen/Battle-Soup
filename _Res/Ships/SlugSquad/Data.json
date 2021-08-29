@@ -1,7 +1,7 @@
 ﻿{
     "m_Version": 1,
-    "m_DisplayName": "Galleon",
-    "m_Description": "Attacks twice.",
+    "m_DisplayName": "Slug Squad",
+    "m_Description": "Choose 2 tiles to reveal",
     "m_Ship": {
         "TerminateHP": 0,
         "Body": [
@@ -24,21 +24,21 @@
                 {
                     "X": 0,
                     "Y": 0,
-                    "Type": 0,
+                    "Type": 1,
                     "Trigger": 0,
-                    "AvailableTarget": 17
+                    "AvailableTarget": 1,
+                    "BreakingResult": 0
                 },
                 {
                     "X": 0,
                     "Y": 0,
-                    "Type": 0,
+                    "Type": 1,
                     "Trigger": 0,
-                    "AvailableTarget": 17
+                    "AvailableTarget": 1,
+                    "BreakingResult": 0
                 }
             ],
-            "Cooldown": 3,
-            "BreakOnSunk": false,
-            "BreakOnMiss": false,
+            "Cooldown": 1,
             "ResetCooldownOnHit": false,
             "CopyOpponentLastUsed": false
         }

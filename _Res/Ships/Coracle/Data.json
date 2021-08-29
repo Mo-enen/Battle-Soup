@@ -1,36 +1,56 @@
 ﻿{
-  "m_DisplayName": "Coracle",
-  "m_Description": "Destroys ships in one hit, can only play in revealed tiles.\nReveals a random unoccupied tile on your grid when you play a regular attack",
-  "m_Ship": {
-    "TerminateHP": 0,
-    "Body": [
-      {
-        "x": 0,
-        "y": 0
-      }
-    ],
-    "Ability": {
-      "Attacks": [
-        {
-          "X": 0,
-          "Y": 0,
-          "Type": 2,
-          "Trigger": 0,
-          "AvailableTarget": 16
-        },
-        {
-          "X": 0,
-          "Y": 0,
-          "Type": 5,
-          "Trigger": 3,
-          "AvailableTarget": 1
+    "m_Version": 1,
+    "m_DisplayName": "Coracle",
+    "m_Description": "Destroys ships in one hit, can only play in revealed tiles.\nReveals a random unoccupied tile on your grid when you play a regular attack",
+    "m_Ship": {
+        "TerminateHP": 0,
+        "Body": [
+            {
+                "x": 0,
+                "y": 0
+            }
+        ],
+        "Ability": {
+            "Events": [
+                {
+                    "Type": 5,
+                    "Condition": 0,
+                    "ConditionCompare": 4,
+                    "Action": 0,
+                    "ApplyConditionOnOpponent": false,
+                    "BreakAfterPerform": false,
+                    "IntParam": 0,
+                    "ActionParam": 2
+                }
+            ],
+            "Attacks": [
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 2,
+                    "Trigger": 0,
+                    "AvailableTarget": 16
+                },
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 7,
+                    "Trigger": 3,
+                    "AvailableTarget": 1
+                },
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 5,
+                    "Trigger": 2,
+                    "AvailableTarget": 1
+                }
+            ],
+            "Cooldown": 5,
+            "BreakOnSunk": false,
+            "BreakOnMiss": false,
+            "ResetCooldownOnHit": false,
+            "CopyOpponentLastUsed": false
         }
-      ],
-      "Cooldown": 5,
-      "BreakOnSunk": false,
-      "BreakOnMiss": false,
-      "ResetCooldownOnHit": false,
-      "CopyOpponentLastUsed": false
     }
-  }
 }

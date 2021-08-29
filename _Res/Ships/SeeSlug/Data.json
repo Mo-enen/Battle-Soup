@@ -1,7 +1,7 @@
 ﻿{
     "m_Version": 1,
-    "m_DisplayName": "Longboat",
-    "m_Description": "Combo. Attack up to 5 times or until you miss or destroy a ship.",
+    "m_DisplayName": "See Slug",
+    "m_Description": "Reveals the target position. If nothing is revealed, repeat, up to a limit of 4 times.",
     "m_Ship": {
         "TerminateHP": 0,
         "Body": [
@@ -14,12 +14,16 @@
                 "y": 1
             },
             {
-                "x": 0,
+                "x": 1,
+                "y": 1
+            },
+            {
+                "x": 1,
                 "y": 2
             },
             {
-                "x": 0,
-                "y": 3
+                "x": 2,
+                "y": 2
             }
         ],
         "Ability": {
@@ -28,45 +32,37 @@
                 {
                     "X": 0,
                     "Y": 0,
-                    "Type": 0,
+                    "Type": 1,
                     "Trigger": 0,
-                    "AvailableTarget": 17,
-                    "BreakingResult": 9
+                    "AvailableTarget": 1,
+                    "BreakingResult": 4
                 },
                 {
                     "X": 0,
                     "Y": 0,
-                    "Type": 0,
+                    "Type": 1,
                     "Trigger": 0,
-                    "AvailableTarget": 17,
-                    "BreakingResult": 9
+                    "AvailableTarget": 1,
+                    "BreakingResult": 4
                 },
                 {
                     "X": 0,
                     "Y": 0,
-                    "Type": 0,
+                    "Type": 1,
                     "Trigger": 0,
-                    "AvailableTarget": 17,
-                    "BreakingResult": 9
+                    "AvailableTarget": 1,
+                    "BreakingResult": 4
                 },
                 {
                     "X": 0,
                     "Y": 0,
-                    "Type": 0,
+                    "Type": 1,
                     "Trigger": 0,
-                    "AvailableTarget": 17,
-                    "BreakingResult": 9
-                },
-                {
-                    "X": 0,
-                    "Y": 0,
-                    "Type": 0,
-                    "Trigger": 0,
-                    "AvailableTarget": 17,
-                    "BreakingResult": 9
+                    "AvailableTarget": 1,
+                    "BreakingResult": 4
                 }
             ],
-            "Cooldown": 5,
+            "Cooldown": 2,
             "ResetCooldownOnHit": false,
             "CopyOpponentLastUsed": false
         }

@@ -1,41 +1,43 @@
 ﻿{
-  "m_DisplayName": "Elec Eels",
-  "m_Description": "Fully reveal the target ship (does not count as an attack)",
-  "m_Ship": {
-    "TerminateHP": 0,
-    "Body": [
-      {
-        "x": 1,
-        "y": 0
-      },
-      {
-        "x": 0,
-        "y": 1
-      },
-      {
-        "x": 2,
-        "y": 1
-      },
-      {
-        "x": 1,
-        "y": 2
-      }
-    ],
-    "Ability": {
-      "Attacks": [
-        {
-          "X": 0,
-          "Y": 0,
-          "Type": 3,
-          "Trigger": 0,
-          "AvailableTarget": 49
+    "m_Version": 1,
+    "m_DisplayName": "Elec Eels",
+    "m_Description": "Fully reveal the target ship (does not count as an attack)",
+    "m_Ship": {
+        "TerminateHP": 0,
+        "Body": [
+            {
+                "x": 1,
+                "y": 0
+            },
+            {
+                "x": 0,
+                "y": 1
+            },
+            {
+                "x": 2,
+                "y": 1
+            },
+            {
+                "x": 1,
+                "y": 2
+            }
+        ],
+        "Ability": {
+            "Events": [],
+            "Attacks": [
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 3,
+                    "Trigger": 0,
+                    "AvailableTarget": 17
+                }
+            ],
+            "Cooldown": 3,
+            "BreakOnSunk": false,
+            "BreakOnMiss": false,
+            "ResetCooldownOnHit": false,
+            "CopyOpponentLastUsed": false
         }
-      ],
-      "Cooldown": 3,
-      "BreakOnSunk": false,
-      "BreakOnMiss": false,
-      "ResetCooldownOnHit": false,
-      "CopyOpponentLastUsed": false
     }
-  }
 }

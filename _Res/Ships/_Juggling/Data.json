@@ -1,7 +1,7 @@
 ﻿{
     "m_Version": 1,
-    "m_DisplayName": "Catamaran",
-    "m_Description": "Attacks in a 7x1 line.",
+    "m_DisplayName": "Juggling",
+    "m_Description": "When get hit, do a very unbalanced revenge.",
     "m_Ship": {
         "TerminateHP": 0,
         "Body": [
@@ -10,95 +10,78 @@
                 "y": 0
             },
             {
-                "x": 1,
-                "y": 0
-            },
-            {
                 "x": 2,
                 "y": 0
             },
             {
-                "x": 0,
-                "y": 1
-            },
-            {
-                "x": 0,
-                "y": 2
-            },
-            {
                 "x": 1,
-                "y": 2
-            },
-            {
-                "x": 2,
-                "y": 1
-            },
-            {
-                "x": 2,
                 "y": 2
             }
         ],
         "Ability": {
-            "Events": [],
+            "Events": [
+                {
+                    "Type": 1,
+                    "Condition": 0,
+                    "ConditionCompare": 4,
+                    "Action": 0,
+                    "ApplyConditionOnOpponent": false,
+                    "BreakAfterPerform": false,
+                    "IntParam": 0,
+                    "ActionParam": 1
+                }
+            ],
             "Attacks": [
                 {
                     "X": 0,
                     "Y": 0,
                     "Type": 0,
-                    "Trigger": 0,
+                    "Trigger": 3,
                     "AvailableTarget": 127,
                     "BreakingResult": 0
                 },
                 {
                     "X": 0,
-                    "Y": 1,
+                    "Y": 0,
                     "Type": 0,
-                    "Trigger": 1,
+                    "Trigger": 2,
                     "AvailableTarget": 127,
                     "BreakingResult": 0
                 },
                 {
                     "X": 0,
-                    "Y": 2,
-                    "Type": 0,
-                    "Trigger": 1,
+                    "Y": 0,
+                    "Type": 1,
+                    "Trigger": 2,
                     "AvailableTarget": 127,
                     "BreakingResult": 0
                 },
                 {
                     "X": 0,
-                    "Y": 3,
-                    "Type": 0,
-                    "Trigger": 1,
+                    "Y": 0,
+                    "Type": 2,
+                    "Trigger": 2,
                     "AvailableTarget": 127,
                     "BreakingResult": 0
                 },
                 {
                     "X": 0,
-                    "Y": 4,
-                    "Type": 0,
-                    "Trigger": 1,
+                    "Y": 0,
+                    "Type": 3,
+                    "Trigger": 2,
                     "AvailableTarget": 127,
                     "BreakingResult": 0
                 },
                 {
                     "X": 0,
-                    "Y": 5,
-                    "Type": 0,
-                    "Trigger": 1,
-                    "AvailableTarget": 127,
-                    "BreakingResult": 0
-                },
-                {
-                    "X": 0,
-                    "Y": 6,
-                    "Type": 0,
-                    "Trigger": 1,
+                    "Y": 0,
+                    "Type": 4,
+                    "Trigger": 2,
                     "AvailableTarget": 127,
                     "BreakingResult": 0
                 }
             ],
-            "Cooldown": 7,
+            "Cooldown": 1,
             "ResetCooldownOnHit": false,
             "CopyOpponentLastUsed": false
         }
