@@ -1,0 +1,89 @@
+﻿{
+    "m_Version": 1,
+    "m_DisplayName": "Juggling",
+    "m_Description": "When get hit, do a very unbalanced revenge.",
+    "m_Ship": {
+        "TerminateHP": 0,
+        "Body": [
+            {
+                "x": 0,
+                "y": 0
+            },
+            {
+                "x": 2,
+                "y": 0
+            },
+            {
+                "x": 1,
+                "y": 2
+            }
+        ],
+        "Ability": {
+            "Events": [
+                {
+                    "Type": 1,
+                    "Condition": 0,
+                    "ConditionCompare": 4,
+                    "Action": 0,
+                    "ApplyConditionOnOpponent": false,
+                    "BreakAfterPerform": false,
+                    "IntParam": 0,
+                    "ActionParam": 1
+                }
+            ],
+            "Attacks": [
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 0,
+                    "Trigger": 3,
+                    "AvailableTarget": 127,
+                    "BreakingResult": 0
+                },
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 0,
+                    "Trigger": 2,
+                    "AvailableTarget": 127,
+                    "BreakingResult": 0
+                },
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 1,
+                    "Trigger": 2,
+                    "AvailableTarget": 127,
+                    "BreakingResult": 0
+                },
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 2,
+                    "Trigger": 2,
+                    "AvailableTarget": 127,
+                    "BreakingResult": 0
+                },
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 3,
+                    "Trigger": 2,
+                    "AvailableTarget": 127,
+                    "BreakingResult": 0
+                },
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 4,
+                    "Trigger": 2,
+                    "AvailableTarget": 127,
+                    "BreakingResult": 0
+                }
+            ],
+            "Cooldown": 1,
+            "ResetCooldownOnHit": false,
+            "CopyOpponentLastUsed": false
+        }
+    }
+}

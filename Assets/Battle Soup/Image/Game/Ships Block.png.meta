@@ -80,10 +80,12 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
+    flipGreenChannel: 0
   isReadable: 1
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
+  ignoreMasterTextureLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -122,6 +124,7 @@ TextureImporter:
   textureFormatSet: 0
   ignorePngGamma: 0
   applyGammaDecoding: 0
+  swizzle: 50462976
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
@@ -559,9 +562,28 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
+    nameFileIdTable:
+      Killer Squid: 7768902506388313837
+      Catamaran: 279557436203817209
+      Electric Eels: -6733338238361025793
+      Sea Monster: 8864788820530945603
+      Longboat: 1204441200860591639
+      Sea Turtle: -2393242938714002295
+      Medium Galleon: 6334229747784305145
+      Raft: 4288052199909031489
+      Magic Mirror: 8611089387851993766
+      Coracle: -2861580921918571484
+      Ship Block: -4925448337817528618
+      Whale: -5253428492034465749
+      Kayak: -4919972807099096466
+      Sailboat: 3123809249988022120
+      Octopus: -6434652997341952439
+      Crustacean: 7866327680344461672
+      Mini Sub: -2840482538186444857
+      LongSub: 6467883412860480186
+      Crafty Crab: 7754467976634047938
   spritePackingTag: 
   pSDRemoveMatte: 0
-  pSDShowRemoveMatteOption: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 

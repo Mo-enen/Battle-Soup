@@ -1,0 +1,106 @@
+﻿{
+    "m_Version": 1,
+    "m_DisplayName": "Catamaran",
+    "m_Description": "Attacks in a 7x1 line.",
+    "m_Ship": {
+        "TerminateHP": 0,
+        "Body": [
+            {
+                "x": 0,
+                "y": 0
+            },
+            {
+                "x": 1,
+                "y": 0
+            },
+            {
+                "x": 2,
+                "y": 0
+            },
+            {
+                "x": 0,
+                "y": 1
+            },
+            {
+                "x": 0,
+                "y": 2
+            },
+            {
+                "x": 1,
+                "y": 2
+            },
+            {
+                "x": 2,
+                "y": 1
+            },
+            {
+                "x": 2,
+                "y": 2
+            }
+        ],
+        "Ability": {
+            "Events": [],
+            "Attacks": [
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 0,
+                    "Trigger": 0,
+                    "AvailableTarget": 127,
+                    "BreakingResult": 0
+                },
+                {
+                    "X": 0,
+                    "Y": 1,
+                    "Type": 0,
+                    "Trigger": 1,
+                    "AvailableTarget": 127,
+                    "BreakingResult": 0
+                },
+                {
+                    "X": 0,
+                    "Y": 2,
+                    "Type": 0,
+                    "Trigger": 1,
+                    "AvailableTarget": 127,
+                    "BreakingResult": 0
+                },
+                {
+                    "X": 0,
+                    "Y": 3,
+                    "Type": 0,
+                    "Trigger": 1,
+                    "AvailableTarget": 127,
+                    "BreakingResult": 0
+                },
+                {
+                    "X": 0,
+                    "Y": 4,
+                    "Type": 0,
+                    "Trigger": 1,
+                    "AvailableTarget": 127,
+                    "BreakingResult": 0
+                },
+                {
+                    "X": 0,
+                    "Y": 5,
+                    "Type": 0,
+                    "Trigger": 1,
+                    "AvailableTarget": 127,
+                    "BreakingResult": 0
+                },
+                {
+                    "X": 0,
+                    "Y": 6,
+                    "Type": 0,
+                    "Trigger": 1,
+                    "AvailableTarget": 127,
+                    "BreakingResult": 0
+                }
+            ],
+            "Cooldown": 7,
+            "ResetCooldownOnHit": false,
+            "CopyOpponentLastUsed": false
+        }
+    }
+}

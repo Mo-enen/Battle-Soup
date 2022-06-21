@@ -1,0 +1,117 @@
+﻿{
+    "m_Version": 1,
+    "m_DisplayName": "Crustacean",
+    "m_Description": "Fires in a X pattern. Reveals hidden tiles, and attacks revealed tiles",
+    "m_Ship": {
+        "TerminateHP": 0,
+        "Body": [
+            {
+                "x": 0,
+                "y": 0
+            },
+            {
+                "x": 2,
+                "y": 0
+            },
+            {
+                "x": 0,
+                "y": 2
+            },
+            {
+                "x": 1,
+                "y": 1
+            },
+            {
+                "x": 2,
+                "y": 2
+            }
+        ],
+        "Ability": {
+            "Events": [],
+            "Attacks": [
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 7,
+                    "Trigger": 0,
+                    "AvailableTarget": 127
+                },
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 0,
+                    "Trigger": 1,
+                    "AvailableTarget": 16
+                },
+                {
+                    "X": 2,
+                    "Y": 0,
+                    "Type": 0,
+                    "Trigger": 1,
+                    "AvailableTarget": 16
+                },
+                {
+                    "X": 1,
+                    "Y": 1,
+                    "Type": 0,
+                    "Trigger": 1,
+                    "AvailableTarget": 16
+                },
+                {
+                    "X": 0,
+                    "Y": 2,
+                    "Type": 0,
+                    "Trigger": 1,
+                    "AvailableTarget": 16
+                },
+                {
+                    "X": 2,
+                    "Y": 2,
+                    "Type": 0,
+                    "Trigger": 1,
+                    "AvailableTarget": 16
+                },
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 1,
+                    "Trigger": 1,
+                    "AvailableTarget": 127
+                },
+                {
+                    "X": 2,
+                    "Y": 0,
+                    "Type": 1,
+                    "Trigger": 1,
+                    "AvailableTarget": 127
+                },
+                {
+                    "X": 1,
+                    "Y": 1,
+                    "Type": 1,
+                    "Trigger": 1,
+                    "AvailableTarget": 127
+                },
+                {
+                    "X": 0,
+                    "Y": 2,
+                    "Type": 1,
+                    "Trigger": 1,
+                    "AvailableTarget": 127
+                },
+                {
+                    "X": 2,
+                    "Y": 2,
+                    "Type": 1,
+                    "Trigger": 1,
+                    "AvailableTarget": 127
+                }
+            ],
+            "Cooldown": 4,
+            "BreakOnSunk": false,
+            "BreakOnMiss": false,
+            "ResetCooldownOnHit": false,
+            "CopyOpponentLastUsed": false
+        }
+    }
+}

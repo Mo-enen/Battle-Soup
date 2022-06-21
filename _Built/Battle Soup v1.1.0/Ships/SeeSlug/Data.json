@@ -1,0 +1,70 @@
+﻿{
+    "m_Version": 1,
+    "m_DisplayName": "See Slug",
+    "m_Description": "Reveals the target position. If nothing is revealed, repeat, up to a limit of 4 times.",
+    "m_Ship": {
+        "TerminateHP": 0,
+        "Body": [
+            {
+                "x": 0,
+                "y": 0
+            },
+            {
+                "x": 0,
+                "y": 1
+            },
+            {
+                "x": 1,
+                "y": 1
+            },
+            {
+                "x": 1,
+                "y": 2
+            },
+            {
+                "x": 2,
+                "y": 2
+            }
+        ],
+        "Ability": {
+            "Events": [],
+            "Attacks": [
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 1,
+                    "Trigger": 0,
+                    "AvailableTarget": 1,
+                    "BreakingResult": 4
+                },
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 1,
+                    "Trigger": 0,
+                    "AvailableTarget": 1,
+                    "BreakingResult": 4
+                },
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 1,
+                    "Trigger": 0,
+                    "AvailableTarget": 1,
+                    "BreakingResult": 4
+                },
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 1,
+                    "Trigger": 0,
+                    "AvailableTarget": 1,
+                    "BreakingResult": 4
+                }
+            ],
+            "Cooldown": 2,
+            "ResetCooldownOnHit": false,
+            "CopyOpponentLastUsed": false
+        }
+    }
+}

@@ -95,10 +95,12 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
+    flipGreenChannel: 0
   isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
+  ignoreMasterTextureLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -137,6 +139,7 @@ TextureImporter:
   textureFormatSet: 0
   ignorePngGamma: 0
   applyGammaDecoding: 0
+  swizzle: 50462976
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
@@ -700,9 +703,34 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
+    nameFileIdTable:
+      Plus: -256003546741158619
+      Cheat Lose Face: 8391660652416901024
+      Icon Robot Angry: -6595680761151332689
+      Mouse Left: 8586885197115800619
+      Play: -4532114073746202998
+      Plus Icon: 9084407170249120912
+      Icon +1: -5481780447360278658
+      Pause: -343943630576144839
+      Next: -8346291274449466048
+      Text Own: 238177201661318622
+      Folder Icon: -4464969597253999955
+      Demon Face: -273060469431498887
+      Mouse Right: 8160775752198118580
+      Win Face: 7448113381798972013
+      Attack Blink: 7301787903208175943
+      Icon Player: -1557013538026691241
+      VS: -9136572144232859775
+      Icon Robot: 82707731993968007
+      Icon All: 388057999756033245
+      Nerd Face: 1652299931923453484
+      Arrow Up: 1080825480604336155
+      Lose Face: 7843416716369364892
+      Tab: 6620621745411573659
+      Cheat Win Face: 9094600903545770030
+      Icon SLM: 228940821244427079
   spritePackingTag: 
   pSDRemoveMatte: 0
-  pSDShowRemoveMatteOption: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 

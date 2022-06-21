@@ -1,0 +1,74 @@
+﻿{
+    "m_Version": 1,
+    "m_DisplayName": "Turtle",
+    "m_Description": "Successful attacks reveal adjacent tiles",
+    "m_Ship": {
+        "TerminateHP": 0,
+        "Body": [
+            {
+                "x": 0,
+                "y": 1
+            },
+            {
+                "x": 1,
+                "y": 1
+            },
+            {
+                "x": 1,
+                "y": 0
+            },
+            {
+                "x": 2,
+                "y": 1
+            }
+        ],
+        "Ability": {
+            "Events": [],
+            "Attacks": [
+                {
+                    "X": 0,
+                    "Y": 0,
+                    "Type": 0,
+                    "Trigger": 0,
+                    "AvailableTarget": 17,
+                    "BreakingResult": 1
+                },
+                {
+                    "X": 1,
+                    "Y": 0,
+                    "Type": 1,
+                    "Trigger": 1,
+                    "AvailableTarget": 127,
+                    "BreakingResult": 0
+                },
+                {
+                    "X": -1,
+                    "Y": 0,
+                    "Type": 1,
+                    "Trigger": 1,
+                    "AvailableTarget": 127,
+                    "BreakingResult": 0
+                },
+                {
+                    "X": 0,
+                    "Y": 1,
+                    "Type": 1,
+                    "Trigger": 1,
+                    "AvailableTarget": 127,
+                    "BreakingResult": 0
+                },
+                {
+                    "X": 0,
+                    "Y": -1,
+                    "Type": 1,
+                    "Trigger": 1,
+                    "AvailableTarget": 127,
+                    "BreakingResult": 0
+                }
+            ],
+            "Cooldown": 2,
+            "ResetCooldownOnHit": false,
+            "CopyOpponentLastUsed": false
+        }
+    }
+}

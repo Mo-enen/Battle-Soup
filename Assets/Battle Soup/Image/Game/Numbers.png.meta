@@ -110,10 +110,12 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
+    flipGreenChannel: 0
   isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
+  ignoreMasterTextureLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -152,6 +154,7 @@ TextureImporter:
   textureFormatSet: 0
   ignorePngGamma: 0
   applyGammaDecoding: 0
+  swizzle: 50462976
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
@@ -385,7 +388,7 @@ TextureImporter:
       tessellationDetail: 0
       bones: []
       spriteID: 6530184c9442bbc00800000000000000
-      internalID: 917366848348029782
+      internalID: -7206643424033277606
       vertices: []
       indices: 
       edges: []
@@ -421,9 +424,20 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
+    nameFileIdTable:
+      SonarNumbers_7: 2080893101511200062
+      SonarNumbers_1: -5716260385437214168
+      SonarNumbers_4: -2689435158632401040
+      Pixel: -6629531029891648246
+      SonarNumbers_9: -7733694245144443349
+      SonarNumbers_5: -1800079727929376254
+      SonarNumbers_3: 6764131301375611215
+      SonarNumbers_6: 8899196326822057339
+      SonarNumbers_10: -7206643424033277606
+      SonarNumbers_8: 2781160255226940327
+      SonarNumbers_2: 8360633889579205293
   spritePackingTag: 
   pSDRemoveMatte: 0
-  pSDShowRemoveMatteOption: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 
