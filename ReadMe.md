@@ -27,7 +27,7 @@ Download latest version in [HERE](https://github.com/Mo-enen/Battle-Soup/release
 
 ##### Develop Requirement
 
-- Unity Editor 2021.1.17f1c1.
+- Unity Editor 2022.1.0f1c1.
 - API Compatibility Level .NET 4.x.
 - Decompress the zip file before use.
 - Available on PC only.
@@ -42,7 +42,6 @@ Download latest version in [HERE](https://github.com/Mo-enen/Battle-Soup/release
 
 - Minor changes on ability logic.
 
-     
 
 `v1.0.0`
 
