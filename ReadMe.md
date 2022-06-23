@@ -6,13 +6,7 @@ Download latest version in [HERE](https://github.com/Mo-enen/Battle-Soup/release
 
 
 
-<img src="_Res/Screenshot 1.png" style="zoom:100%;" />
-
-<img src="_Res/Screenshot 2.png" style="zoom:100%;" />
-
-<img src="_Res/Screenshot 3.png" style="zoom:100%;" />
-
-<img src="_Res/Screenshot 4.png" style="zoom:100%;" />
+※※※ Remaking... ※※※
 
 
 
