@@ -30,6 +30,35 @@ namespace BattleSoup {
 			base.Initialize();
 			State = GameState.Title;
 			Mode = GameMode.PvA;
+
+
+
+			const int MapSize = 8;
+
+			var renderer = AddEntity(typeof(BattleRenderer).AngeHash(), 0, 0) as BattleRenderer;
+			renderer.Battle = new Battle(MapSize);
+			renderer.LocalShift = new Vector2Int(0, 0);
+			for (int i = 0; i < MapSize; i++) {
+				for (int j = 0; j < MapSize; j++) {
+					var cell = renderer.Battle.Cells[i, j];
+					cell.Type = CellType.Water;
+					if (Random.value < 0.2f) cell.Type = CellType.Stone;
+				}
+			}
+
+
+			renderer = AddEntity(typeof(BattleRenderer).AngeHash(), 0, 0) as BattleRenderer;
+			renderer.Battle = new Battle(MapSize);
+			renderer.LocalShift = new Vector2Int(0, MapSize + 2);
+			for (int i = 0; i < MapSize; i++) {
+				for (int j = 0; j < MapSize; j++) {
+					var cell = renderer.Battle.Cells[i, j];
+					cell.Type = CellType.Water;
+					if (Random.value < 1f) cell.Type = CellType.Stone;
+				}
+			}
+
+
 		}
 
 

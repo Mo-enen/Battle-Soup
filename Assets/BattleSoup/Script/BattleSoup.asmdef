@@ -2,8 +2,7 @@
     "name": "BattleSoup",
     "rootNamespace": "BattleSoup",
     "references": [
-        "AngeliaFrameworkRuntime",
-        "BattleSoupAI"
+        "AngeliaFrameworkRuntime"
     ],
     "includePlatforms": [
         "Editor",
