@@ -1,0 +1,8 @@
+{
+    "DisplayName": "Magic Mirror",
+    "Discription": "Play the last ability used by your opponent",
+    "DefaultCooldown": 1,
+    "MaxCooldown": 1,
+    "Body": "11,11",
+    "Ability": ""
+}

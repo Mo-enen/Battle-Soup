@@ -49,7 +49,7 @@ PlayerSettings:
   m_SloganHeight: 150
   m_HolographicTrackingLossScreen: {fileID: 0}
   defaultScreenWidth: 1080
-  defaultScreenHeight: 1080
+  defaultScreenHeight: 960
   defaultScreenWidthWeb: 960
   defaultScreenHeightWeb: 600
   m_StereoRenderingPath: 0
@@ -143,7 +143,7 @@ PlayerSettings:
     16:10: 1
     16:9: 1
     Others: 1
-  bundleVersion: 1.1.0
+  bundleVersion: 2.0.0
   preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
@@ -164,7 +164,7 @@ PlayerSettings:
   applicationIdentifier:
     Standalone: com.MoenenGames.BattleSoup
   buildNumber:
-    Standalone: 1
+    Standalone: 2
     iPhone: 0
     tvOS: 0
   overrideDefaultApplicationIdentifier: 1
@@ -699,7 +699,7 @@ PlayerSettings:
     m_VersionCode: 1
     m_VersionName: 
   apiCompatibilityLevel: 6
-  activeInputHandler: 2
+  activeInputHandler: 1
   cloudProjectId: 
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []

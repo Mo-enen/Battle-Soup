@@ -1,0 +1,8 @@
+{
+    "DisplayName": "Kayak",
+    "Discription": "Attacks in a 1x2 pattern. Becomes fully revealed when hit.",
+    "DefaultCooldown": 1,
+    "MaxCooldown": 1,
+    "Body": "1,1",
+    "Ability": ""
+}

@@ -2,7 +2,8 @@
     "name": "BattleSoup",
     "rootNamespace": "BattleSoup",
     "references": [
-        "AngeliaFrameworkRuntime"
+        "AngeliaFrameworkRuntime",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [
         "Editor",

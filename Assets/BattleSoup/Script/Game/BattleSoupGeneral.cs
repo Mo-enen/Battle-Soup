@@ -8,34 +8,15 @@ namespace System.Runtime.CompilerServices { internal static class IsExternalInit
 namespace BattleSoup {
 
 
-	public enum GameState {
-		Title = 0,
-		Prepare = 1,
-		Playing = 2,
+	[System.Serializable]
+	public struct Int2 {
+		public int x;
+		public int y;
+		public Int2 (int x, int y) {
+			this.x = x;
+			this.y = y;
+		}
 	}
-
-
-	public enum GameMode {
-		PvA = 0,
-		AvA = 1,
-		Card = 2,
-	}
-
-
-	public enum CellType {
-		Water = 0,
-		Stone = 1,
-		Ship = 2,
-	}
-
-
-	public class Cell {
-		public CellType Type = CellType.Water;
-		public bool Revealed = false;
-		public bool Hit = false;
-		public int ShipID = 0;
-	}
-
 
 
 	public static class SoupConst {
@@ -46,47 +27,54 @@ namespace BattleSoup {
 	}
 
 
-	public static class SoupUtil {
 
+	// Ship
+	[System.Serializable]
+	public class ShipData {
 
-		public static (int globalX, int globalY) Local_to_Global (int localX, int localY, int localZ = 0) => (
-			localX * SoupConst.ISO_WIDTH - localY * SoupConst.ISO_WIDTH - SoupConst.ISO_WIDTH,
-			localX * SoupConst.ISO_HEIGHT + localY * SoupConst.ISO_HEIGHT + localZ * SoupConst.ISO_HEIGHT * 2
-		);
+		public string DisplayName = "";
+		public string Discription = "";
+		public int DefaultCooldown = 1;
+		public int MaxCooldown = 1;
+		public string Body = "1";
+		public string Ability = "";
 
-
-		public static (int localX, int localY) Global_to_Local (int globalX, int globalY, int localZ = 0) {
-			int localX = 0;
-			int localY = 0;
-			globalY -= localZ * SoupConst.ISO_HEIGHT;
-
-
-
-
-			return (localX, localY);
-		}
-
-
-		public static Vector2Int[] GetIsoDistanceArray (int size) {
-			var result = new Vector2Int[size * size];
-			int index = 0;
-			for (int i = 0; i < size; i++) {
-				int count = i + 1;
-				for (int j = 0; j < count; j++) {
-					result[index] = new(j, i - j);
-					index++;
+		public Vector2Int[] GetBodyArray () {
+			var result = new List<Vector2Int>();
+			int x = 0;
+			int y = 0;
+			for (int i = 0; i < Body.Length; i++) {
+				char c = Body[i];
+				switch (c) {
+					case '0':
+						x++;
+						break;
+					case '1':
+						result.Add(new(x, y));
+						x++;
+						break;
+					case ',':
+						y++;
+						x = 0;
+						break;
 				}
 			}
-			for (int i = 1; i < size; i++) {
-				int count = size - i;
-				for (int j = 0; j < count; j++) {
-					result[index] = new(i + j, size - j - 1);
-					index++;
-				}
-			}
-			return result;
+			return result.ToArray();
 		}
-
 
 	}
+
+
+	// Map
+	[System.Serializable]
+	public class MapData {
+
+		public int this[int x, int y] => Content[y * Size + x];
+		public int Size = 8;
+		public int[] Content = new int[64]; // 0:Water 1:Stone
+
+	}
+
+
+
 }

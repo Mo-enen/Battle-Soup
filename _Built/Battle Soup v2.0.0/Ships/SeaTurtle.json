@@ -1,0 +1,8 @@
+{
+    "DisplayName": "Sea Turtle",
+    "Discription": "Successful attacks reveal adjacent tiles and reduce cooldown by 1",
+    "DefaultCooldown": 1,
+    "MaxCooldown": 1,
+    "Body": "010,111",
+    "Ability": ""
+}
