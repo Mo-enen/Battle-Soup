@@ -23,6 +23,19 @@ namespace BattleSoup {
 		private static readonly int WATER_HIT_CODE = "Water Hit".AngeHash();
 		private static readonly int WATER_SUNK_CODE = "Water Sunk".AngeHash();
 		private static readonly int STONE_CODE = "Stone".AngeHash();
+		private static readonly int[] SONAR_CODES = new int[] {
+			"Sonar Unknown".AngeHash(),
+			"Sonar 1".AngeHash(),
+			"Sonar 2".AngeHash(),
+			"Sonar 3".AngeHash(),
+			"Sonar 4".AngeHash(),
+			"Sonar 5".AngeHash(),
+			"Sonar 6".AngeHash(),
+			"Sonar 7".AngeHash(),
+			"Sonar 8".AngeHash(),
+			"Sonar 9".AngeHash(),
+			"Sonar 9Plus".AngeHash(),
+		};
 
 		// Api
 		public Field Field { get; set; } = null;
@@ -88,9 +101,18 @@ namespace BattleSoup {
 
 
 		private void DrawGizmos () {
-
-
-
+			int count = Field.MapSize * Field.MapSize;
+			for (int i = count - 1; i >= 0; i--) {
+				var localPos = Field.IsoArray[i];
+				var (x, y) = Field.Local_to_Global(localPos.x, localPos.y);
+				var cell = Field[localPos.x, localPos.y];
+				if (cell.Sonar != 0) {
+					CellRenderer.Draw(
+						SONAR_CODES[cell.Sonar.Clamp(0, SONAR_CODES.Length - 1)],
+						x, y, SoupConst.ISO_SIZE, SoupConst.ISO_SIZE
+					);
+				}
+			}
 		}
 
 

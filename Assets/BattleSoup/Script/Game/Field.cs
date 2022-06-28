@@ -27,26 +27,6 @@ namespace BattleSoup {
 
 
 
-	public class Ship {
-
-		public int GlobalID = 0;
-		public string GlobalName = "";
-		public int FieldX = 0;
-		public int FieldY = 0;
-		public bool Flip = false;
-		public Vector2Int[] Body = null;
-		public ShipData Data = null;
-
-		public Vector2Int GetFieldNodePosition (int nodeIndex) {
-			var node = Body[nodeIndex];
-			return new(
-				FieldX + (Flip ? node.y : node.x),
-				FieldY + (Flip ? node.x : node.y)
-			); ;
-		}
-
-	}
-
 
 
 	public class Field {
@@ -62,7 +42,7 @@ namespace BattleSoup {
 		public int MapSize => Map.Size;
 		public Vector2Int[] IsoArray { get; init; } = null;
 		public Ship[] Ships { get; init; } = null;
-		public MapData Map { get; init; } = null;
+		public Map Map { get; init; } = null;
 
 		// Data
 		private Cell[,] Cells { get; init; } = null;
@@ -77,7 +57,7 @@ namespace BattleSoup {
 		#region --- MSG ---
 
 
-		public Field (Ship[] ships, MapData map, Vector2Int localShift) {
+		public Field (Ship[] ships, Map map, Vector2Int localShift) {
 			int mapSize = map.Size;
 			LocalShift = localShift;
 			Ships = ships;
@@ -91,11 +71,11 @@ namespace BattleSoup {
 					};
 				}
 			}
-			// Ship Index
+			// Ship Index / Renderer ID
 			for (int i = 0; i < ships.Length; i++) {
 				var ship = ships[i];
-				for (int j = 0; j < ship.Body.Length; j++) {
-					var body = ship.Body[j];
+				for (int j = 0; j < ship.BodyNodes.Length; j++) {
+					var body = ship.BodyNodes[j];
 					var pos = ship.GetFieldNodePosition(j);
 					if (pos.InLength(mapSize)) {
 						var cell = Cells[pos.x, pos.y];

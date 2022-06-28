@@ -1,0 +1,6 @@
+
+// Coracle Ability Example
+
+Pick [revealed, ship]		// Wait for player to pick a position, but only allow revealed ship tiles
+SunkShip(0, 0)			// Sunk the ship at the position just picked
+

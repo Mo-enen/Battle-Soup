@@ -1,0 +1,9 @@
+{
+    "GlobalName": "SkullCove",
+    "DisplayName": "Skull Cove",
+    "Discription": "While other ships are in play, fire 3 shots at random upon taking non-fatal damage.",
+    "DefaultCooldown": 1,
+    "MaxCooldown": 1,
+    "Body": "101,111" 
+    
+}

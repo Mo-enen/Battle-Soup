@@ -1,0 +1,9 @@
+{
+    "GlobalName": "Sailboat",
+    "DisplayName": "Sailboat",
+    "Discription": "Attacks in a 1x3 pattern",
+    "DefaultCooldown": 1,
+    "MaxCooldown": 1,
+    "Body": "1,1,1" 
+    
+}

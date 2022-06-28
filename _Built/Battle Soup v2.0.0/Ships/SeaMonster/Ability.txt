@@ -1,0 +1,10 @@
+
+// Sea Monster Ability Example
+
+Attack(???)
+Unreveal(?) [revealed, self]
+
+
+
+
+

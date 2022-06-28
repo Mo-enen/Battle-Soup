@@ -1,8 +1,0 @@
-{
-    "DisplayName": "Chaotic Machinist",
-    "Discription": "Choose 4 tiles to attack. For each successful hit, randomly destroy a tile on this ship.",
-    "DefaultCooldown": 1,
-    "MaxCooldown": 1,
-    "Body": "010,111,010",
-    "Ability": ""
-}

@@ -1,8 +1,0 @@
-{
-    "DisplayName": "Mutineers",
-    "Discription": "Attack revealed tiles with Combo, up to 2 times.",
-    "DefaultCooldown": 1,
-    "MaxCooldown": 1,
-    "Body": "1,1,1",
-    "Ability": ""
-}

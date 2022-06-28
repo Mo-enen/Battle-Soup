@@ -1,0 +1,9 @@
+{
+    "GlobalName": "Cartographer",
+    "DisplayName": "Cartographer",
+    "Discription": "Choose a revealed tile. The revealed area expands by 1 tile.",
+    "DefaultCooldown": 1,
+    "MaxCooldown": 1,
+    "Body": "11,11" 
+    
+}

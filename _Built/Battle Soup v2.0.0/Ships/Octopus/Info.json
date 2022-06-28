@@ -1,0 +1,9 @@
+{
+    "GlobalName": "Octopus",
+    "DisplayName": "Octopus",
+    "Discription": "Attacks 2 UNKNOWN tiles at random with sonar. Sonar: shows the distance to the closest enemy unit(s)",
+    "DefaultCooldown": 1,
+    "MaxCooldown": 1,
+    "Body": "11,11" 
+    
+}

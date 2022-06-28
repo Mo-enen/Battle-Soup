@@ -1,0 +1,9 @@
+{
+    "GlobalName": "Whale",
+    "DisplayName": "Whale",
+    "Discription": "Attacks reveal adjacent tiles",
+    "DefaultCooldown": 1,
+    "MaxCooldown": 1,
+    "Body": "010,111,010"
+    
+}

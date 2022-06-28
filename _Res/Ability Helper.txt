@@ -1,0 +1,86 @@
+
+// this is a comment
+// All code ignore cases
+// All empty space will be ignore
+// One compile error will broke all the ability code
+// "(0,0)" can be ignore (eg. attack(0,0) >> attack)
+
+
+
+=== Functions ===
+
+	Position Buffer:
+
+		pick					// wait for player to pick a position, functions called below will performe their logic based on picked position
+		pick [revealed]			// pick a position but only allow revealed tiles
+		pick [revealed,hit]		// pick a position but only allow revealed tiles and hit tiles
+		pick [self]				// pick a position in the user's own field
+
+		this					// Set position buffer to the pivot of the current ship
+
+		global					// Set position buffer to global position (default)
+
+	Operations:
+
+		attack(x,y)
+		reveal(x,y)
+		unReveal(x,y)
+		sonar(x,y)
+
+		attack(?)				// attack random position once
+		attack(?)[!revealed]	// attack random position but not revealed tiles
+		attack(???)				// attack three different random positions (you can have as many "?" as you want)
+
+		sunkShip(x,y)			// sunk ship at x,y
+		revealShip(x,y)			// reveal all tiles for the ship at x,y
+	
+		addCooldown(x,y)		// add/reduce cooldown/maxCooldown if there is ship at x,y
+		reduceCooldown(x,y)
+		addMaxCooldown(x,y)
+		reduceMaxCooldown(x,y)
+
+
+
+=== keywords ===
+	
+	// Write those keywords inside "[]" will add limitations to the function
+	// eg. attack(???) [unrevealed]		// Attack three different random tiles but only allow unrevealed ones
+	// "[a, b] [c, d]" means: "(a && b) || (c && d)" 
+	// "!X" means "not X"
+
+	keywords-Tiles:
+
+		unrevealed,		// Unrevealed water tiles, unrevealed stone tiles
+		revealed,		// Revealed water, revealed ship, revealed stone
+		hit,			// Hitted ship
+		sunk,			// Sunk ship
+		stone,			// Tile with stone on it
+		ship,			// Tile with ship on it (include ships which invisible to player)
+		visibleShip		// Tile with ships which visible to player
+		invisibleShip	//                    ...invisible to player
+
+	keywords-Action:
+		self,			// Make the function happens to the one that uses the ability (instead of the opponent)
+		breakIfMiss		// End this ability if this function missed
+		breakIfHit		//                                ...hit
+
+	keywords-Entrance:
+						// "tile keyword" is also entrance keyword
+				
+		HitShip			// hit a ship
+		RevealWater		//
+		ReavealShip		// 
+		SonarReaveal	// revealed a water with sonar (not hitting any ships)
+		
+		Reaveal = RevealWater | ReavealShip | SonarReaveal,
+		Miss = RevealWater | SonarReaveal,
+	 
+	
+=== Entrance ===
+									// Do not allow duplicate entrance
+		OnAbilityUsed				// When user click the ability icon, default entrance (default entrance)
+		OnNormalAttack				// When user attack any opponent tile with a normal cannon ball
+		OnNormalAttack [success]	// ... but only when it hit a ship 
+		OnShipGetHit				// When the current ship get hit
+		OnShipGetRevealed
+		OnShipBecomeVisible

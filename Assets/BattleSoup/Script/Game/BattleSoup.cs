@@ -42,8 +42,9 @@ namespace BattleSoup {
 		public string MapRoot => Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Maps");
 
 		// Data
-		private readonly Dictionary<int, ShipData> ShipPool = new();
-		private readonly List<MapData> AllMaps = new();
+		private readonly Dictionary<int, Ship> ShipPool = new();
+		private readonly Dictionary<int, Ability> AbilityPool = new();
+		private readonly List<Map> AllMaps = new();
 		private eFieldRenderer RendererA = null;
 		private eFieldRenderer RendererB = null;
 
@@ -56,6 +57,7 @@ namespace BattleSoup {
 		#region --- MSG ---
 
 
+		// Init
 		protected override void Initialize () {
 
 			base.Initialize();
@@ -66,38 +68,17 @@ namespace BattleSoup {
 			Mode = GameMode.PvA;
 			RendererA = AddEntity(typeof(eFieldRenderer).AngeHash(), 0, 0) as eFieldRenderer;
 			RendererB = AddEntity(typeof(eFieldRenderer).AngeHash(), 0, 0) as eFieldRenderer;
-			RefreshView(true);
+			RefreshCameraView(true);
 
 
 
-			/////////////////////////////////////////////////////////////////////////
+			//////////////////  TEMP  ////////////////////////////////////////////////
 
 			State = GameState.Playing;
+			RendererA.Field = SetupBattleFields(1, 0);
+			RendererB.Field = SetupBattleFields(3, RendererA.Field.MapSize + 2);
 
-			string shipName = "Mutineers";
-			RendererA.Field = new Field(
-				new Ship[] {
-					new Ship() {
-						GlobalName = shipName,
-						GlobalID = shipName.AngeHash(),
-						Flip = false,
-						FieldY = 2,
-						FieldX = 4,
-						Data = ShipPool[shipName.AngeHash()],
-						Body = ShipPool[shipName.AngeHash()].GetBodyArray(),
-					}
-				},
-				AllMaps[2], new(0, 0)
-			);
-			
-
-
-
-			RendererB.Field = new Field(new Ship[] {
-
-			}, AllMaps[1], new(0, AllMaps[1].Size + 2));
-
-			/////////////////////////////////////////////////////////////////////////
+			///////////////////  TEMP  ///////////////////////////////////////////////////
 
 
 
@@ -109,12 +90,29 @@ namespace BattleSoup {
 			// Ship Data
 			try {
 				ShipPool.Clear();
-				foreach (var file in Util.GetFilesIn(ShipRoot, false, "*.json")) {
+				foreach (var folder in Util.GetFoldersIn(ShipRoot, true)) {
 					try {
-						var data = JsonUtility.FromJson<ShipData>(Util.FileToText(file.FullName));
-						if (data == null) continue;
-						ShipPool.TryAdd(Util.GetNameWithoutExtension(file.Name).AngeHash(), data);
-					} catch (System.Exception ex) { Debug.LogException(ex); }
+						int globalID = 0;
+						// Info
+						string infoPath = Util.CombinePaths(folder.FullName, "Info.json");
+						if (Util.FileExists(infoPath)) {
+							var data = JsonUtility.FromJson<Ship>(Util.FileToText(infoPath));
+							if (data == null) continue;
+							globalID = data.GlobalCode;
+							ShipPool.TryAdd(data.GlobalCode, data);
+						} else continue;
+						// Ability
+						string abPath = Util.CombinePaths(folder.FullName, "Ability.txt");
+						if (Util.FileExists(abPath)) {
+							string code = Util.FileToText(abPath);
+							var exe = AbilityCompiler.Compile(code, out string error);
+							if (exe != null) {
+								AbilityPool.TryAdd(globalID, exe);
+							} else {
+								Debug.LogError(folder.FullName + "\n" + error);
+							}
+						}
+					} catch (System.Exception ex) { Debug.LogWarning(folder.Name); Debug.LogException(ex); }
 				}
 			} catch (System.Exception ex) { Debug.LogException(ex); }
 
@@ -135,7 +133,7 @@ namespace BattleSoup {
 						}
 						if (texture.width == 0 || texture.height == 0) continue;
 						var pixels = texture.GetPixels32();
-						var map = new MapData() {
+						var map = new Map() {
 							Size = texture.width,
 							Content = new int[pixels.Length],
 						};
@@ -150,11 +148,12 @@ namespace BattleSoup {
 		}
 
 
+		// Update
 		protected override void FrameUpdate () {
 			base.FrameUpdate();
 
 			// View
-			RefreshView();
+			RefreshCameraView();
 
 			// Game
 			switch (State) {
@@ -210,30 +209,33 @@ namespace BattleSoup {
 		#region --- LGC ---
 
 
-		private void RefreshView (bool immediately = false) {
+		private void RefreshCameraView (bool immediately = false) {
+
 			if (RendererA.Field == null || RendererB.Field == null) return;
+
 			int sizeA = RendererA.Field.MapSize;
+			int sizeB = RendererB.Field.MapSize;
 
-			var (minX0, _) = RendererA.Field.Local_to_Global(0, sizeA);
-			var (maxX0, _) = RendererA.Field.Local_to_Global(sizeA, 0);
-			var (_, minY0) = RendererA.Field.Local_to_Global(0, 0);
-			var (_, maxY0) = RendererA.Field.Local_to_Global(sizeA, sizeA, 2);
+			var (l0, _) = RendererA.Field.Local_to_Global(0, sizeA - 1);
+			var (r0, _) = RendererA.Field.Local_to_Global(sizeA, 0);
+			var (_, d0) = RendererA.Field.Local_to_Global(0, 0);
+			var (_, u0) = RendererA.Field.Local_to_Global(sizeA, sizeA, 1);
 
-			var (minX1, _) = RendererB.Field.Local_to_Global(0, sizeA);
-			var (maxX1, _) = RendererB.Field.Local_to_Global(sizeA, 0);
-			var (_, minY1) = RendererB.Field.Local_to_Global(0, 0);
-			var (_, maxY1) = RendererB.Field.Local_to_Global(sizeA, sizeA, 2);
+			var (l1, _) = RendererB.Field.Local_to_Global(0, sizeB - 1);
+			var (r1, _) = RendererB.Field.Local_to_Global(sizeB, 0);
+			var (_, d1) = RendererB.Field.Local_to_Global(0, 0);
+			var (_, u1) = RendererB.Field.Local_to_Global(sizeB, sizeB, 1);
 
-			int minX = Mathf.Min(minX0, minX1) - SoupConst.ISO_SIZE / 2;
-			int minY = Mathf.Min(minY0, minY1);
-			int maxX = Mathf.Max(maxX0, maxX1) + SoupConst.ISO_SIZE / 2;
-			int maxY = Mathf.Max(maxY0, maxY1) + SoupConst.ISO_SIZE;
+			int minX = Mathf.Min(l0, l1);
+			int maxX = Mathf.Max(r0, r1) + SoupConst.ISO_SIZE / 2;
+			int minY = Mathf.Min(d0, d1);
+			int maxY = Mathf.Max(u0, u1);
+
 			var rect = new RectInt(minX, minY, maxX - minX, maxY - minY);
 			rect = rect.Expand(
 				SoupConst.ISO_SIZE / 2, SoupConst.ISO_SIZE / 2,
 				SoupConst.ISO_SIZE / 2, SoupConst.ISO_SIZE
 			);
-
 			var targetCameraRect = rect.ToRect().Envelope((float)Screen.width / Screen.height);
 
 			SetViewPositionDely(
@@ -241,6 +243,23 @@ namespace BattleSoup {
 				(int)targetCameraRect.y, immediately ? 1000 : 220
 			);
 			SetViewSizeDely((int)targetCameraRect.height, immediately ? 1000 : 220);
+		}
+
+
+		private Field SetupBattleFields (int mapIndex, int localShiftY) {
+
+			var field = new Field(
+				new Ship[] {
+					ShipPool["Longboat".AngeHash()].CreateDataCopy(),
+					ShipPool["Mutineers".AngeHash()].CreateDataCopy(),
+					ShipPool["Coracle".AngeHash()].CreateDataCopy(),
+				},
+				AllMaps[mapIndex],
+				new(0, localShiftY)
+			);
+
+
+			return field;
 		}
 
 

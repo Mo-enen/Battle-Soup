@@ -1,0 +1,9 @@
+{
+    "GlobalName": "SlugSquad",
+    "DisplayName": "Slug Squad",
+    "Discription": "Choose 2 tiles to reveal",
+    "DefaultCooldown": 1,
+    "MaxCooldown": 1,
+    "Body": "1,1,1"
+    
+}

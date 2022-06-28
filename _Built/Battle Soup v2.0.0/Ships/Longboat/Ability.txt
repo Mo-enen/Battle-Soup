@@ -1,0 +1,19 @@
+
+// Longboat Ability Example
+
+Pick [unrevealed, !stone] [revealed, ship]
+Attack(0, 0) [BreakIfMiss]
+
+Pick [unrevealed, !stone] [revealed, ship]
+Attack(0, 0) [BreakIfMiss]
+
+Pick [unrevealed, !stone] [revealed, ship]
+Attack(0, 0) [BreakIfMiss]
+
+Pick [unrevealed, !stone] [revealed, ship]
+Attack(0, 0) [BreakIfMiss]
+
+Pick [unrevealed, !stone] [revealed, ship]
+Attack(0, 0) [BreakIfMiss]
+
+

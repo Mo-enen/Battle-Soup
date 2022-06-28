@@ -8,6 +8,87 @@ namespace System.Runtime.CompilerServices { internal static class IsExternalInit
 namespace BattleSoup {
 
 
+
+
+
+	public enum ActionType {
+
+		None,
+
+		// Position Buffer
+		Pick,
+		This,
+		Clear,
+
+		// Operations
+		Attack,
+		Reveal,
+		Unreveal,
+		Sonar,
+
+		SunkShip,
+		RevealShip,
+		AddCooldown,
+		ReduceCooldown,
+		AddMaxCooldown,
+		ReduceMaxCooldown,
+
+	}
+
+
+	public enum EntranceType {
+		OnAbilityUsed,
+		OnNormalAttack,
+		OnShipGetHit,
+		OnShipGetRevealed,
+		OnShipBecomeVisible,
+	}
+
+
+
+	[System.Flags]
+	public enum ActionKeyword : long {
+
+		None = 0,
+
+		// Tile
+		Unrevealed = 1L << 0,
+		Revealed = 1L << 1,
+		Hit = 1L << 2,
+		Sunk = 1L << 3,
+		Stone = 1L << 4,
+		Ship = 1L << 5,
+		VisibleShip = 1L << 6,
+		InvisibleShip = 1L << 7,
+
+		// Action
+		Self = 1L << 8,
+		BreakIfFail = 1L << 9,
+		BreakIfSuccess = 1L << 10,
+
+	}
+
+
+	[System.Flags]
+	public enum EntranceKeyword : long {
+
+		None = 0,
+
+		HitShip = 1L << 0,
+		RevealWater = 1L << 1,
+		ReavealShip = 1L << 2,
+		SonarReaveal = 1L << 3,
+
+		Reaveal = RevealWater | ReavealShip | SonarReaveal,
+		Miss = RevealWater | SonarReaveal,
+		All = HitShip | RevealWater | ReavealShip | SonarReaveal,
+
+	}
+
+
+
+
+
 	[System.Serializable]
 	public struct Int2 {
 		public int x;
@@ -28,23 +109,61 @@ namespace BattleSoup {
 
 
 
-	// Ship
 	[System.Serializable]
-	public class ShipData {
+	public class Ship : ISerializationCallbackReceiver {
 
+
+		// Ser-Api
+		public string GlobalName = "";
 		public string DisplayName = "";
 		public string Discription = "";
 		public int DefaultCooldown = 1;
 		public int MaxCooldown = 1;
 		public string Body = "1";
-		public string Ability = "";
 
-		public Vector2Int[] GetBodyArray () {
+		// Data-Api
+		[System.NonSerialized] public int GlobalCode = 0;
+		[System.NonSerialized] public int FieldX = 0;
+		[System.NonSerialized] public int FieldY = 0;
+		[System.NonSerialized] public bool Flip = false;
+		[System.NonSerialized] public Vector2Int[] BodyNodes = null;
+
+
+		// MSG
+		public void OnBeforeSerialize () { }
+
+
+		public void OnAfterDeserialize () {
+			GlobalCode = GlobalName.AngeHash();
+			FieldX = 0;
+			FieldY = 0;
+			Flip = false;
+			BodyNodes = GetBodyNode(Body);
+		}
+
+
+		// API
+		public Vector2Int GetFieldNodePosition (int nodeIndex) {
+			var node = BodyNodes[nodeIndex];
+			return new(
+				FieldX + (Flip ? node.y : node.x),
+				FieldY + (Flip ? node.x : node.y)
+			); ;
+		}
+
+
+		public Ship CreateDataCopy () => JsonUtility.FromJson<Ship>(
+			JsonUtility.ToJson(this, false)
+		);
+
+
+		// LGC
+		private static Vector2Int[] GetBodyNode (string body) {
 			var result = new List<Vector2Int>();
 			int x = 0;
 			int y = 0;
-			for (int i = 0; i < Body.Length; i++) {
-				char c = Body[i];
+			for (int i = 0; i < body.Length; i++) {
+				char c = body[i];
 				switch (c) {
 					case '0':
 						x++;
@@ -62,12 +181,13 @@ namespace BattleSoup {
 			return result.ToArray();
 		}
 
+
 	}
 
 
-	// Map
+
 	[System.Serializable]
-	public class MapData {
+	public class Map {
 
 		public int this[int x, int y] => Content[y * Size + x];
 		public int Size = 8;

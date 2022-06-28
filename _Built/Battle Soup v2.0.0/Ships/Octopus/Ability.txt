@@ -1,0 +1,5 @@
+
+// Octopus Ability Example
+
+Sonar(??) [unrevealed, !stone] [revealed, ship]
+
