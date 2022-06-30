@@ -126,6 +126,7 @@ namespace BattleSoup {
 		[System.NonSerialized] public int FieldX = 0;
 		[System.NonSerialized] public int FieldY = 0;
 		[System.NonSerialized] public bool Flip = false;
+		[System.NonSerialized] public bool Visible = false;
 		[System.NonSerialized] public Vector2Int[] BodyNodes = null;
 
 

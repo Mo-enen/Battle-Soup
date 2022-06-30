@@ -68,6 +68,8 @@ namespace BattleSoup {
 			Mode = GameMode.PvA;
 			RendererA = AddEntity(typeof(eFieldRenderer).AngeHash(), 0, 0) as eFieldRenderer;
 			RendererB = AddEntity(typeof(eFieldRenderer).AngeHash(), 0, 0) as eFieldRenderer;
+			RendererA.HideInvisibleShip = false;
+			RendererB.HideInvisibleShip = true;
 			RefreshCameraView(true);
 
 
@@ -75,8 +77,8 @@ namespace BattleSoup {
 			//////////////////  TEMP  ////////////////////////////////////////////////
 
 			State = GameState.Playing;
-			RendererA.Field = SetupBattleFields(1, 0);
-			RendererB.Field = SetupBattleFields(3, RendererA.Field.MapSize + 2);
+			RendererB.Field = SetupBattleFields(3, 0);
+			RendererA.Field = SetupBattleFields(1, RendererB.Field.MapSize + 2);
 
 			///////////////////  TEMP  ///////////////////////////////////////////////////
 
@@ -258,6 +260,14 @@ namespace BattleSoup {
 				new(0, localShiftY)
 			);
 
+			for (int i = 0; i < field.MapSize; i++) {
+				for (int j = 0; j < field.MapSize; j++) {
+					//var cell = field[i, j];
+
+
+
+				}
+			}
 
 			return field;
 		}

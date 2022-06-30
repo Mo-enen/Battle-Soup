@@ -23,9 +23,8 @@ namespace BattleSoup {
 		public int Sonar = 0;
 		public int ShipIndex = -1;
 		public int ShipRenderID = 0;
+		public int ShipRenderID_Add = 0;
 	}
-
-
 
 
 
@@ -37,12 +36,15 @@ namespace BattleSoup {
 		#region --- VAR ---
 
 
+		// Const
+		private static readonly Matrix2x2 L2G = new(SoupConst.ISO_WIDTH, -SoupConst.ISO_WIDTH, SoupConst.ISO_HEIGHT, SoupConst.ISO_HEIGHT);
+		private static Matrix2x2 G2L => _G2L ??= L2G.Inverse(); static Matrix2x2 _G2L = null;
+
 		// Api
 		public Cell this[int x, int y] => Cells[x, y];
-		public int MapSize => Map.Size;
-		public Vector2Int[] IsoArray { get; init; } = null;
 		public Ship[] Ships { get; init; } = null;
-		public Map Map { get; init; } = null;
+		public int MapSize { get; init; } = 1;
+		public Vector2Int[] IsoArray { get; init; } = null;
 
 		// Data
 		private Cell[,] Cells { get; init; } = null;
@@ -58,14 +60,13 @@ namespace BattleSoup {
 
 
 		public Field (Ship[] ships, Map map, Vector2Int localShift) {
-			int mapSize = map.Size;
+			MapSize = map.Size;
 			LocalShift = localShift;
 			Ships = ships;
-			Map = map;
-			Cells = new Cell[mapSize, mapSize];
-			IsoArray = GetIsoDistanceArray(mapSize);
-			for (int j = 0; j < mapSize; j++) {
-				for (int i = 0; i < mapSize; i++) {
+			Cells = new Cell[MapSize, MapSize];
+			IsoArray = GetIsoDistanceArray(MapSize);
+			for (int j = 0; j < MapSize; j++) {
+				for (int i = 0; i < MapSize; i++) {
 					Cells[i, j] = new Cell() {
 						HasStone = map[i, j] == 1,
 					};
@@ -77,10 +78,11 @@ namespace BattleSoup {
 				for (int j = 0; j < ship.BodyNodes.Length; j++) {
 					var body = ship.BodyNodes[j];
 					var pos = ship.GetFieldNodePosition(j);
-					if (pos.InLength(mapSize)) {
+					if (pos.InLength(MapSize)) {
 						var cell = Cells[pos.x, pos.y];
 						cell.ShipIndex = i;
 						cell.ShipRenderID = $"{ship.GlobalName} {body.x}.{body.y}".AngeHash();
+						cell.ShipRenderID_Add = $"{ship.GlobalName}_Add {body.x}.{body.y}".AngeHash();
 					}
 				}
 			}
@@ -98,17 +100,19 @@ namespace BattleSoup {
 		public (int globalX, int globalY) Local_to_Global (int localX, int localY, int localZ = 0) {
 			localX += LocalShift.x;
 			localY += LocalShift.y;
-			int globalX = localX * SoupConst.ISO_WIDTH - localY * SoupConst.ISO_WIDTH - SoupConst.ISO_WIDTH;
-			int globalY = localX * SoupConst.ISO_HEIGHT + localY * SoupConst.ISO_HEIGHT + localZ * SoupConst.ISO_HEIGHT * 2;
+			var point = L2G * new Vector2(localX, localY);
+			int globalX = (int)point.x;
+			int globalY = (int)point.y + localZ * SoupConst.ISO_HEIGHT * 2;
 			return (globalX, globalY);
 		}
 
 
 		public (int localX, int localY) Global_to_Local (int globalX, int globalY, int localZ = 0) {
+			globalX -= SoupConst.ISO_WIDTH;
 			globalY -= localZ * SoupConst.ISO_HEIGHT * 2;
-			globalX += SoupConst.ISO_WIDTH;
-			int localX = globalX / (2 * SoupConst.ISO_WIDTH) + globalY / (2 * SoupConst.ISO_HEIGHT);
-			int localY = globalY / (2 * SoupConst.ISO_HEIGHT) - globalX / (2 * SoupConst.ISO_WIDTH);
+			var point = G2L * new Vector2(globalX, globalY);
+			int localX = (int)point.x.UFloor(1f);
+			int localY = (int)point.y.UFloor(1f);
 			return (localX - LocalShift.x, localY - LocalShift.y);
 		}
 
