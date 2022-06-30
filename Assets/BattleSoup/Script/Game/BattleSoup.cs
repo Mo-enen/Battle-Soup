@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using AngeliaFramework;
 
 
+// Start Remake at 2022/6/23
 namespace BattleSoup {
 	public class BattleSoup : Game {
 
@@ -13,11 +15,22 @@ namespace BattleSoup {
 		#region --- SUB ---
 
 
+
 		public enum GameState {
+
 			Title = 0,
-			Prepare = 1,
-			Playing = 2,
+
+			SelectMap = 1,
+			SelectShip = 2,
+			PlaceShip = 3,
+			Playing = 4,
+
+			CardGame = 5,
+
+			ShipEditor = 6,
+
 		}
+
 
 
 		public enum GameMode {
@@ -25,6 +38,17 @@ namespace BattleSoup {
 			AvA = 1,
 			Card = 2,
 		}
+
+
+
+		[System.Serializable]
+		private class GameAsset {
+			public RectTransform PanelRoot = null;
+			public RectTransform CornerSoup = null;
+			public Toggle SoundTG = null;
+			public Toggle AutoPlayAvATG = null;
+		}
+
 
 
 		#endregion
@@ -40,6 +64,11 @@ namespace BattleSoup {
 		public GameMode Mode { get; private set; } = GameMode.PvA;
 		public string ShipRoot => Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Ships");
 		public string MapRoot => Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Maps");
+		public bool UseSound { get => s_UseSound.Value; set => s_UseSound.Value = value; }
+		public bool AutoPlayForAvA { get => s_AutoPlayForAvA.Value; set => s_AutoPlayForAvA.Value = value; }
+
+		// Ser
+		[SerializeField] GameAsset m_Assets = null;
 
 		// Data
 		private readonly Dictionary<int, Ship> ShipPool = new();
@@ -47,6 +76,10 @@ namespace BattleSoup {
 		private readonly List<Map> AllMaps = new();
 		private eFieldRenderer RendererA = null;
 		private eFieldRenderer RendererB = null;
+
+		// Saving
+		private readonly SavingBool s_UseSound = new("BattleSoup.UseSound", true);
+		private readonly SavingBool s_AutoPlayForAvA = new("BattleSoup.AutoPlayForAvA", false);
 
 
 		#endregion
@@ -62,134 +95,26 @@ namespace BattleSoup {
 
 			base.Initialize();
 
-			Init_Pools();
+			ReloadShipPoolFromDisk();
+			ReloadMapPoolFromDisk();
 
-			State = GameState.Title;
-			Mode = GameMode.PvA;
+			SwitchState(GameState.Title);
+			SwitchMode(GameMode.PvA);
+
+			AddEntity(typeof(eRainningCoracleAnimation).AngeHash(), 0, 0);
 			RendererA = AddEntity(typeof(eFieldRenderer).AngeHash(), 0, 0) as eFieldRenderer;
 			RendererB = AddEntity(typeof(eFieldRenderer).AngeHash(), 0, 0) as eFieldRenderer;
 			RendererA.HideInvisibleShip = false;
 			RendererB.HideInvisibleShip = true;
+
 			RefreshCameraView(true);
-
-
-
-			//////////////////  TEMP  ////////////////////////////////////////////////
-
-			State = GameState.Playing;
-			RendererB.Field = SetupBattleFields(3, 0);
-			RendererA.Field = SetupBattleFields(1, RendererB.Field.MapSize + 2);
-
-			///////////////////  TEMP  ///////////////////////////////////////////////////
-
-
-
-		}
-
-
-		private void Init_Pools () {
-
-			// Ship Data
-			try {
-				ShipPool.Clear();
-				foreach (var folder in Util.GetFoldersIn(ShipRoot, true)) {
-					try {
-						int globalID = 0;
-						// Info
-						string infoPath = Util.CombinePaths(folder.FullName, "Info.json");
-						if (Util.FileExists(infoPath)) {
-							var data = JsonUtility.FromJson<Ship>(Util.FileToText(infoPath));
-							if (data == null) continue;
-							globalID = data.GlobalCode;
-							ShipPool.TryAdd(data.GlobalCode, data);
-						} else continue;
-						// Ability
-						string abPath = Util.CombinePaths(folder.FullName, "Ability.txt");
-						if (Util.FileExists(abPath)) {
-							string code = Util.FileToText(abPath);
-							var exe = AbilityCompiler.Compile(code, out string error);
-							if (exe != null) {
-								AbilityPool.TryAdd(globalID, exe);
-							} else {
-								Debug.LogError(folder.FullName + "\n" + error);
-							}
-						}
-					} catch (System.Exception ex) { Debug.LogWarning(folder.Name); Debug.LogException(ex); }
-				}
-			} catch (System.Exception ex) { Debug.LogException(ex); }
-
-			// All Maps
-			try {
-				AllMaps.Clear();
-				foreach (var file in Util.GetFilesIn(MapRoot, false, "*.png")) {
-					try {
-						var texture = new Texture2D(1, 1, TextureFormat.ARGB32, false) {
-							filterMode = FilterMode.Point,
-							anisoLevel = 0,
-							wrapMode = TextureWrapMode.Clamp,
-						};
-						texture.LoadImage(Util.FileToByte(file.FullName));
-						if (texture.width != texture.height) {
-							Debug.LogWarning($"Map texture \"{file.Name}\" have differect width and height.");
-							continue;
-						}
-						if (texture.width == 0 || texture.height == 0) continue;
-						var pixels = texture.GetPixels32();
-						var map = new Map() {
-							Size = texture.width,
-							Content = new int[pixels.Length],
-						};
-						for (int i = 0; i < pixels.Length; i++) {
-							map.Content[i] = pixels[i].r < 128 ? 1 : 0;
-						}
-						AllMaps.Add(map);
-					} catch (System.Exception ex) { Debug.LogException(ex); }
-				}
-			} catch (System.Exception ex) { Debug.LogException(ex); }
-
 		}
 
 
 		// Update
 		protected override void FrameUpdate () {
 			base.FrameUpdate();
-
-			// View
 			RefreshCameraView();
-
-			// Game
-			switch (State) {
-				case GameState.Title:
-					Update_Title();
-					break;
-				case GameState.Prepare:
-					Update_Prepare();
-					break;
-				case GameState.Playing:
-					Update_Playing();
-					break;
-			}
-		}
-
-
-		private void Update_Title () {
-
-
-
-		}
-
-
-		private void Update_Prepare () {
-
-
-
-		}
-
-
-		private void Update_Playing () {
-
-
-
 		}
 
 
@@ -204,11 +129,33 @@ namespace BattleSoup {
 		public void UI_OpenURL (string url) => Application.OpenURL(url);
 
 
+		public void UI_SwitchState (int state) => SwitchState((GameState)state);
+
+
+		public void UI_SwitchMode (int mode) => SwitchMode((GameMode)mode);
+
+
+		public void UI_RefreshSettingUI () {
+			m_Assets.SoundTG.SetIsOnWithoutNotify(s_UseSound.Value);
+			m_Assets.AutoPlayAvATG.SetIsOnWithoutNotify(s_AutoPlayForAvA.Value);
+		}
+
+
+		public void UI_OpenReloadDialog () {
+			ReloadShipPoolFromDisk();
+			ReloadMapPoolFromDisk();
+		}
+
+
 		#endregion
 
 
 
+
 		#region --- LGC ---
+
+
+
 
 
 		private void RefreshCameraView (bool immediately = false) {
@@ -270,6 +217,83 @@ namespace BattleSoup {
 			}
 
 			return field;
+		}
+
+
+		// Setting 
+		private void SwitchState (GameState state) {
+			State = state;
+			int count = m_Assets.PanelRoot.childCount;
+			for (int i = 0; i < count; i++) {
+				m_Assets.PanelRoot.GetChild(i).gameObject.SetActive(i == (int)state);
+			}
+			m_Assets.CornerSoup.gameObject.SetActive(state != GameState.Title);
+		}
+
+
+		private void SwitchMode (GameMode mode) => Mode = mode;
+
+
+		// Load Data
+		private void ReloadShipPoolFromDisk () {
+			try {
+				ShipPool.Clear();
+				foreach (var folder in Util.GetFoldersIn(ShipRoot, true)) {
+					try {
+						int globalID = 0;
+						// Info
+						string infoPath = Util.CombinePaths(folder.FullName, "Info.json");
+						if (Util.FileExists(infoPath)) {
+							var data = JsonUtility.FromJson<Ship>(Util.FileToText(infoPath));
+							if (data == null) continue;
+							globalID = data.GlobalCode;
+							ShipPool.TryAdd(data.GlobalCode, data);
+						} else continue;
+						// Ability
+						string abPath = Util.CombinePaths(folder.FullName, "Ability.txt");
+						if (Util.FileExists(abPath)) {
+							string code = Util.FileToText(abPath);
+							var exe = AbilityCompiler.Compile(code, out string error);
+							if (exe != null) {
+								AbilityPool.TryAdd(globalID, exe);
+							} else {
+								Debug.LogError(folder.FullName + "\n" + error);
+							}
+						}
+					} catch (System.Exception ex) { Debug.LogWarning(folder.Name); Debug.LogException(ex); }
+				}
+			} catch (System.Exception ex) { Debug.LogException(ex); }
+		}
+
+
+		private void ReloadMapPoolFromDisk () {
+			try {
+				AllMaps.Clear();
+				foreach (var file in Util.GetFilesIn(MapRoot, false, "*.png")) {
+					try {
+						var texture = new Texture2D(1, 1, TextureFormat.ARGB32, false) {
+							filterMode = FilterMode.Point,
+							anisoLevel = 0,
+							wrapMode = TextureWrapMode.Clamp,
+						};
+						texture.LoadImage(Util.FileToByte(file.FullName));
+						if (texture.width != texture.height) {
+							Debug.LogWarning($"Map texture \"{file.Name}\" have differect width and height.");
+							continue;
+						}
+						if (texture.width == 0 || texture.height == 0) continue;
+						var pixels = texture.GetPixels32();
+						var map = new Map() {
+							Size = texture.width,
+							Content = new int[pixels.Length],
+						};
+						for (int i = 0; i < pixels.Length; i++) {
+							map.Content[i] = pixels[i].r < 128 ? 1 : 0;
+						}
+						AllMaps.Add(map);
+					} catch (System.Exception ex) { Debug.LogException(ex); }
+				}
+			} catch (System.Exception ex) { Debug.LogException(ex); }
 		}
 
 

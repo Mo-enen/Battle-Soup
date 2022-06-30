@@ -173,9 +173,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 163
-        y: 344
+        y: 342
         width: 241
-        height: 167
+        height: 169
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -185,6 +185,237 @@ TextureImporter:
       bones: []
       spriteID: d4ac36e902239ef4bb8a5dd185411c7e
       internalID: -476286866
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Icon Girl
+      rect:
+        serializedVersion: 2
+        x: 405
+        y: 397
+        width: 103
+        height: 114
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a6d19b07419f8f0439fbdc06c7ed4ca5
+      internalID: 1566753909
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Icon Robot
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 300
+        width: 118
+        height: 113
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 65be75d6c274b684e81b3c8ccb2467d1
+      internalID: 270312904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VS
+      rect:
+        serializedVersion: 2
+        x: 120
+        y: 310
+        width: 56
+        height: 33
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3720a62eb18ad3345a5c4b056636f52b
+      internalID: -550570813
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 320
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 6, y: 6, z: 6, w: 6}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f7c87cbba4510ba4c81ff869835adff1
+      internalID: 126692845
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Poker
+      rect:
+        serializedVersion: 2
+        x: 424
+        y: 276
+        width: 86
+        height: 120
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bc7d321c149728b48924b1ac79d3015e
+      internalID: 1205203521
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Construction
+      rect:
+        serializedVersion: 2
+        x: 391
+        y: 155
+        width: 120
+        height: 120
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: da203da1f133b5e40b52264278b0d87c
+      internalID: -1436908655
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Panel
+      rect:
+        serializedVersion: 2
+        x: 193
+        y: 320
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 6, y: 6, z: 6, w: 6}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fe13accc8c74cf74d8115f68d245e0a2
+      internalID: -2113243177
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Setting
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 184
+        width: 115
+        height: 115
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ce5eec00ffbee6240981562c202f1cd5
+      internalID: -2050515895
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mark
+      rect:
+        serializedVersion: 2
+        x: 210
+        y: 325
+        width: 14
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 38fb92d69bf924e49aed056a38364b69
+      internalID: 1325594848
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Toggle
+      rect:
+        serializedVersion: 2
+        x: 225
+        y: 320
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 6, y: 6, z: 6, w: 6}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c521db40de1efe14fb9819de3d59c86b
+      internalID: -750467815
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Reload
+      rect:
+        serializedVersion: 2
+        x: 117
+        y: 183
+        width: 110
+        height: 126
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b19d7b139840a99448e5465e1cadcec0
+      internalID: 1544891859
       vertices: []
       indices: 
       edges: []
@@ -200,10 +431,25 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
+      Title Ship 1: -190956466
       Soup: -476286866
       Pumpkin: 1557231514
+      Setting: -2050515895
+      Construction: -1436908655
+      Poker: 1205203521
       Spoon: -1698021046
       Cucumber: -1186084701
+      Title Ship 3: 1629271374
+      Icon Girl: 1566753909
+      Mark: 1325594848
+      Panel: -2113243177
+      VS: -550570813
+      Button: 126692845
+      Icon Robot: 270312904
+      Reload: 1544891859
+      Title Ship 2: -1795022542
+      Toggle: -750467815
+      Title Ship 0: -1270888692
   spritePackingTag: 
   pSDRemoveMatte: 0
   userData: 
