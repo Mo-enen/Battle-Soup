@@ -127,7 +127,9 @@ namespace BattleSoup {
 		[System.NonSerialized] public int FieldY = 0;
 		[System.NonSerialized] public bool Flip = false;
 		[System.NonSerialized] public bool Visible = false;
+		[System.NonSerialized] public bool Valid = true;
 		[System.NonSerialized] public Vector2Int[] BodyNodes = null;
+		[System.NonSerialized] public Sprite Icon = null;
 
 
 		// MSG
@@ -153,9 +155,11 @@ namespace BattleSoup {
 		}
 
 
-		public Ship CreateDataCopy () => JsonUtility.FromJson<Ship>(
-			JsonUtility.ToJson(this, false)
-		);
+		public Ship CreateDataCopy () {
+			var newShip = JsonUtility.FromJson<Ship>(JsonUtility.ToJson(this, false));
+			newShip.Icon = Icon;
+			return newShip;
+		}
 
 
 		// LGC

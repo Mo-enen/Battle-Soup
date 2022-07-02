@@ -72,7 +72,7 @@ namespace BattleSoup {
 				for (int i = 0; i < CoraclePositions.Length; i++) {
 					if (!CoraclePositions[i].HasValue) {
 						CoraclePositions[i] = new Vector3Int(
-							Random.Range(cameraRect.xMin + WIDTH / 2, cameraRect.xMax - WIDTH / 2),
+							Random.Range(0, 1000),
 							CellRenderer.CameraRect.yMax + HEIGHT,
 							Random.Range(0, 360)
 						);
@@ -89,15 +89,22 @@ namespace BattleSoup {
 				var pos = CoraclePositions[i];
 				if (!pos.HasValue) continue;
 				var _pos = pos.Value;
-				var _pos01 = Mathf.InverseLerp(cameraRect.yMin, cameraRect.yMax, _pos.y);
-				var skyTint = Color32.Lerp(CellRenderer.SkyTintBottom, CellRenderer.SkyTintTop, _pos01);
+				float _pos01Y = Mathf.InverseLerp(cameraRect.yMin, cameraRect.yMax, _pos.y);
+				var skyTint = Color32.Lerp(CellRenderer.SkyTintBottom, CellRenderer.SkyTintTop, _pos01Y);
 
 				int scl = ((i * 199405) % 1000) + 1000;
 				int speedAdd = ((i * 040471) % 10) - 5;
 				CellRenderer.Draw(
-					CORACLE_CODE, _pos.x, _pos.y, 500, 500, _pos.z,
+					CORACLE_CODE,
+					(int)Mathf.LerpUnclamped(
+						cameraRect.xMin + WIDTH / 2,
+						cameraRect.xMax - WIDTH / 2,
+						_pos.x / 1000f
+					),
+					_pos.y,
+					500, 500, _pos.z,
 					WIDTH * scl / 1000, HEIGHT * scl / 1000,
-					Color32.Lerp(Const.WHITE, skyTint, 0.75f)
+					Color32.Lerp(Const.WHITE, skyTint, 0.85f)
 				);
 
 				_pos.y -= SPEED_Y + speedAdd;

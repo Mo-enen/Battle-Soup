@@ -19,7 +19,6 @@ namespace BattleSoup {
 
 		private struct RenderingCell {
 			public int WaterOffsetY;
-
 		}
 
 
@@ -42,12 +41,14 @@ namespace BattleSoup {
 
 		// Api
 		public Field Field { get; set; } = null;
+		public bool Enable { get; set; } = true;
 		public bool AllowHoveringOnShip { get; set; } = true;
 		public bool AllowHoveringOnWater { get; set; } = true;
 		public bool HideInvisibleShip { get; set; } = true;
+		public bool ShowShips { get; set; } = true;
+		public bool DragToMoveShips { get; set; } = false;
 
 		// Data
-		private BattleSoup Game = null;
 		private int HoveringShipIndex = -1;
 		private RenderingCell[,] RenderCells = null;
 
@@ -58,13 +59,6 @@ namespace BattleSoup {
 
 
 		#region --- MSG ---
-
-
-
-		public override void OnInitialize (Game game) {
-			base.OnInitialize(game);
-			Game = game as BattleSoup;
-		}
 
 
 		public override void OnActived () {
@@ -83,9 +77,8 @@ namespace BattleSoup {
 
 		public override void FrameUpdate () {
 			base.FrameUpdate();
-			if (Field == null || Game.State != BattleSoup.GameState.Playing) return;
-			if (RenderCells == null) RenderCells = new RenderingCell[Field.MapSize, Field.MapSize];
-			UpdateRenderCell();
+			if (Field == null || !Enable) return;
+			UpdateCache();
 			DrawWaters();
 			DrawGizmos();
 			DrawUnits();
@@ -93,11 +86,20 @@ namespace BattleSoup {
 		}
 
 
-		private void UpdateRenderCell () {
-			int count = Field.MapSize;
+		private void UpdateCache () {
+
+			int mapSize = Field.MapSize;
+
+			// Render Cells
+			if (
+				RenderCells == null ||
+				RenderCells.GetLength(0) != mapSize ||
+				RenderCells.GetLength(1) != mapSize
+			) RenderCells = new RenderingCell[Field.MapSize, Field.MapSize];
+
 			var (localMouseX, localMouseY) = Field.Global_to_Local(FrameInput.MouseGlobalPosition.x, FrameInput.MouseGlobalPosition.y, 1);
-			for (int i = 0; i < count; i++) {
-				for (int j = 0; j < count; j++) {
+			for (int i = 0; i < mapSize; i++) {
+				for (int j = 0; j < mapSize; j++) {
 					ref var cell = ref RenderCells[i, j];
 					// Water Offset Y
 					if (localMouseX == i && localMouseY == j) {
@@ -109,6 +111,7 @@ namespace BattleSoup {
 					}
 				}
 			}
+
 		}
 
 
@@ -121,7 +124,8 @@ namespace BattleSoup {
 				var (x, y) = Field.Local_to_Global(localPos.x, localPos.y);
 				var cell = Field[localPos.x, localPos.y];
 				var rCell = RenderCells[localPos.x, localPos.y];
-				int id = AllowHoveringOnWater && HoveringShipIndex < 0 && localPos == hoveringLocalPosition ?
+				bool hovering = AllowHoveringOnWater && HoveringShipIndex < 0 && localPos == hoveringLocalPosition;
+				int id = hovering ?
 					WATER_HIGHLIGHT_CODE :
 					cell.State switch {
 						CellState.Revealed => WATER_REVEALED_CODE,
@@ -129,7 +133,10 @@ namespace BattleSoup {
 						CellState.Sunk => WATER_SUNK_CODE,
 						_ => WATER_CODE,
 					};
-				CellRenderer.Draw(id, x, y + rCell.WaterOffsetY, SoupConst.ISO_SIZE, SoupConst.ISO_SIZE);
+				CellRenderer.Draw(
+					id, x, y + (hovering ? rCell.WaterOffsetY : 0),
+					SoupConst.ISO_SIZE, SoupConst.ISO_SIZE
+				);
 			}
 		}
 
@@ -159,14 +166,21 @@ namespace BattleSoup {
 			int hoveringShipIndex = -1;
 			int mouseX = FrameInput.MouseGlobalPosition.x;
 			int mouseY = FrameInput.MouseGlobalPosition.y;
+			var (localMouseX, localMouseY) = Field.Global_to_Local(
+				FrameInput.MouseGlobalPosition.x,
+				FrameInput.MouseGlobalPosition.y,
+				1
+			);
 
 			// Draw Units
-			for (int i = count - 1; i >= 0; i--) {
-				var localPos = Field.IsoArray[i];
+			for (int unitIndex = count - 1; unitIndex >= 0; unitIndex--) {
+
+				var localPos = Field.IsoArray[unitIndex];
 				var (x, y) = Field.Local_to_Global(localPos.x, localPos.y, 1);
 				var cell = Field[localPos.x, localPos.y];
+
 				// Stone
-				if (cell.HasStone && CellRenderer.TryGetSpriteFromGroup(STONE_CODE, i, out var spStone)) {
+				if (cell.HasStone && CellRenderer.TryGetSpriteFromGroup(STONE_CODE, unitIndex, out var spStone)) {
 					CellRenderer.Draw(
 						spStone.GlobalID,
 						new RectInt(
@@ -176,53 +190,52 @@ namespace BattleSoup {
 						).Shrink(24)
 					);
 				}
-				// Draw Ship
-				if (
-					cell.ShipIndex >= 0 &&
-					(!HideInvisibleShip || Field.Ships[cell.ShipIndex].Visible)
-				) {
-					var tint = cell.State switch {
-						CellState.Hit => new Color32(209, 165, 31, 255),
-						CellState.Sunk => new Color32(209, 165, 31, 128),
-						_ => new Color32(255, 255, 255, 255),
-					};
-					if (cell.State == CellState.Sunk) {
-						y -= SoupConst.ISO_HEIGHT * 3 / 2;
-					}
-					// Draw Ship
-					if (CellRenderer.TryGetSprite(cell.ShipRenderID, out var spShip)) {
-						bool flip = Field.Ships[cell.ShipIndex].Flip;
-						ref var rCell = ref CellRenderer.Draw(
-							cell.ShipRenderID,
-							flip ? x + SoupConst.ISO_SIZE : x,
-							y + GetWaveOffsetY(x, y),
-							flip ? -SoupConst.ISO_SIZE : SoupConst.ISO_SIZE,
-							SoupConst.ISO_SIZE * spShip.GlobalHeight / spShip.GlobalWidth,
-							tint
-						);
+
+				// Draw All Ships in Cell
+				if (ShowShips) {
+					for (int i = 0; i < cell.ShipIndexs.Count; i++) {
+						int rID = cell.ShipRenderIDs[i];
+						int rID_add = cell.ShipRenderIDs_Add[i];
+						int shipIndex = cell.ShipIndexs[i];
+						var ship = Field.Ships[shipIndex];
 						if (
-							AllowHoveringOnShip &&
-							mouseX > rCell.X &&
-							mouseX < rCell.X + rCell.Width &&
-							mouseY > rCell.Y &&
-							mouseY < rCell.Y + rCell.Height
+							shipIndex >= 0 &&
+							(!HideInvisibleShip || ship.Visible)
 						) {
-							hoveringShipIndex = cell.ShipIndex;
+							var tint = ship.Valid ? cell.State switch {
+								CellState.Hit => new Color32(209, 165, 31, 255),
+								CellState.Sunk => new Color32(209, 165, 31, 128),
+								_ => new Color32(255, 255, 255, 255),
+							} : new Color32(255, 16, 16, 255);
+							if (cell.State == CellState.Sunk) {
+								y -= SoupConst.ISO_HEIGHT * 3 / 2;
+							}
+							int shipID = HoveringShipIndex != shipIndex ? rID : rID_add;
+							if (CellRenderer.TryGetSprite(shipID, out var spShip)) {
+								bool flip = ship.Flip;
+								ref var rCell = ref CellRenderer.Draw(
+									shipID,
+									flip ? x + SoupConst.ISO_SIZE : x,
+									y + GetWaveOffsetY(x, y),
+									flip ? -SoupConst.ISO_SIZE : SoupConst.ISO_SIZE,
+									SoupConst.ISO_SIZE * spShip.GlobalHeight / spShip.GlobalWidth,
+									tint
+								);
+								bool localMouseChecked = localMouseX >= localPos.x && localMouseY >= localPos.y;
+								int xMin = rCell.Width > 0 ? rCell.X : rCell.X + rCell.Width;
+								int xMax = rCell.Width > 0 ? rCell.X + rCell.Width : rCell.X;
+								if (
+									AllowHoveringOnShip && localMouseChecked &&
+									cell.State != CellState.Sunk &&
+									mouseX > xMin &&
+									mouseX < xMax &&
+									mouseY > rCell.Y &&
+									mouseY < rCell.Y + rCell.Height
+								) {
+									hoveringShipIndex = shipIndex;
+								}
+							}
 						}
-					}
-					// Ship Highlight
-					if (
-						HoveringShipIndex == cell.ShipIndex &&
-						CellRenderer.TryGetSprite(cell.ShipRenderID_Add, out var spShipAdd)
-					) {
-						bool flip = Field.Ships[cell.ShipIndex].Flip;
-						CellRenderer.Draw(
-							cell.ShipRenderID_Add,
-							flip ? x + SoupConst.ISO_SIZE : x,
-							y + GetWaveOffsetY(x, y),
-							flip ? -SoupConst.ISO_SIZE : SoupConst.ISO_SIZE,
-							SoupConst.ISO_SIZE * spShipAdd.GlobalHeight / spShipAdd.GlobalWidth
-						);
 					}
 				}
 			}
@@ -241,6 +254,7 @@ namespace BattleSoup {
 
 
 		#region --- API ---
+
 
 
 
