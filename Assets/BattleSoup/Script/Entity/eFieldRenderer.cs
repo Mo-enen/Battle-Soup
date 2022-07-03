@@ -49,8 +49,10 @@ namespace BattleSoup {
 		public bool DragToMoveShips { get; set; } = false;
 
 		// Data
-		private int HoveringShipIndex = -1;
 		private RenderingCell[,] RenderCells = null;
+		private int HoveringShipIndex = -1;
+		private int DraggingShipIndex = -1;
+		private Vector2Int DraggingShipLocalOffset = default;
 
 
 		#endregion
@@ -72,6 +74,8 @@ namespace BattleSoup {
 		private void Reset () {
 			Field = null;
 			RenderCells = null;
+			DraggingShipIndex = -1;
+			HoveringShipIndex = -1;
 		}
 
 
@@ -79,6 +83,7 @@ namespace BattleSoup {
 			base.FrameUpdate();
 			if (Field == null || !Enable) return;
 			UpdateCache();
+			UpdateDragToMoveShips();
 			DrawWaters();
 			DrawGizmos();
 			DrawUnits();
@@ -115,6 +120,47 @@ namespace BattleSoup {
 		}
 
 
+		private void UpdateDragToMoveShips () {
+			if (!DragToMoveShips) return;
+			if (FrameInput.MouseLeft) {
+				// Mouse Left Holding
+				var (localX, localY) = Field.Global_to_Local(
+					FrameInput.MouseGlobalPosition.x, FrameInput.MouseGlobalPosition.y, 1
+				);
+				if (FrameInput.MouseLeftDown) {
+					// Mouse Left Down
+					DraggingShipIndex = HoveringShipIndex;
+					if (DraggingShipIndex >= 0) {
+						var ship = Field.Ships[DraggingShipIndex];
+						DraggingShipLocalOffset.x = localX - ship.FieldX;
+						DraggingShipLocalOffset.y = localY - ship.FieldY;
+					}
+				}
+				if (DraggingShipIndex >= 0) {
+					// Dragging Ship
+					var ship = Field.Ships[DraggingShipIndex];
+					int newX = localX - DraggingShipLocalOffset.x;
+					int newY = localY - DraggingShipLocalOffset.y;
+					if (newX != ship.FieldX || newY != ship.FieldY) {
+						ship.FieldX = newX;
+						ship.FieldY = newY;
+						Field.RefreshShipCache();
+					}
+
+				}
+			} else {
+				// Mosue Left Not Holding
+				if (DraggingShipIndex >= 0) {
+					DraggingShipIndex = -1;
+					Field.ClampInvalidShipsInside();
+					Field.RefreshShipCache();
+				}
+			}
+
+		}
+
+
+		// Draw
 		private void DrawWaters () {
 			var (localMouseX, localMouseY) = Field.Global_to_Local(FrameInput.MouseGlobalPosition.x, FrameInput.MouseGlobalPosition.y, 1);
 			var hoveringLocalPosition = new Vector2Int(localMouseX, localMouseY);

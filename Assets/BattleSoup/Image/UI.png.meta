@@ -408,7 +408,7 @@ TextureImporter:
         width: 110
         height: 126
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -416,6 +416,27 @@ TextureImporter:
       bones: []
       spriteID: b19d7b139840a99448e5465e1cadcec0
       internalID: 1544891859
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Plus
+      rect:
+        serializedVersion: 2
+        x: 242
+        y: 318
+        width: 19
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6ce17669d4ce89447b81fbc20b1770f5
+      internalID: -118985312
       vertices: []
       indices: 
       edges: []
@@ -431,6 +452,7 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
+      Plus: -118985312
       Title Ship 1: -190956466
       Soup: -476286866
       Pumpkin: 1557231514

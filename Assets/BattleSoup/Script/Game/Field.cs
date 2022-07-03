@@ -55,10 +55,10 @@ namespace BattleSoup {
 		public Ship[] Ships { get; init; } = null;
 		public int MapSize { get; init; } = 1;
 		public Vector2Int[] IsoArray { get; init; } = null;
+		public Vector2Int LocalShift { get; set; } = default;
 
 		// Data
 		private Cell[,] Cells { get; init; } = null;
-		private Vector2Int LocalShift { get; init; } = default;
 
 
 		#endregion
@@ -194,9 +194,9 @@ namespace BattleSoup {
 						ship.FieldX = (x + offsetX) % MapSize;
 						ship.FieldY = (y + offsetY) % MapSize;
 						ship.Flip = true;
-						if (PositionValidForShip(ship)) goto ShipDone;
+						if (IsPositionValidForShip(ship)) goto ShipDone;
 						ship.Flip = false;
-						if (PositionValidForShip(ship)) goto ShipDone;
+						if (IsPositionValidForShip(ship)) goto ShipDone;
 					}
 				}
 				// Ship Failed
@@ -212,10 +212,17 @@ namespace BattleSoup {
 					}
 				}
 			}
-			// Clamp Invalid Ships Inside
+			// Final
+			ClampInvalidShipsInside();
+			RefreshShipCache();
+			return true;
+		}
+
+
+		public void ClampInvalidShipsInside () {
 			for (int shipIndex = 0; shipIndex < Ships.Length; shipIndex++) {
 				var ship = Ships[shipIndex];
-				if (!PositionValidForShip(ship)) {
+				if (!IsPositionValidForShip(ship)) {
 					int bodyL = int.MaxValue;
 					int bodyR = 0;
 					int bodyD = int.MaxValue;
@@ -223,8 +230,8 @@ namespace BattleSoup {
 					for (int i = 0; i < ship.BodyNodes.Length; i++) {
 						var pos = ship.GetFieldNodePosition(i);
 						bodyL = Mathf.Min(bodyL, pos.x);
-						bodyR = Mathf.Max(bodyR, pos.y);
-						bodyD = Mathf.Min(bodyD, pos.x);
+						bodyR = Mathf.Max(bodyR, pos.x);
+						bodyD = Mathf.Min(bodyD, pos.y);
 						bodyU = Mathf.Max(bodyU, pos.y);
 					}
 					if (bodyL < 0) ship.FieldX += -bodyL;
@@ -233,20 +240,18 @@ namespace BattleSoup {
 					if (bodyU > MapSize - 1) ship.FieldY -= bodyU - MapSize + 1;
 				}
 			}
-			// All Done
-			RefreshShipCache();
-			return true;
-			// Func
-			bool PositionValidForShip (Ship ship) {
-				for (int i = 0; i < ship.BodyNodes.Length; i++) {
-					var pos = ship.GetFieldNodePosition(i);
-					if (!pos.InLength(MapSize)) return false;
-					var cell = Cells[pos.x, pos.y];
-					if (cell.HasStone) return false;
-					if (cell.ShipIndex >= 0) return false;
-				}
-				return true;
+		}
+
+
+		public bool IsPositionValidForShip (Ship ship) {
+			for (int i = 0; i < ship.BodyNodes.Length; i++) {
+				var pos = ship.GetFieldNodePosition(i);
+				if (!pos.InLength(MapSize)) return false;
+				var cell = Cells[pos.x, pos.y];
+				if (cell.HasStone) return false;
+				if (cell.ShipIndex >= 0) return false;
 			}
+			return true;
 		}
 
 

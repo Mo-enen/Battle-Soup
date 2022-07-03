@@ -29,7 +29,6 @@ namespace BattleSoup {
 		public enum GameMode {
 			PvA = 0,
 			AvA = 1,
-			Card = 2,
 		}
 
 
@@ -46,6 +45,7 @@ namespace BattleSoup {
 			public RectTransform PlacePanel = null;
 			public Sprite DefaultShipIcon = null;
 			public Button MapShipSelectorNextButton = null;
+			public Sprite PlusSprite = null;
 			[Header("Map")]
 			public RectTransform MapSelectorContentA = null;
 			public Text MapSelectorLabelA = null;
@@ -216,7 +216,7 @@ namespace BattleSoup {
 				RendererA.Field = CreateField(
 					MapIndexA,
 					new(-AllMaps[MapIndexB].Size - 1, AllMaps[MapIndexB].Size + 1),
-					s_PlayerFleet.Value
+					Mode == GameMode.PvA ? s_PlayerFleet.Value : GetBotFleetA()
 				);
 				RendererA.Field.RandomPlaceShips(12);
 			}
@@ -244,16 +244,9 @@ namespace BattleSoup {
 
 
 		private void Update_Playing () {
-			RendererA.Enable = true;
-			RendererB.Enable = true;
-			RendererA.ShowShips = true;
-			RendererB.ShowShips = true;
-			RendererA.HideInvisibleShip = false;
-			RendererB.HideInvisibleShip = true;
-			RendererA.AllowHoveringOnShip = true;
-			RendererB.AllowHoveringOnShip = false;
-			RendererA.AllowHoveringOnWater = true;
-			RendererB.AllowHoveringOnWater = true;
+
+
+
 
 		}
 
@@ -319,6 +312,9 @@ namespace BattleSoup {
 			s_PlayerFleet.Value = "";
 			ReloadFleetRendererUI();
 		}
+
+
+		public void UI_ResetPlayerShipPositions () => RendererA.Field?.RandomPlaceShips(12);
 
 
 		#endregion
@@ -424,9 +420,14 @@ namespace BattleSoup {
 				container.DestroyAllChirldrenImmediate();
 				var ships = fleetStr.Split(',');
 				var hori = container.GetComponent<HorizontalLayoutGroup>();
-				float itemWidth = (container.rect.width - hori.padding.horizontal) / ships.Length - hori.spacing;
-				foreach (var shipName in ships) {
+				float plusWidth = 24;
+				float itemWidth = (container.rect.width - hori.padding.horizontal) / ships.Length - hori.spacing - plusWidth;
+				itemWidth = itemWidth.Clamp(0, 64);
+				for (int i = 0; i < ships.Length; i++) {
+					int shipIndex = i;
+					string shipName = ships[shipIndex];
 					if (!ShipPool.TryGetValue(shipName.AngeHash(), out var ship) || ship.Icon == null) continue;
+					// Spawn Item
 					var grab = Instantiate(m_Assets.FleetRendererItem, container);
 					grab.gameObject.SetActive(true);
 					var rt = grab.transform as RectTransform;
@@ -441,11 +442,24 @@ namespace BattleSoup {
 					btn.interactable = fleet != null;
 					if (fleet != null) {
 						btn.onClick.AddListener(() => {
-							RemoveShipFromFleetString(fleet, rt.GetSiblingIndex());
+							RemoveShipFromFleetString(fleet, shipIndex);
 							ReloadFleetRendererUI();
 							RendererA.Field = null;
 							RendererB.Field = null;
 						});
+					}
+					// Spawn Plus
+					if (shipIndex < ships.Length - 1) {
+						var plusG = new GameObject("Plus", typeof(RectTransform), typeof(Image));
+						var pRt = plusG.transform as RectTransform;
+						pRt.SetParent(container);
+						pRt.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+						pRt.localScale = Vector3.one;
+						pRt.SetAsLastSibling();
+						pRt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, plusWidth);
+						var pImg = plusG.GetComponent<Image>();
+						pImg.sprite = m_Assets.PlusSprite;
+						pImg.preserveAspect = true;
 					}
 				}
 			}
@@ -469,10 +483,66 @@ namespace BattleSoup {
 				m_Assets.PanelRoot.GetChild(i).gameObject.SetActive(i == (int)state);
 			}
 			m_Assets.CornerSoup.gameObject.SetActive(state != GameState.Title);
-			if (state == GameState.Prepare) {
-				m_Assets.PreparePanel.gameObject.SetActive(true);
-				m_Assets.PlacePanel.gameObject.SetActive(false);
-				ReloadFleetRendererUI();
+
+			switch (state) {
+				case GameState.Title:
+					break;
+				case GameState.Prepare:
+					m_Assets.PreparePanel.gameObject.SetActive(true);
+					m_Assets.PlacePanel.gameObject.SetActive(false);
+					ReloadFleetRendererUI();
+					break;
+
+				case GameState.Playing:
+
+					MapIndexA = MapIndexA.Clamp(0, AllMaps.Count - 1);
+					MapIndexB = MapIndexB.Clamp(0, AllMaps.Count - 1);
+
+					// A
+					var shiftA = new Vector2Int(0, AllMaps[MapIndexB].Size + 2);
+					RendererA.Enable = true;
+					RendererA.ShowShips = true;
+					RendererA.HideInvisibleShip = false;
+					RendererA.AllowHoveringOnShip = true;
+					RendererA.AllowHoveringOnWater = true;
+					RendererA.DragToMoveShips = false;
+					if (Mode == GameMode.PvA) {
+						if (RendererA.Field == null) {
+							RendererA.Field = CreateField(MapIndexA, shiftA, s_PlayerFleet.Value);
+							RendererA.Field.RandomPlaceShips(12);
+						}
+					} else {
+						RendererA.Field = CreateField(MapIndexA, shiftA, GetBotFleetA());
+						RendererA.Field.RandomPlaceShips(12);
+					}
+					RendererA.Field.LocalShift = shiftA;
+
+					// B
+					RendererB.Enable = true;
+					RendererB.ShowShips = true;
+					RendererB.HideInvisibleShip = true;
+					RendererB.AllowHoveringOnShip = false;
+					RendererB.AllowHoveringOnWater = true;
+					RendererB.DragToMoveShips = false;
+					RendererB.Field = CreateField(
+						MapIndexB,
+						Vector2Int.zero,
+						GetBotFleetB()
+					);
+					bool success = RendererB.Field.RandomPlaceShips(12);
+					if (!success) {
+						Debug.LogWarning("Robot B Failed to Place Ships");
+						SwitchState(GameState.Title);
+					}
+
+					break;
+
+				case GameState.CardGame:
+					break;
+
+				case GameState.ShipEditor:
+					break;
+
 			}
 		}
 
@@ -495,8 +565,6 @@ namespace BattleSoup {
 					m_Assets.FleetSelectorPlayer.gameObject.SetActive(false);
 					m_Assets.FleetSelectorRobotA.gameObject.SetActive(true);
 					ReloadFleetRendererUI();
-					break;
-				case GameMode.Card:
 					break;
 			}
 		}
@@ -564,7 +632,11 @@ namespace BattleSoup {
 				label.text = ship.DisplayName;
 				var btn = grab.Grab<Button>();
 				btn.onClick.AddListener(() => {
-					s_PlayerFleet.Value += $"{ship.GlobalName},";
+					if (string.IsNullOrEmpty(s_PlayerFleet.Value) || s_PlayerFleet.Value.EndsWith(',')) {
+						s_PlayerFleet.Value += $"{ship.GlobalName}";
+					} else {
+						s_PlayerFleet.Value += $",{ship.GlobalName}";
+					}
 					ReloadFleetRendererUI();
 					RendererA.Field = null;
 				});
@@ -614,6 +686,7 @@ namespace BattleSoup {
 			// Func
 			void ReloadMapUI (Grabber itemSource, RectTransform content, int selectingIndex) {
 				content.DestroyAllChirldrenImmediate();
+				var group = content.GetComponent<ToggleGroup>();
 				foreach (var map in AllMaps) {
 					var item = Instantiate(itemSource, content);
 					item.gameObject.SetActive(true);
@@ -623,6 +696,7 @@ namespace BattleSoup {
 					var label = item.Grab<Text>();
 					mapRenderer.Map = map;
 					tg.SetIsOnWithoutNotify(item.transform.GetSiblingIndex() == selectingIndex);
+					tg.group = group;
 					label.text = $"{map.Size}¡Á{map.Size}";
 				}
 			}
