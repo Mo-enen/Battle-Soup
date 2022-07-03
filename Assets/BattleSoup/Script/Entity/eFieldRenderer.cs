@@ -40,7 +40,7 @@ namespace BattleSoup {
 		private static readonly int[] SONAR_CODES = new int[] { "Sonar Unknown".AngeHash(), "Sonar 1".AngeHash(), "Sonar 2".AngeHash(), "Sonar 3".AngeHash(), "Sonar 4".AngeHash(), "Sonar 5".AngeHash(), "Sonar 6".AngeHash(), "Sonar 7".AngeHash(), "Sonar 8".AngeHash(), "Sonar 9".AngeHash(), "Sonar 9Plus".AngeHash(), };
 
 		// Api
-		public Field Field { get; set; } = null;
+		public Field Field { get; } = new();
 		public bool Enable { get; set; } = true;
 		public bool AllowHoveringOnShip { get; set; } = true;
 		public bool AllowHoveringOnWater { get; set; } = true;
@@ -65,14 +65,6 @@ namespace BattleSoup {
 
 		public override void OnActived () {
 			base.OnActived();
-			Reset();
-		}
-		public override void OnInactived () {
-			base.OnInactived();
-			Reset();
-		}
-		private void Reset () {
-			Field = null;
 			RenderCells = null;
 			DraggingShipIndex = -1;
 			HoveringShipIndex = -1;
@@ -138,25 +130,19 @@ namespace BattleSoup {
 				}
 				if (DraggingShipIndex >= 0) {
 					// Dragging Ship
-					var ship = Field.Ships[DraggingShipIndex];
-					int newX = localX - DraggingShipLocalOffset.x;
-					int newY = localY - DraggingShipLocalOffset.y;
-					if (newX != ship.FieldX || newY != ship.FieldY) {
-						ship.FieldX = newX;
-						ship.FieldY = newY;
-						Field.RefreshShipCache();
-					}
-
+					Field.MoveShip(
+						DraggingShipIndex,
+						localX - DraggingShipLocalOffset.x,
+						localY - DraggingShipLocalOffset.y
+					);
 				}
 			} else {
 				// Mosue Left Not Holding
 				if (DraggingShipIndex >= 0) {
 					DraggingShipIndex = -1;
 					Field.ClampInvalidShipsInside();
-					Field.RefreshShipCache();
 				}
 			}
-
 		}
 
 
@@ -241,7 +227,7 @@ namespace BattleSoup {
 				if (ShowShips) {
 					for (int i = 0; i < cell.ShipIndexs.Count; i++) {
 						int rID = cell.ShipRenderIDs[i];
-						int rID_add = cell.ShipRenderIDs_Add[i];
+						int rID_add = cell.ShipRenderIDsAdd[i];
 						int shipIndex = cell.ShipIndexs[i];
 						var ship = Field.Ships[shipIndex];
 						if (
