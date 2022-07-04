@@ -429,7 +429,7 @@ TextureImporter:
         width: 19
         height: 18
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -437,6 +437,48 @@ TextureImporter:
       bones: []
       spriteID: 6ce17669d4ce89447b81fbc20b1770f5
       internalID: -118985312
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mouse Left
+      rect:
+        serializedVersion: 2
+        x: 262
+        y: 260
+        width: 48
+        height: 76
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6986914d82c485442af24ec3bbdcf595
+      internalID: 1570630487
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mouse Right
+      rect:
+        serializedVersion: 2
+        x: 311
+        y: 260
+        width: 48
+        height: 76
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 063b20d2587d4ad47a670ea2aa53d60a
+      internalID: 1978710756
       vertices: []
       indices: 
       edges: []
@@ -455,6 +497,7 @@ TextureImporter:
       Plus: -118985312
       Title Ship 1: -190956466
       Soup: -476286866
+      Mouse Left: 1570630487
       Pumpkin: 1557231514
       Setting: -2050515895
       Construction: -1436908655
@@ -463,6 +506,7 @@ TextureImporter:
       Cucumber: -1186084701
       Title Ship 3: 1629271374
       Icon Girl: 1566753909
+      Mouse Right: 1978710756
       Mark: 1325594848
       Panel: -2113243177
       VS: -550570813

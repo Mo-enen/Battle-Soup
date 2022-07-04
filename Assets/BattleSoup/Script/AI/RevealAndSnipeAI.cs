@@ -14,7 +14,7 @@ namespace BattleSoup {
 
 
 		public override bool Perform (
-			in Field ownField, int usingAbilityIndex,
+			in eField ownField, int usingAbilityIndex,
 			out Vector2Int attackPosition, out int abilityIndex, out Direction4 abilityDirection
 		) {
 			attackPosition = default;

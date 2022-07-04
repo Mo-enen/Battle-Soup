@@ -29,7 +29,8 @@ namespace BattleSoup {
 				var unit = Units[i];
 				switch (unit) {
 					case ActionUnit aUnit:
-						PerformAction(aUnit);
+						PerformAction(aUnit, out bool _continue);
+						if (!_continue) goto EndPerform;
 						break;
 					case EntranceUnit:
 						// End Perform when Hit Another Entrance
@@ -42,8 +43,8 @@ namespace BattleSoup {
 
 
 		// LGC
-		private void PerformAction (ActionUnit unit) {
-
+		private void PerformAction (ActionUnit unit, out bool _continue) {
+			_continue = true;
 
 
 		}

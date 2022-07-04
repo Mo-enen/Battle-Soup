@@ -5,46 +5,18 @@ using AngeliaFramework;
 
 
 namespace BattleSoup {
-
-
-
-	public enum CellState {
-		Normal = 0,
-		Revealed = 1,
-		Hit = 2,
-		Sunk = 3,
-	}
-
-
-
-	public class Cell {
-
-		public int ShipIndex => ShipIndexs.Count > 0 ? ShipIndexs[0] : -1;
-
-		public CellState State = CellState.Normal;
-		public bool HasStone = false;
-		public int Sonar = 0;
-		public readonly List<int> ShipIndexs = new(16);
-		public readonly List<int> ShipRenderIDs = new(16);
-		public readonly List<int> ShipRenderIDsAdd = new(16);
-
-		public void AddShip (int shipIndex, Ship ship, int bodyX, int bodyY) {
-			ShipIndexs.Add(shipIndex);
-			ShipRenderIDs.Add($"{ship.GlobalName} {bodyX}.{bodyY}".AngeHash());
-			ShipRenderIDsAdd.Add($"{ship.GlobalName}_Add {bodyX}.{bodyY}".AngeHash());
-		}
-
-	}
-
-
-
-
-	public class Field {
+	// === Main ===
+	[EntityCapacity(2)]
+	[ExcludeInMapEditor]
+	[ForceUpdate]
+	[DontDepawnWhenOutOfRange]
+	public partial class eField : Entity {
 
 
 
 
 		#region --- VAR ---
+
 
 
 		// Const
@@ -57,6 +29,12 @@ namespace BattleSoup {
 		public int MapSize { get; private set; } = 1;
 		public Vector2Int[] IsoArray { get; private set; } = new Vector2Int[0];
 		public Vector2Int LocalShift { get; set; } = default;
+		public bool Enable { get; set; } = false;
+		public bool AllowHoveringOnShip { get; set; } = true;
+		public bool AllowHoveringOnWater { get; set; } = true;
+		public bool HideInvisibleShip { get; set; } = true;
+		public bool ShowShips { get; set; } = true;
+		public bool DragToMoveShips { get; set; } = false;
 
 		// Data
 		private Cell[,] Cells = null;
@@ -67,7 +45,74 @@ namespace BattleSoup {
 
 
 
+		#region --- MSG ---
+
+
+		public override void OnActived () {
+			base.OnActived();
+			RenderCells = null;
+			DraggingShipIndex = -1;
+			HoveringShipIndex = -1;
+		}
+
+
+		public override void FrameUpdate () {
+			base.FrameUpdate();
+			if (!Enable) return;
+			UpdateRenderCells();
+			Update_DragToMoveShips();
+			DrawWaters();
+			DrawGizmos();
+			DrawUnits();
+		}
+
+
+		private void Update_DragToMoveShips () {
+			if (!DragToMoveShips) return;
+			if (FrameInput.MouseLeft) {
+				// Mouse Left Holding
+				var (localX, localY) = Global_to_Local(
+					FrameInput.MouseGlobalPosition.x, FrameInput.MouseGlobalPosition.y, 1
+				);
+				if (FrameInput.MouseLeftDown) {
+					// Mouse Left Down
+					DraggingShipIndex = HoveringShipIndex;
+					if (DraggingShipIndex >= 0) {
+						var ship = Ships[DraggingShipIndex];
+						DraggingShipLocalOffset.x = localX - ship.FieldX;
+						DraggingShipLocalOffset.y = localY - ship.FieldY;
+					}
+				}
+				if (DraggingShipIndex >= 0) {
+					// Dragging Ship
+					MoveShip(
+						DraggingShipIndex,
+						localX - DraggingShipLocalOffset.x,
+						localY - DraggingShipLocalOffset.y
+					);
+				}
+			} else {
+				// Mosue Left Not Holding
+				if (DraggingShipIndex >= 0) {
+					DraggingShipIndex = -1;
+					ClampInvalidShipsInside(true);
+				}
+			}
+			// Mouse Right to Flip
+			if (FrameInput.MouseRightDown && HoveringShipIndex >= 0) {
+				FlipShip(HoveringShipIndex);
+				ClampInvalidShipsInside(true);
+			}
+		}
+
+
+		#endregion
+
+
+
+
 		#region --- API ---
+
 
 
 		public bool IsValidForPlay (out string message) {
@@ -148,10 +193,10 @@ namespace BattleSoup {
 		}
 
 
-		public void ClampInvalidShipsInside () {
+		public void ClampInvalidShipsInside (bool onlyClampCompleteOutsideShips = false) {
 			for (int shipIndex = 0; shipIndex < Ships.Length; shipIndex++) {
 				var ship = Ships[shipIndex];
-				if (!IsPositionValidForShip(ship)) {
+				if (!onlyClampCompleteOutsideShips || ShipIsCompleteOutside(ship)) {
 					int bodyL = int.MaxValue;
 					int bodyR = 0;
 					int bodyD = int.MaxValue;
@@ -188,11 +233,22 @@ namespace BattleSoup {
 		public void MoveShip (int shipIndex, int newFieldX, int newFieldY) {
 			if (shipIndex < 0 || shipIndex >= Ships.Length) return;
 			var ship = Ships[shipIndex];
-			if (newFieldX != ship.FieldX || newFieldY != ship.FieldY) {
+			if (
+				newFieldX != ship.FieldX ||
+				newFieldY != ship.FieldY
+			) {
 				ship.FieldX = newFieldX;
 				ship.FieldY = newFieldY;
 				RefreshShipCache();
 			}
+		}
+
+
+		public void FlipShip (int shipIndex) {
+			if (shipIndex < 0 || shipIndex >= Ships.Length) return;
+			var ship = Ships[shipIndex];
+			ship.Flip = !ship.Flip;
+			RefreshShipCache();
 		}
 
 
@@ -202,6 +258,9 @@ namespace BattleSoup {
 
 
 		#region --- LGC ---
+
+
+		private int GetWaveOffsetY (int x, int y) => (AngeliaFramework.Game.GlobalFrame + x + y).PingPong(60) / 5 - 6;
 
 
 		private Vector2Int[] GetIsoDistanceArray (int size) {
@@ -314,6 +373,15 @@ namespace BattleSoup {
 					}
 				}
 			}
+		}
+
+
+		private bool ShipIsCompleteOutside (Ship ship) {
+			for (int i = 0; i < ship.BodyNodes.Length; i++) {
+				var pos = ship.GetFieldNodePosition(i);
+				if (pos.x >= 0 && pos.x < MapSize && pos.y >= 0 && pos.y < MapSize) return false;
+			}
+			return true;
 		}
 
 

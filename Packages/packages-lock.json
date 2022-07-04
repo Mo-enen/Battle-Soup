@@ -1,11 +1,5 @@
 {
   "dependencies": {
-    "com.chriscowherd.dropdownex": {
-      "version": "file:DropdownEx",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
-    },
     "com.moenengames.angeliaframework": {
       "version": "file:C:/Data/Unity/Packages/AngeliA Framework",
       "depth": 0,

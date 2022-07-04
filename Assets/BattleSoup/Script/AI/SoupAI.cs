@@ -18,7 +18,7 @@ namespace BattleSoup {
 
 
 		public abstract bool Perform (
-			in Field ownField, int usingAbilityIndex,
+			in eField ownField, int usingAbilityIndex,
 			out Vector2Int attackPosition, out int abilityIndex, out Direction4 abilityDirection
 		);
 
@@ -43,7 +43,7 @@ namespace BattleSoup {
 		}
 
 
-		public void SyncTargetCells (in Field source) {
+		public void SyncTargetCells (in eField source) {
 			int size = source.MapSize;
 			if (TargetCells.GetLength(0) != size || TargetCells.GetLength(1) != size) {
 				TargetCells = new Cell[size, size];

@@ -203,4 +203,33 @@ namespace BattleSoup {
 
 
 
+	public enum CellState {
+		Normal = 0,
+		Revealed = 1,
+		Hit = 2,
+		Sunk = 3,
+	}
+
+
+
+	public class Cell {
+
+		public int ShipIndex => ShipIndexs.Count > 0 ? ShipIndexs[0] : -1;
+
+		public CellState State = CellState.Normal;
+		public bool HasStone = false;
+		public int Sonar = 0;
+		public readonly List<int> ShipIndexs = new(16);
+		public readonly List<int> ShipRenderIDs = new(16);
+		public readonly List<int> ShipRenderIDsAdd = new(16);
+
+		public void AddShip (int shipIndex, Ship ship, int bodyX, int bodyY) {
+			ShipIndexs.Add(shipIndex);
+			ShipRenderIDs.Add($"{ship.GlobalName} {bodyX}.{bodyY}".AngeHash());
+			ShipRenderIDsAdd.Add($"{ship.GlobalName}_Add {bodyX}.{bodyY}".AngeHash());
+		}
+
+	}
+
+
 }

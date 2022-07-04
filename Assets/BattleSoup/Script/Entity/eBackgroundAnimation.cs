@@ -9,7 +9,7 @@ namespace BattleSoup {
 	[ForceUpdate]
 	[ExcludeInMapEditor]
 	[DontDepawnWhenOutOfRange]
-	public class eRainningCoracleAnimation : Entity {
+	public class eBackgroundAnimation : Entity {
 
 
 
