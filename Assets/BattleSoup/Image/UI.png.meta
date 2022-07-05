@@ -341,9 +341,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 1
-        y: 184
-        width: 115
-        height: 115
+        y: 181
+        width: 116
+        height: 117
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -403,10 +403,10 @@ TextureImporter:
       name: Reload
       rect:
         serializedVersion: 2
-        x: 117
-        y: 183
-        width: 110
-        height: 126
+        x: 118
+        y: 180
+        width: 112
+        height: 128
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -450,7 +450,7 @@ TextureImporter:
         width: 48
         height: 76
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -471,7 +471,7 @@ TextureImporter:
         width: 48
         height: 76
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -479,6 +479,111 @@ TextureImporter:
       bones: []
       spriteID: 063b20d2587d4ad47a670ea2aa53d60a
       internalID: 1978710756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cheat
+      rect:
+        serializedVersion: 2
+        x: 231
+        y: 144
+        width: 115
+        height: 115
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c24bdc8cc2740e84e837207e354efad7
+      internalID: -254108267
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Win
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 60
+        width: 120
+        height: 120
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6767c7295c5e2ee49af18f12867fd6ed
+      internalID: 1757180342
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CheatWin
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 31
+        width: 120
+        height: 112
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 572f6e830af2ca34cafa50dbb64110ce
+      internalID: 1893319958
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Lose
+      rect:
+        serializedVersion: 2
+        x: 243
+        y: 23
+        width: 120
+        height: 120
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 135861ab9fc023b43a0e6e4290a1d8a7
+      internalID: -1458830814
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CheatLose
+      rect:
+        serializedVersion: 2
+        x: 364
+        y: 60
+        width: 107
+        height: 94
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7abbe64faef00e14987d85b50abb7177
+      internalID: 1920047204
       vertices: []
       indices: 
       edges: []
@@ -496,13 +601,18 @@ TextureImporter:
     nameFileIdTable:
       Plus: -118985312
       Title Ship 1: -190956466
+      Cheat: -254108267
       Soup: -476286866
       Mouse Left: 1570630487
       Pumpkin: 1557231514
       Setting: -2050515895
       Construction: -1436908655
       Poker: 1205203521
+      CheatLose: 1920047204
       Spoon: -1698021046
+      CheatWin: 1893319958
+      Win: 1757180342
+      Lose: -1458830814
       Cucumber: -1186084701
       Title Ship 3: 1629271374
       Icon Girl: 1566753909

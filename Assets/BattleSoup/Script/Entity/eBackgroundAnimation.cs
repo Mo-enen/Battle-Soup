@@ -68,7 +68,7 @@ namespace BattleSoup {
 			var cameraRect = CellRenderer.CameraRect;
 
 			// Spawn
-			if (Game.State != BattleSoup.GameState.Playing && frame % FREQ == 0) {
+			if (frame % FREQ == 0) {
 				for (int i = 0; i < CoraclePositions.Length; i++) {
 					if (!CoraclePositions[i].HasValue) {
 						CoraclePositions[i] = new Vector3Int(
@@ -122,26 +122,6 @@ namespace BattleSoup {
 
 
 		}
-
-
-		#endregion
-
-
-
-
-		#region --- API ---
-
-
-
-
-		#endregion
-
-
-
-
-		#region --- LGC ---
-
-
 
 
 		#endregion

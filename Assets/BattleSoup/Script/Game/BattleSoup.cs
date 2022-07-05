@@ -43,10 +43,15 @@ namespace BattleSoup {
 			public Button MapShipSelectorNextButton = null;
 			[Header("Dialog")]
 			public RectTransform DialogRoot = null;
+			public RectTransform QuitBattleDialog = null;
 			public RectTransform NoShipAlert = null;
 			public RectTransform NoMapAlert = null;
 			public RectTransform FailPlacingShipsDialog = null;
 			public RectTransform RobotFailedToPlaceShipsDialog = null;
+			public RectTransform Dialog_Win = null;
+			public RectTransform Dialog_WinCheat = null;
+			public RectTransform Dialog_Lose = null;
+			public RectTransform Dialog_LoseCheat = null;
 			[Header("Map")]
 			public RectTransform MapSelectorContentA = null;
 			public Text MapSelectorLabelA = null;
@@ -69,7 +74,9 @@ namespace BattleSoup {
 			public Toggle SoundTG = null;
 			public Toggle AutoPlayAvATG = null;
 			public Toggle CornerSoupTG = null;
-			public Toggle NoAnimationTG = null;
+			public Toggle UseAnimationTG = null;
+			[Header("Playing")]
+			public Toggle CheatTG = null;
 			[Header("Asset")]
 			public Sprite DefaultShipIcon = null;
 			public Sprite PlusSprite = null;
@@ -93,11 +100,13 @@ namespace BattleSoup {
 		public string MapRoot => Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Maps");
 		public eField FieldA { get; private set; } = null;
 		public eField FieldB { get; private set; } = null;
+		public bool Cheating { get; set; } = false;
+		public bool Cheated { get; private set; } = false;
 
 		// Setting
 		public bool UseSound { get => s_UseSound.Value; set => s_UseSound.Value = value; }
 		public bool AutoPlayForAvA { get => s_AutoPlayForAvA.Value; set => s_AutoPlayForAvA.Value = value; }
-		public bool NoAnimation { get => s_NoAnimation.Value; set => s_NoAnimation.Value = value; }
+		public bool UseAnimation { get => s_UseAnimation.Value; set => s_UseAnimation.Value = value; }
 		public bool ShowCornerSoup { get => s_ShowCornerSoup.Value; set => s_ShowCornerSoup.Value = value; }
 
 		// Ser
@@ -109,12 +118,13 @@ namespace BattleSoup {
 		private readonly Dictionary<int, Ability> AbilityPool = new();
 		private readonly List<SoupAI> AllAi = new();
 		private readonly List<Map> AllMaps = new();
+		private bool GameOver = false;
 
 		// Saving
 		private readonly SavingBool s_UseSound = new("BattleSoup.UseSound", true);
 		private readonly SavingBool s_AutoPlayForAvA = new("BattleSoup.AutoPlayForAvA", false);
 		private readonly SavingBool s_ShowCornerSoup = new("BattleSoup.ShowCornerSoup", true);
-		private readonly SavingBool s_NoAnimation = new("BattleSoup.NoAnimation", false);
+		private readonly SavingBool s_UseAnimation = new("BattleSoup.UseAnimation", true);
 		private readonly SavingString s_PlayerFleet = new("BattleSoup.PlayerFleet", "Sailboat,SeaMonster,Longboat,MiniSub");
 		private readonly SavingInt s_SelectingAiA = new("BattleSoup.SelectingAiA", 0);
 		private readonly SavingInt s_SelectingAiB = new("BattleSoup.SelectingAiB", 0);
@@ -269,23 +279,37 @@ namespace BattleSoup {
 				}
 			}
 			bool PvA = Mode == GameMode.PvA;
-			FieldA.AllowHoveringOnShip = inter && PvA;
-			FieldA.AllowHoveringOnWater = inter && PvA;
+			bool waitingForPick = CellStep.IsStepping<sWaitForPick>();
+			FieldA.AllowHoveringOnShip = inter && PvA && waitingForPick;
+			FieldA.AllowHoveringOnWater = inter && PvA && waitingForPick;
 			FieldB.AllowHoveringOnShip = false;
-			FieldB.AllowHoveringOnWater = inter && PvA;
+			FieldB.AllowHoveringOnWater = inter && PvA && waitingForPick;
 
+			FieldA.HideInvisibleShip = false;
+			FieldB.HideInvisibleShip = PvA && !Cheating;
 
-
-			///////////// TEST //////////////
-			if (GlobalFrame % 60 == 0) {
-				CellStep.AddStep(new sCannonAttack(
-					Random.Range(0, FieldB.MapSize),
-					Random.Range(0, FieldB.MapSize),
-					FieldB
-				));
+			// Cheat
+			if (Cheating) Cheated = true;
+			if (m_Assets.CheatTG.isOn != Cheating) m_Assets.CheatTG.SetIsOnWithoutNotify(Cheating);
+			if (m_Assets.CheatTG.gameObject.activeSelf != !GameOver) {
+				m_Assets.CheatTG.gameObject.SetActive(!GameOver);
 			}
-			///////////// TEST //////////////
 
+			// Gameover Check
+			if (!GameOver) {
+				bool aSunk = FieldA.AllShipsSunk();
+				bool bSunk = FieldB.AllShipsSunk();
+				if (aSunk || bSunk) {
+					CellStep.Clear();
+					GameOver = true;
+					if (PvA) {
+						(aSunk ?
+							Cheated ? m_Assets.Dialog_LoseCheat : m_Assets.Dialog_Lose :
+							Cheated ? m_Assets.Dialog_WinCheat : m_Assets.Dialog_Win
+						).gameObject.SetActive(true);
+					}
+				}
+			}
 
 		}
 
@@ -319,7 +343,7 @@ namespace BattleSoup {
 			m_Assets.SoundTG.SetIsOnWithoutNotify(s_UseSound.Value);
 			m_Assets.AutoPlayAvATG.SetIsOnWithoutNotify(s_AutoPlayForAvA.Value);
 			m_Assets.CornerSoupTG.SetIsOnWithoutNotify(s_ShowCornerSoup.Value);
-			m_Assets.NoAnimationTG.SetIsOnWithoutNotify(s_NoAnimation.Value);
+			m_Assets.UseAnimationTG.SetIsOnWithoutNotify(s_UseAnimation.Value);
 		}
 
 
@@ -369,6 +393,16 @@ namespace BattleSoup {
 		}
 
 
+		public void UI_TryQuitBattle () {
+			if (State != GameState.Playing) return;
+			if (GameOver) {
+				SwitchState(GameState.Prepare);
+			} else {
+				m_Assets.QuitBattleDialog.gameObject.SetActive(true);
+			}
+		}
+
+
 		#endregion
 
 
@@ -394,6 +428,10 @@ namespace BattleSoup {
 			}
 
 			m_Assets.CornerSoup.gameObject.SetActive(s_ShowCornerSoup.Value && state != GameState.Title);
+			CellStep.Clear();
+			Cheating = false;
+			Cheated = false;
+			GameOver = false;
 
 			switch (state) {
 				case GameState.Title:
@@ -427,7 +465,6 @@ namespace BattleSoup {
 					var shiftA = new Vector2Int(0, AllMaps[MapIndexB.Value].Size + 2);
 					FieldA.Enable = true;
 					FieldA.ShowShips = true;
-					FieldA.HideInvisibleShip = false;
 					FieldA.DragToMoveShips = false;
 
 					if (!PvA) {
@@ -442,13 +479,31 @@ namespace BattleSoup {
 					// B
 					FieldB.Enable = true;
 					FieldB.ShowShips = true;
-					FieldB.HideInvisibleShip = PvA;
 					FieldB.DragToMoveShips = false;
 					bool success = FieldB.RandomPlaceShips(256);
 					if (!success) {
 						m_Assets.RobotFailedToPlaceShipsDialog.gameObject.SetActive(true);
 						SwitchState(GameState.Prepare);
 					}
+
+					FieldA.Restart();
+					FieldB.Restart();
+					OnFleetChanged();
+
+					///////////// TEST //////////////
+					CellStep.AddStep(new sSonar(0, FieldB.MapSize - 1, FieldB, false));
+					CellStep.AddStep(new sSonar(FieldB.MapSize - 1, 0, FieldB, false));
+					CellStep.AddStep(new sSonar(0, 0, FieldB, false));
+					CellStep.AddStep(new sSonar(FieldB.MapSize - 1, FieldB.MapSize - 1, FieldB, false));
+					for (int i = 0; i < FieldB.MapSize; i++) {
+						for (int j = 0; j < FieldB.MapSize; j++) {
+							var cell = FieldB[i, j];
+							if (cell.State == CellState.Normal) {
+								CellStep.AddStep(new sAttack(i, j, FieldB, true));
+							}
+						}
+					}
+					///////////// TEST //////////////
 
 					break;
 

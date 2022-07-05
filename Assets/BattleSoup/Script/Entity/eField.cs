@@ -114,7 +114,7 @@ namespace BattleSoup {
 		#region --- API ---
 
 
-
+		// Game
 		public bool IsValidForPlay (out string message) {
 			message = "";
 			if (MapSize <= 0) {
@@ -132,6 +132,95 @@ namespace BattleSoup {
 				}
 			}
 			return true;
+		}
+
+
+		public void Restart () {
+			// Cells
+			for (int i = 0; i < MapSize; i++) {
+				for (int j = 0; j < MapSize; j++) {
+					var cell = Cells[i, j];
+					cell.State = CellState.Normal;
+					cell.Sonar = 0;
+				}
+			}
+		}
+
+
+		public bool AllShipsSunk () {
+			foreach (var ship in Ships) {
+				if (ship.Alive) return false;
+			}
+			return true;
+		}
+
+
+		// Action
+		public ActionResult Attack (int x, int y) {
+			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) return ActionResult.None;
+			var cell = Cells[x, y];
+			if (cell.ShipIndex < 0) {
+				// No Ship
+				cell.State = CellState.Revealed;
+				return ActionResult.RevealWater;
+			} else {
+				// Hit Ship
+				cell.State = CellState.Hit;
+				RefreshAllShipsAliveState();
+				return Ships[cell.ShipIndex].Alive ? ActionResult.HitShip : ActionResult.SunkShip;
+			}
+		}
+
+
+		public ActionResult Reveal (int x, int y) {
+			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) return ActionResult.None;
+			var cell = Cells[x, y];
+			if (cell.ShipIndex < 0) {
+				// No Ship
+				cell.State = CellState.Revealed;
+				return ActionResult.RevealWater;
+			} else {
+				// Reveal Ship
+				cell.State = CellState.Revealed;
+				return ActionResult.RevealShip;
+			}
+		}
+
+
+		public ActionResult Sonar (int x, int y) {
+			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) return ActionResult.None;
+			var cell = Cells[x, y];
+			if (cell.ShipIndex < 0) {
+				// No Ship
+				cell.State = CellState.Revealed;
+				// Get Min Distance
+				int minDis = int.MaxValue;
+				for (int j = 0; j < MapSize; j++) {
+					for (int i = 0; i < MapSize; i++) {
+						var _cell = Cells[i, j];
+						if (_cell.ShipIndex >= 0) {
+							minDis = Mathf.Min(Mathf.Abs(i - x) + Mathf.Abs(j - y), minDis);
+						}
+					}
+				}
+				if (minDis != int.MaxValue) {
+					// Reveal All Cells In Range
+					for (int j = 0; j < MapSize; j++) {
+						for (int i = 0; i < MapSize; i++) {
+							if (Mathf.Abs(i - x) + Mathf.Abs(j - y) < minDis) {
+								Cells[i, j].State = CellState.Revealed;
+							}
+						}
+					}
+					cell.Sonar = minDis;
+				}
+				return ActionResult.RevealWater;
+			} else {
+				// Hit Ship
+				cell.State = CellState.Hit;
+				RefreshAllShipsAliveState();
+				return Ships[cell.ShipIndex].Alive ? ActionResult.HitShip : ActionResult.SunkShip;
+			}
 		}
 
 
@@ -252,6 +341,13 @@ namespace BattleSoup {
 		}
 
 
+		public bool HasShip (int x, int y) {
+			if (x < 0 || y < 0 || x >= MapSize || y >= MapSize) return false;
+			int shipIndex = Cells[x, y].ShipIndex;
+			return shipIndex >= 0 && shipIndex < Ships.Length;
+		}
+
+
 		#endregion
 
 
@@ -289,10 +385,7 @@ namespace BattleSoup {
 			// Clear Cell Ship Index Cache
 			for (int j = 0; j < MapSize; j++) {
 				for (int i = 0; i < MapSize; i++) {
-					var cell = Cells[i, j];
-					cell.ShipIndexs.Clear();
-					cell.ShipRenderIDs.Clear();
-					cell.ShipRenderIDsAdd.Clear();
+					Cells[i, j].ClearShip();
 				}
 			}
 
@@ -333,10 +426,7 @@ namespace BattleSoup {
 			// Clear
 			for (int j = 0; j < MapSize; j++) {
 				for (int i = 0; i < MapSize; i++) {
-					var cell = Cells[i, j];
-					cell.ShipIndexs.Clear();
-					cell.ShipRenderIDs.Clear();
-					cell.ShipRenderIDsAdd.Clear();
+					Cells[i, j].ClearShip();
 				}
 			}
 			// Index, Render ID
@@ -382,6 +472,31 @@ namespace BattleSoup {
 				if (pos.x >= 0 && pos.x < MapSize && pos.y >= 0 && pos.y < MapSize) return false;
 			}
 			return true;
+		}
+
+
+		private void RefreshAllShipsAliveState () {
+			for (int i = 0; i < Ships.Length; i++) {
+				var ship = Ships[i];
+				int hitCount = 0;
+				bool requireFixState = false;
+				for (int j = 0; j < ship.BodyNodes.Length; j++) {
+					var pos = ship.GetFieldNodePosition(j);
+					var cell = Cells[pos.x, pos.y];
+					if (cell.State == CellState.Hit || cell.State == CellState.Sunk) {
+						hitCount++;
+						if (cell.State == CellState.Hit) requireFixState = true;
+					}
+				}
+				ship.Alive = hitCount < ship.BodyNodes.Length;
+				if (requireFixState && !ship.Alive) {
+					for (int j = 0; j < ship.BodyNodes.Length; j++) {
+						var pos = ship.GetFieldNodePosition(j);
+						var cell = Cells[pos.x, pos.y];
+						cell.State = CellState.Sunk;
+					}
+				}
+			}
 		}
 
 

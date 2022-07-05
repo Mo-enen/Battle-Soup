@@ -127,12 +127,42 @@ namespace BattleSoup {
 				if (cell.Sonar != 0) {
 					CellRenderer.Draw(
 						SONAR_CODES[cell.Sonar.Clamp(0, SONAR_CODES.Length - 1)],
-						x, y,
+						x, y + (cell.HasStone ? SoupConst.ISO_SIZE / 8 : 0),
 						SoupConst.ISO_SIZE, SoupConst.ISO_SIZE
 					);
 				}
 			}
-
+			// Sonar "?"
+			var (localMouseX, localMouseY) = Global_to_Local(FrameInput.MouseGlobalPosition.x, FrameInput.MouseGlobalPosition.y, 1);
+			if (localMouseX >= 0 && localMouseX < MapSize && localMouseY >= 0 && localMouseY < MapSize) {
+				var cell = Cells[localMouseX, localMouseY];
+				if (cell.Sonar > 0) {
+					for (int i = -cell.Sonar; i <= cell.Sonar; i++) {
+						int x = localMouseX + i;
+						if (x < 0 || x >= MapSize) continue;
+						int y0 = localMouseY + (cell.Sonar - Mathf.Abs(i));
+						if (y0 >= 0 && y0 < MapSize) {
+							var _cell = Cells[x, y0];
+							if (_cell.State == CellState.Normal && !_cell.HasStone) {
+								var (gx, gy) = Local_to_Global(x, y0, 0);
+								CellRenderer.Draw(
+									SONAR_CODES[0], gx, gy, SoupConst.ISO_SIZE, SoupConst.ISO_SIZE
+								);
+							}
+						}
+						int y1 = localMouseY - (cell.Sonar - Mathf.Abs(i));
+						if (y0 != y1 && y1 >= 0 && y1 < MapSize) {
+							var _cell = Cells[x, y1];
+							if (_cell.State == CellState.Normal && !_cell.HasStone) {
+								var (gx, gy) = Local_to_Global(x, y1, 0);
+								CellRenderer.Draw(
+									SONAR_CODES[0], gx, gy, SoupConst.ISO_SIZE, SoupConst.ISO_SIZE
+								);
+							}
+						}
+					}
+				}
+			}
 		}
 
 
@@ -173,21 +203,21 @@ namespace BattleSoup {
 					for (int i = 0; i < cell.ShipIndexs.Count; i++) {
 						int rID = cell.ShipRenderIDs[i];
 						int rID_add = cell.ShipRenderIDsAdd[i];
+						int rID_sunk = cell.ShipRenderIDsSunk[i];
 						int shipIndex = cell.ShipIndexs[i];
 						var ship = Ships[shipIndex];
 						if (
 							shipIndex >= 0 &&
-							(!HideInvisibleShip || ship.Visible)
+							(!HideInvisibleShip || ship.Visible || !ship.Alive)
 						) {
 							var tint = ship.Valid ? cell.State switch {
 								CellState.Hit => new Color32(209, 165, 31, 255),
-								CellState.Sunk => new Color32(209, 165, 31, 128),
+								CellState.Sunk => new Color32(255, 196, 196, 196),
 								_ => new Color32(255, 255, 255, 255),
 							} : new Color32(255, 16, 16, 255);
-							if (cell.State == CellState.Sunk) {
-								y -= SoupConst.ISO_HEIGHT * 3 / 2;
-							}
-							int shipID = HoveringShipIndex != shipIndex ? rID : rID_add;
+							int shipID =
+								HoveringShipIndex == shipIndex ? rID_add :
+								ship.Alive ? rID : rID_sunk;
 							if (CellRenderer.TryGetSprite(shipID, out var spShip)) {
 								bool flip = ship.Flip;
 								ref var rCell = ref CellRenderer.Draw(

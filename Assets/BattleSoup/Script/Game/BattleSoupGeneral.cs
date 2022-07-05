@@ -129,8 +129,10 @@ namespace BattleSoup {
 		[System.NonSerialized] public int CurrentCooldown = 1;
 		[System.NonSerialized] public bool Visible = false;
 		[System.NonSerialized] public bool Valid = true;
+		[System.NonSerialized] public bool Alive = true;
 		[System.NonSerialized] public Vector2Int[] BodyNodes = null;
 		[System.NonSerialized] public Sprite Icon = null;
+
 
 
 		// MSG
@@ -211,6 +213,15 @@ namespace BattleSoup {
 	}
 
 
+	[System.Flags]
+	public enum ActionResult {
+		None = 0,
+		RevealWater = 1 << 0,
+		RevealShip = 1 << 1,
+		HitShip = 1 << 2,
+		SunkShip = 1 << 3,
+	}
+
 
 	public class Cell {
 
@@ -222,12 +233,22 @@ namespace BattleSoup {
 		public readonly List<int> ShipIndexs = new(16);
 		public readonly List<int> ShipRenderIDs = new(16);
 		public readonly List<int> ShipRenderIDsAdd = new(16);
+		public readonly List<int> ShipRenderIDsSunk = new(16);
 
 		public void AddShip (int shipIndex, Ship ship, int bodyX, int bodyY) {
 			ShipIndexs.Add(shipIndex);
 			ShipRenderIDs.Add($"{ship.GlobalName} {bodyX}.{bodyY}".AngeHash());
 			ShipRenderIDsAdd.Add($"{ship.GlobalName}_Add {bodyX}.{bodyY}".AngeHash());
+			ShipRenderIDsSunk.Add($"{ship.GlobalName}_Sunk {bodyX}.{bodyY}".AngeHash());
 		}
+
+		public void ClearShip () {
+			ShipIndexs.Clear();
+			ShipRenderIDs.Clear();
+			ShipRenderIDsAdd.Clear();
+			ShipRenderIDsSunk.Clear();
+		}
+
 
 	}
 
