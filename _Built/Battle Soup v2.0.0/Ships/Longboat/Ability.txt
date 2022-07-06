@@ -1,19 +1,19 @@
 
 // Longboat Ability Example
 
-Pick [unrevealed, !stone] [revealed, ship]
-Attack(0, 0) [BreakIfMiss]
+pick [normalWater, noStone, revealedShip]
+attack (0, 0) [breakIfMiss, breakIfSunk]
 
-Pick [unrevealed, !stone] [revealed, ship]
-Attack(0, 0) [BreakIfMiss]
+pick [normalWater, noStone, revealedShip]
+attack (0, 0) [breakIfMiss, breakIfSunk]
 
-Pick [unrevealed, !stone] [revealed, ship]
-Attack(0, 0) [BreakIfMiss]
+pick [normalWater, noStone, revealedShip]
+attack (0, 0) [breakIfMiss, breakIfSunk]
 
-Pick [unrevealed, !stone] [revealed, ship]
-Attack(0, 0) [BreakIfMiss]
+pick [normalWater, noStone, revealedShip]
+attack (0, 0) [breakIfMiss, breakIfSunk]
 
-Pick [unrevealed, !stone] [revealed, ship]
-Attack(0, 0) [BreakIfMiss]
+pick [normalWater, noStone, revealedShip]
+attack (0, 0) [breakIfMiss, breakIfSunk]
 
 

@@ -13,7 +13,7 @@ namespace BattleSoup {
 
 
 		// API
-		public void Perform (EntranceType entrance, EntranceKeyword performingKeyword) {
+		public void Perform (EntranceType entrance, ActionResult performingKeyword) {
 
 			// Get Start Line from Pool
 			if (!EntrancePool.TryGetValue(entrance, out int startLine)) return;
@@ -45,6 +45,8 @@ namespace BattleSoup {
 		// LGC
 		private void PerformAction (ActionUnit unit, out bool _continue) {
 			_continue = true;
+			// Add Step
+
 
 
 		}

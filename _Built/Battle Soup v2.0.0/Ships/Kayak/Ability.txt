@@ -2,6 +2,6 @@
 // Kayak Ability Example
 
 pick			// wait for the player to pick a position
-attack(0, 0)
-attack(0, 1)
+attack(0, 0)(0, 1)
+
 

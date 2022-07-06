@@ -35,9 +35,12 @@ namespace BattleSoup {
 		public bool HideInvisibleShip { get; set; } = true;
 		public bool ShowShips { get; set; } = true;
 		public bool DragToMoveShips { get; set; } = false;
+		public bool ClickToAttack { get; set; } = false;
+		public bool ClickShipToTriggerAbility { get; set; } = false;
 
 		// Data
 		private Cell[,] Cells = null;
+
 
 
 		#endregion
@@ -61,6 +64,8 @@ namespace BattleSoup {
 			if (!Enable) return;
 			UpdateRenderCells();
 			Update_DragToMoveShips();
+			Update_ClickToAttack();
+			Update_ClickShipToTriggerAbility();
 			DrawWaters();
 			DrawGizmos();
 			DrawUnits();
@@ -103,6 +108,36 @@ namespace BattleSoup {
 				FlipShip(HoveringShipIndex);
 				ClampInvalidShipsInside(true);
 			}
+		}
+
+
+		private void Update_ClickToAttack () {
+			if (!ClickToAttack || !FrameInput.MouseLeftDown) return;
+			var (localX, localY) = Global_to_Local(
+				FrameInput.MouseGlobalPosition.x, FrameInput.MouseGlobalPosition.y, 1
+			);
+			if (localX < 0 || localY < 0 || localX >= MapSize || localY >= MapSize) return;
+			var cell = Cells[localX, localY];
+			if (cell.HasStone) return;
+			if (
+				cell.State == CellState.Normal ||
+				(cell.ShipIndex >= 0 && cell.State == CellState.Revealed)
+			) {
+				CellStep.AddToLast(new sAttack(localX, localY, this));
+
+
+
+
+
+			}
+		}
+
+
+		private void Update_ClickShipToTriggerAbility () {
+			if (!ClickShipToTriggerAbility || !FrameInput.MouseLeftDown) return;
+
+
+
 		}
 
 
@@ -343,8 +378,7 @@ namespace BattleSoup {
 
 		public bool HasShip (int x, int y) {
 			if (x < 0 || y < 0 || x >= MapSize || y >= MapSize) return false;
-			int shipIndex = Cells[x, y].ShipIndex;
-			return shipIndex >= 0 && shipIndex < Ships.Length;
+			return Cells[x, y].ShipIndex >= 0;
 		}
 
 

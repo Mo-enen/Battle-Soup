@@ -7,22 +7,28 @@ using UnityEngine;
 namespace BattleSoup {
 
 
+
 	// Unit
 	public abstract class ExecuteUnit { }
 
 
+
 	public class ActionUnit : ExecuteUnit {
+		public class Operation {
+			public int X = 0;
+			public int Y = 0;
+			public ActionKeyword Keyword = ActionKeyword.None;
+		}
 		public ActionType Type = ActionType.None;
-		public ActionKeyword[] Keywords = new ActionKeyword[0];
-		public int X = 0;
-		public int Y = 0;
 		public int RandomCount = 0;
+		public Operation[] Operations = new Operation[0];
 	}
+
 
 
 	public class EntranceUnit : ExecuteUnit {
 		public EntranceType Type = EntranceType.OnAbilityUsed;
-		public EntranceKeyword Keyword = EntranceKeyword.All;
+		public ActionResult Keyword = ActionResult.All;
 	}
 
 
@@ -37,7 +43,16 @@ namespace BattleSoup {
 
 
 		// Short
-		private static string[] AllActionNames => _AllActionNames ??= System.Enum.GetNames(typeof(ActionType));
+		private static string[] AllActionNames {
+			get {
+				if (_AllActionNames == null) {
+					var names = new List<string>(System.Enum.GetNames(typeof(ActionType)));
+					names.Sort((a, b) => b.Length.CompareTo(a.Length));
+					_AllActionNames = names.ToArray();
+				}
+				return _AllActionNames;
+			}
+		}
 		private static string[] _AllActionNames = null;
 		private static string[] AllEntranceNames => _AllEntranceNames ??= System.Enum.GetNames(typeof(EntranceType));
 		private static string[] _AllEntranceNames = null;
@@ -52,17 +67,17 @@ namespace BattleSoup {
 			}
 		}
 		private static ActionKeyword _A_KEYWORD_ALL = ActionKeyword.None;
-		private static EntranceKeyword E_KEYWORD_ALL {
+		private static ActionResult E_KEYWORD_ALL {
 			get {
-				if (_E_KEYWORD_ALL == EntranceKeyword.None) {
-					foreach (var value in System.Enum.GetValues(typeof(EntranceKeyword))) {
-						_E_KEYWORD_ALL |= (EntranceKeyword)value;
+				if (_E_KEYWORD_ALL == ActionResult.None) {
+					foreach (var value in System.Enum.GetValues(typeof(ActionResult))) {
+						_E_KEYWORD_ALL |= (ActionResult)value;
 					}
 				}
 				return _E_KEYWORD_ALL;
 			}
 		}
-		private static EntranceKeyword _E_KEYWORD_ALL = EntranceKeyword.None;
+		private static ActionResult _E_KEYWORD_ALL = ActionResult.None;
 
 
 		#endregion
@@ -115,7 +130,7 @@ namespace BattleSoup {
 				// Add OnAbilityUsed to Start
 				units.Insert(0, new EntranceUnit() {
 					Type = EntranceType.OnAbilityUsed,
-					Keyword = EntranceKeyword.None,
+					Keyword = ActionResult.None,
 				});
 			}
 
@@ -133,9 +148,11 @@ namespace BattleSoup {
 
 		public static List<string> GetCookedLines (string rawCode) {
 
-			var lines = new List<string>(
-				rawCode.RemoveWhitespace('\n').Split('\n')
-			);
+			// Remove Whitespace
+			rawCode = rawCode.RemoveWhitespace('\n');
+
+			// Lines
+			var lines = new List<string>(rawCode.Split('\n'));
 
 			// Remove Empty Line
 			lines.RemoveAll((str) => string.IsNullOrWhiteSpace(str));
@@ -157,13 +174,13 @@ namespace BattleSoup {
 
 		public static ExecuteUnit GetUnitFromCookedLine (string line, out string error) {
 
-			var action = CheckForAction(line, out error);
-			if (action != null) return action;
-			if (action == null && !string.IsNullOrEmpty(error)) return null;
-
 			var entrance = CheckForEntrance(line, out error);
 			if (entrance != null) return entrance;
 			if (entrance == null && !string.IsNullOrEmpty(error)) return null;
+
+			var action = CheckForAction(line, out error);
+			if (action != null) return action;
+			if (action == null && !string.IsNullOrEmpty(error)) return null;
 
 			error = "Unknown keyword";
 			return null;
@@ -196,67 +213,26 @@ namespace BattleSoup {
 			}
 			line = line[targetName.Length..];
 
-			// Position Inside ()
-			if (line.Length > 2 && line[0] == '(') {
-				int closeIndex = line.IndexOf(')');
-				if (closeIndex < 0) {
-					_error = "\")\" not found";
-					return null;
-				}
-				string posStr = line[1..closeIndex];
-				if (!string.IsNullOrWhiteSpace(posStr)) {
-					int cIndex = posStr.IndexOf(',');
-					if (
-						cIndex >= 0 &&
-						int.TryParse(posStr[0..cIndex], out int _x) &&
-						int.TryParse(posStr[(cIndex + 1)..], out int _y)
-					) {
-						// Number
-						action.X = _x;
-						action.Y = _y;
-						action.RandomCount = 0;
-					} else if (posStr.All(c => c == '?')) {
-						// ???
-						action.X = 0;
-						action.Y = 0;
-						action.RandomCount = posStr.Length;
-					}
-				}
+			// Check for "?"
+			action.RandomCount = 0;
+			for (
+				int i = line.IndexOf('?');
+				i >= 0 && i < line.Length && line[i] == '?';
+				i++
+			) {
+				action.RandomCount++;
 			}
 
-			// Keywords Inside []
-			var words = new List<ActionKeyword>();
-			while (line.Length >= 2 && line[0] == '[') {
-				int closeIndex = line.IndexOf(']');
-				if (closeIndex < 0) {
-					_error = "\"]\" not found";
-					return null;
-				}
-				var word = ActionKeyword.None;
-				string keywordStr = line[1..closeIndex];
-				if (!string.IsNullOrWhiteSpace(keywordStr)) {
-					var keywords = keywordStr.Split(',');
-					for (int i = 0; i < keywords.Length; i++) {
-						string keyword = keywords[i];
-						bool opposite = false;
-						if (keyword.StartsWith('!')) {
-							keyword = keyword[1..];
-							opposite = true;
-						}
-						if (System.Enum.TryParse<ActionKeyword>(keyword, true, out var _word)) {
-							// Tile Keywords
-							if (opposite) _word = ~A_KEYWORD_ALL ^ ~_word;
-							word |= _word;
-						}
-					}
-				}
-				if (word != ActionKeyword.None) words.Add(word);
-				line = line[(closeIndex + 1)..];
-				if (string.IsNullOrWhiteSpace(line)) break;
+			// All Operations ()[]...()[]...()()()...
+			var operations = new List<ActionUnit.Operation>();
+			while (!string.IsNullOrWhiteSpace(line)) {
+				int oldLength = line.Length;
+				line = GetOperation(line, out var operation);
+				if (line.Length >= oldLength) break;
+				operations.Add(operation);
 			}
-			action.Keywords = words.ToArray();
+			action.Operations = operations.ToArray();
 			return action;
-
 		}
 
 
@@ -279,7 +255,7 @@ namespace BattleSoup {
 			}
 
 			// Keywords Inside []
-			var word = EntranceKeyword.None;
+			var word = ActionResult.None;
 			if (line.Length >= 2 && line[0] == '[') {
 				int closeIndex = line.IndexOf(']');
 				if (closeIndex < 0) {
@@ -291,24 +267,65 @@ namespace BattleSoup {
 					var keywords = keywordStr.Split(',');
 					for (int i = 0; i < keywords.Length; i++) {
 						string keyword = keywords[i];
-						bool opposite = false;
-						if (keyword.StartsWith('!')) {
-							keyword = keyword[1..];
-							opposite = true;
-						}
-						if (System.Enum.TryParse<EntranceKeyword>(keyword, true, out var _word)) {
-							// Tile Keywords
-							if (opposite) _word = ~E_KEYWORD_ALL ^ ~_word;
+						if (System.Enum.TryParse<ActionResult>(keyword, true, out var _word)) {
 							word |= _word;
 						}
 					}
 				}
 			}
-			if (word == EntranceKeyword.None) word = EntranceKeyword.All;
+			if (word == ActionResult.None) word = ActionResult.All;
 
 			// Final
 			entrance.Keyword = word;
 			return entrance;
+		}
+
+
+		private static string GetOperation (string line, out ActionUnit.Operation operation) {
+
+			operation = new();
+
+			// Get Position in ()
+			int indexL = line.IndexOf('(');
+			int indexR = line.IndexOf(')');
+			if (indexL >= 0 && indexR >= 0 && indexL <= indexR) {
+				int indexMid = line.IndexOf(',', indexL, indexR - indexL);
+				if (
+					indexMid >= 0 &&
+					int.TryParse(line[(indexL + 1)..indexMid], out int x) &&
+					int.TryParse(line[(indexMid + 1)..indexR], out int y)
+				) {
+					operation.X = x;
+					operation.Y = y;
+				}
+			}
+
+			// Get Keywords in [,,,]
+			int lineEnd = indexR >= 0 ? indexR + 1 : 0;
+			int startIndex = line.IndexOf('[', indexR + 1);
+			if (startIndex >= 0) {
+				int endIndex = line.IndexOf(']', startIndex);
+				if (endIndex >= 0) {
+					lineEnd = endIndex + 1;
+					operation.Keyword = GetKeyword(line[(startIndex + 1)..endIndex]);
+				}
+			}
+
+			return line[lineEnd.Clamp(0, line.Length - 1)..];
+		}
+
+
+		private static ActionKeyword GetKeyword (string line) {
+			var result = ActionKeyword.None;
+			if (string.IsNullOrWhiteSpace(line)) return ActionKeyword.None;
+			var keywordStrs = line.Split(',');
+			foreach (var keywordStr in keywordStrs) {
+				if (System.Enum.TryParse<ActionKeyword>(keywordStr, true, out var keyword)) {
+					result |= keyword;
+				}
+			}
+			//Debug.Log(line + "\n" + result);
+			return result;
 		}
 
 

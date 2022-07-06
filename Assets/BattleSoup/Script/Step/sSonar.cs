@@ -19,7 +19,7 @@ namespace BattleSoup {
 			if (LocalX < 0 || LocalX >= Field.MapSize || LocalY < 0 || LocalY >= Field.MapSize) return StepResult.Over;
 			// Has Ship
 			if (Field[LocalX, LocalY].ShipIndex >= 0) {
-				CellStep.InsertStep(new sAttack(LocalX, LocalY, Field, Fast, false), 1);
+				CellStep.AddToNext(new sAttack(LocalX, LocalY, Field, Fast, false));
 				return StepResult.Over;
 			}
 			// No Ship

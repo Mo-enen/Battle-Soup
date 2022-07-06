@@ -36,8 +36,11 @@ namespace BattleSoup {
 	}
 
 
+
+
 	public enum EntranceType {
 		OnAbilityUsed,
+		OnAbilityUsedWithOverCooldown,
 		OnNormalAttack,
 		OnShipGetHit,
 		OnShipGetRevealed,
@@ -52,40 +55,49 @@ namespace BattleSoup {
 		None = 0,
 
 		// Tile
-		Unrevealed = 1L << 0,
-		Revealed = 1L << 1,
-		Hit = 1L << 2,
-		Sunk = 1L << 3,
-		Stone = 1L << 4,
-		Ship = 1L << 5,
-		VisibleShip = 1L << 6,
-		InvisibleShip = 1L << 7,
+		NormalWater = 1L << 0,
+		RevealedWater = 1L << 1,
+
+		Stone = 1L << 2,
+		NoStone = 1L << 3,
+
+		Ship = 1L << 4,
+		NoShip = 1L << 5,
+
+		RevealedShip = 1L << 6,
+		HitShip = 1L << 7,
+		SunkShip = 1L << 8,
+
+		VisibleShip = 1L << 9,
+		InvisibleShip = 1L << 10,
 
 		// Action
-		Self = 1L << 8,
-		BreakIfFail = 1L << 9,
-		BreakIfSuccess = 1L << 10,
+		Self = 1L << 11,
+		BreakIfMiss = 1L << 12,
+		BreakIfHit = 1L << 13,
+		breakIfSunk = 1L << 14,
 
 	}
 
 
+
 	[System.Flags]
-	public enum EntranceKeyword : long {
+	public enum ActionResult : long {
 
 		None = 0,
 
 		HitShip = 1L << 0,
-		RevealWater = 1L << 1,
-		ReavealShip = 1L << 2,
-		SonarReaveal = 1L << 3,
+		SunkShip = 1L << 1,
+		RevealWater = 1L << 2,
+		RevealShip = 1L << 3,
+		SonarWater = 1L << 4,
 
-		Reaveal = RevealWater | ReavealShip | SonarReaveal,
-		Miss = RevealWater | SonarReaveal,
-		All = HitShip | RevealWater | ReavealShip | SonarReaveal,
+		Reaveal = RevealWater | RevealShip | SonarWater,
+		Hit = HitShip | SunkShip,
+		Miss = RevealWater | SonarWater,
+		All = HitShip | SunkShip | RevealWater | RevealShip | SonarWater,
 
 	}
-
-
 
 
 
@@ -101,9 +113,12 @@ namespace BattleSoup {
 
 
 	public static class SoupConst {
+
 		public const int ISO_WIDTH = 32 * 7; // 231
 		public const int ISO_HEIGHT = 16 * 7; // 119
 		public const int ISO_SIZE = 65 * 7; // 455
+
+		public static BattleSoup.Turn Opponent (this BattleSoup.Turn turn) => 1 - turn;
 
 	}
 
@@ -212,15 +227,6 @@ namespace BattleSoup {
 		Sunk = 3,
 	}
 
-
-	[System.Flags]
-	public enum ActionResult {
-		None = 0,
-		RevealWater = 1 << 0,
-		RevealShip = 1 << 1,
-		HitShip = 1 << 2,
-		SunkShip = 1 << 3,
-	}
 
 
 	public class Cell {

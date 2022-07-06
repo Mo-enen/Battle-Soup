@@ -33,6 +33,11 @@ namespace BattleSoup {
 		}
 
 
+		public enum Turn {
+			A = 0,
+			B = 1,
+		}
+
 
 		[System.Serializable]
 		private class GameAsset {
@@ -102,6 +107,7 @@ namespace BattleSoup {
 		public eField FieldB { get; private set; } = null;
 		public bool Cheating { get; set; } = false;
 		public bool Cheated { get; private set; } = false;
+		public Turn CurrentTurn { get; private set; } = Turn.A;
 
 		// Setting
 		public bool UseSound { get => s_UseSound.Value; set => s_UseSound.Value = value; }
@@ -279,14 +285,39 @@ namespace BattleSoup {
 				}
 			}
 			bool PvA = Mode == GameMode.PvA;
-			bool waitingForPick = CellStep.IsStepping<sWaitForPick>();
-			FieldA.AllowHoveringOnShip = inter && PvA && waitingForPick;
-			FieldA.AllowHoveringOnWater = inter && PvA && waitingForPick;
-			FieldB.AllowHoveringOnShip = false;
-			FieldB.AllowHoveringOnWater = inter && PvA && waitingForPick;
+			bool aTurn = CurrentTurn == Turn.A;
+			bool waitingForPlayer = !GameOver && PvA && aTurn && !CellStep.HasStep;
 
+			FieldA.ShowShips = true;
+			FieldA.AllowHoveringOnShip = inter && PvA && waitingForPlayer;
+			FieldA.AllowHoveringOnWater = inter && PvA && waitingForPlayer;
 			FieldA.HideInvisibleShip = false;
+			FieldA.ClickToAttack = false;
+			FieldA.ClickShipToTriggerAbility = waitingForPlayer;
+
+			FieldB.ShowShips = true;
+			FieldB.AllowHoveringOnShip = false;
+			FieldB.AllowHoveringOnWater = inter && PvA && waitingForPlayer;
 			FieldB.HideInvisibleShip = PvA && !Cheating;
+			FieldB.ClickToAttack = waitingForPlayer;
+			FieldA.ClickShipToTriggerAbility = false;
+
+			// AI
+			if (aTurn) {
+				if (!PvA) {
+					// Robot A
+
+
+
+				}
+			} else {
+				// Robot B
+
+				/////////// TEST //////////////
+				SwitchTurn();
+				/////////// TEST //////////////
+
+			}
 
 			// Cheat
 			if (Cheating) Cheated = true;
@@ -403,6 +434,9 @@ namespace BattleSoup {
 		}
 
 
+		public void SwitchTurn () => CurrentTurn = CurrentTurn.Opponent();
+
+
 		#endregion
 
 
@@ -432,6 +466,10 @@ namespace BattleSoup {
 			Cheating = false;
 			Cheated = false;
 			GameOver = false;
+			FieldA.ClickToAttack = false;
+			FieldA.ClickShipToTriggerAbility = false;
+			FieldB.ClickToAttack = false;
+			FieldB.ClickShipToTriggerAbility = false;
 
 			switch (state) {
 				case GameState.Title:
@@ -457,6 +495,7 @@ namespace BattleSoup {
 
 				case GameState.Playing:
 
+					if (Random.value > 0.5f) CurrentTurn = CurrentTurn.Opponent();
 					MapIndexA.Value = MapIndexA.Value.Clamp(0, AllMaps.Count - 1);
 					MapIndexB.Value = MapIndexB.Value.Clamp(0, AllMaps.Count - 1);
 					bool PvA = Mode == GameMode.PvA;
@@ -464,7 +503,7 @@ namespace BattleSoup {
 					// A
 					var shiftA = new Vector2Int(0, AllMaps[MapIndexB.Value].Size + 2);
 					FieldA.Enable = true;
-					FieldA.ShowShips = true;
+					FieldA.ShowShips = false;
 					FieldA.DragToMoveShips = false;
 
 					if (!PvA) {
@@ -478,7 +517,7 @@ namespace BattleSoup {
 
 					// B
 					FieldB.Enable = true;
-					FieldB.ShowShips = true;
+					FieldB.ShowShips = false;
 					FieldB.DragToMoveShips = false;
 					bool success = FieldB.RandomPlaceShips(256);
 					if (!success) {
@@ -489,21 +528,6 @@ namespace BattleSoup {
 					FieldA.Restart();
 					FieldB.Restart();
 					OnFleetChanged();
-
-					///////////// TEST //////////////
-					CellStep.AddStep(new sSonar(0, FieldB.MapSize - 1, FieldB, false));
-					CellStep.AddStep(new sSonar(FieldB.MapSize - 1, 0, FieldB, false));
-					CellStep.AddStep(new sSonar(0, 0, FieldB, false));
-					CellStep.AddStep(new sSonar(FieldB.MapSize - 1, FieldB.MapSize - 1, FieldB, false));
-					for (int i = 0; i < FieldB.MapSize; i++) {
-						for (int j = 0; j < FieldB.MapSize; j++) {
-							var cell = FieldB[i, j];
-							if (cell.State == CellState.Normal) {
-								CellStep.AddStep(new sAttack(i, j, FieldB, true));
-							}
-						}
-					}
-					///////////// TEST //////////////
 
 					break;
 

@@ -210,14 +210,20 @@ namespace BattleSoup {
 							shipIndex >= 0 &&
 							(!HideInvisibleShip || ship.Visible || !ship.Alive)
 						) {
+
 							var tint = ship.Valid ? cell.State switch {
 								CellState.Hit => new Color32(209, 165, 31, 255),
 								CellState.Sunk => new Color32(255, 196, 196, 196),
 								_ => new Color32(255, 255, 255, 255),
 							} : new Color32(255, 16, 16, 255);
+							if (ship.Visible && HideInvisibleShip && ship.Alive) {
+								tint.a = 128;
+							}
+
 							int shipID =
 								HoveringShipIndex == shipIndex ? rID_add :
 								ship.Alive ? rID : rID_sunk;
+
 							if (CellRenderer.TryGetSprite(shipID, out var spShip)) {
 								bool flip = ship.Flip;
 								ref var rCell = ref CellRenderer.Draw(

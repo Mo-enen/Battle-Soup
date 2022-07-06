@@ -27,9 +27,8 @@
 		unReveal(x,y)
 		sonar(x,y)
 
-		attack(?)				// attack random position once
-		attack(?)[!revealed]	// attack random position but not revealed tiles
-		attack(???)				// attack three different random positions (you can have as many "?" as you want)
+		attack ?				// attack random position once
+		attack ???				// attack three different random positions (you can have as many "?" as you want)
 
 		sunkShip(x,y)			// sunk ship at x,y
 		revealShip(x,y)			// reveal all tiles for the ship at x,y
@@ -39,15 +38,17 @@
 		addMaxCooldown(x,y)
 		reduceMaxCooldown(x,y)
 
+		eg. attack (0,0) (0,1) (0,2)
+		eg. attack (0,0)[revealed] (0,1)[revealed] (0,2)[revealed]
+		eg. attack ??? (0,0) (0,1) (0,2) (0,3) (0,4)  // Random Pick 3 positions from the 5 given positions to attack
 
 
 === keywords ===
 	
 	// Write those keywords inside "[]" will add limitations to the function
-	// eg. attack(???) [unrevealed]		// Attack three different random tiles but only allow unrevealed ones
+	// eg. attack ??? [unrevealed]		// Attack three different random tiles but only allow unrevealed ones
 	// "[a, b] [c, d]" means: "(a && b) || (c && d)" 
-	// "!X" means "not X"
-
+	
 	keywords-Tiles:
 
 		unrevealed,		// Unrevealed water tiles, unrevealed stone tiles
@@ -63,6 +64,7 @@
 		self,			// Make the function happens to the one that uses the ability (instead of the opponent)
 		breakIfMiss		// End this ability if this function missed
 		breakIfHit		//                                ...hit
+		breakIfSunk
 
 	keywords-Entrance:
 						// "tile keyword" is also entrance keyword
@@ -79,8 +81,10 @@
 === Entrance ===
 									// Do not allow duplicate entrance
 		OnAbilityUsed				// When user click the ability icon, default entrance (default entrance)
+		OnAbilityUsedWithOverCooldown	// When user click the ability icon after 1 or more turn it cooled down
 		OnNormalAttack				// When user attack any opponent tile with a normal cannon ball
 		OnNormalAttack [success]	// ... but only when it hit a ship 
 		OnShipGetHit				// When the current ship get hit
 		OnShipGetRevealed
 		OnShipBecomeVisible
+
