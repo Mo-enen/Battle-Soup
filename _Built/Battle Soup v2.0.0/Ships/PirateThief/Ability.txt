@@ -1,0 +1,12 @@
+
+// Pirate Thief
+
+pick [hittable]
+attack
+addCooldown
+
+
+OnHitShip
+this
+reduceCooldown [self]
+

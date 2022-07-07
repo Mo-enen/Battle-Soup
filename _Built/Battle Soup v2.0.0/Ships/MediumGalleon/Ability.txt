@@ -1,0 +1,8 @@
+
+// Mid Galleon
+
+pick [hittable]
+attack
+
+pick [hittable]
+attack

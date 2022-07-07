@@ -1,0 +1,14 @@
+
+// Sea Turtle
+
+pick [hittable]
+attack 
+reveal (0,1)
+reveal (0,-1)
+reveal (1,0)
+reveal (-1,0)
+
+
+OnHitShip
+this
+reduceCooldown [self]

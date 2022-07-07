@@ -78,10 +78,12 @@ namespace BattleSoup {
 			[Header("Setting")]
 			public Toggle SoundTG = null;
 			public Toggle AutoPlayAvATG = null;
-			public Toggle CornerSoupTG = null;
 			public Toggle UseAnimationTG = null;
 			[Header("Playing")]
 			public Toggle CheatTG = null;
+			public Grabber ShipAbilityItem = null;
+			public RectTransform AbilityContainerA = null;
+			public RectTransform AbilityContainerB = null;
 			[Header("Asset")]
 			public Sprite DefaultShipIcon = null;
 			public Sprite PlusSprite = null;
@@ -98,7 +100,6 @@ namespace BattleSoup {
 
 
 		// Api
-		public static BattleSoup Main => _Main != null ? _Main : (_Main = FindObjectOfType<BattleSoup>());
 		public GameState State { get; private set; } = GameState.Title;
 		public GameMode Mode { get; private set; } = GameMode.PvA;
 		public string ShipRoot => Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Ships");
@@ -113,13 +114,11 @@ namespace BattleSoup {
 		public bool UseSound { get => s_UseSound.Value; set => s_UseSound.Value = value; }
 		public bool AutoPlayForAvA { get => s_AutoPlayForAvA.Value; set => s_AutoPlayForAvA.Value = value; }
 		public bool UseAnimation { get => s_UseAnimation.Value; set => s_UseAnimation.Value = value; }
-		public bool ShowCornerSoup { get => s_ShowCornerSoup.Value; set => s_ShowCornerSoup.Value = value; }
 
 		// Ser
 		[SerializeField] GameAsset m_Assets = null;
 
 		// Data
-		private static BattleSoup _Main = null;
 		private readonly Dictionary<int, Ship> ShipPool = new();
 		private readonly Dictionary<int, Ability> AbilityPool = new();
 		private readonly List<SoupAI> AllAi = new();
@@ -129,13 +128,12 @@ namespace BattleSoup {
 		// Saving
 		private readonly SavingBool s_UseSound = new("BattleSoup.UseSound", true);
 		private readonly SavingBool s_AutoPlayForAvA = new("BattleSoup.AutoPlayForAvA", false);
-		private readonly SavingBool s_ShowCornerSoup = new("BattleSoup.ShowCornerSoup", true);
 		private readonly SavingBool s_UseAnimation = new("BattleSoup.UseAnimation", true);
 		private readonly SavingString s_PlayerFleet = new("BattleSoup.PlayerFleet", "Sailboat,SeaMonster,Longboat,MiniSub");
 		private readonly SavingInt s_SelectingAiA = new("BattleSoup.SelectingAiA", 0);
 		private readonly SavingInt s_SelectingAiB = new("BattleSoup.SelectingAiB", 0);
-		private readonly SavingInt MapIndexA = new("BattleSoup.MapIndexA", 0);
-		private readonly SavingInt MapIndexB = new("BattleSoup.MapIndexB", 0);
+		private readonly SavingInt s_MapIndexA = new("BattleSoup.MapIndexA", 0);
+		private readonly SavingInt s_MapIndexB = new("BattleSoup.MapIndexB", 0);
 
 
 		#endregion
@@ -256,8 +254,8 @@ namespace BattleSoup {
 			m_Assets.PlacePanel.gameObject.SetActive(!preparing);
 
 			// Map
-			MapIndexA.Value = Mathf.Clamp(MapIndexA.Value, 0, AllMaps.Count);
-			MapIndexB.Value = Mathf.Clamp(MapIndexB.Value, 0, AllMaps.Count);
+			s_MapIndexA.Value = Mathf.Clamp(s_MapIndexA.Value, 0, AllMaps.Count);
+			s_MapIndexB.Value = Mathf.Clamp(s_MapIndexB.Value, 0, AllMaps.Count);
 
 			// Renderer
 			FieldA.Enable = !preparing;
@@ -300,7 +298,7 @@ namespace BattleSoup {
 			FieldB.AllowHoveringOnWater = inter && PvA && waitingForPlayer;
 			FieldB.HideInvisibleShip = PvA && !Cheating;
 			FieldB.ClickToAttack = waitingForPlayer;
-			FieldA.ClickShipToTriggerAbility = false;
+			FieldB.ClickShipToTriggerAbility = false;
 
 			// AI
 			if (aTurn) {
@@ -320,11 +318,10 @@ namespace BattleSoup {
 			}
 
 			// Cheat
+			bool showCheat = !GameOver && PvA;
 			if (Cheating) Cheated = true;
 			if (m_Assets.CheatTG.isOn != Cheating) m_Assets.CheatTG.SetIsOnWithoutNotify(Cheating);
-			if (m_Assets.CheatTG.gameObject.activeSelf != !GameOver) {
-				m_Assets.CheatTG.gameObject.SetActive(!GameOver);
-			}
+			if (m_Assets.CheatTG.gameObject.activeSelf != showCheat) m_Assets.CheatTG.gameObject.SetActive(showCheat);
 
 			// Gameover Check
 			if (!GameOver) {
@@ -353,6 +350,10 @@ namespace BattleSoup {
 		#region --- API ---
 
 
+		public void SwitchTurn () => CurrentTurn = CurrentTurn.Opponent();
+
+
+		// UI
 		public void UI_OpenURL (string url) => Application.OpenURL(url);
 
 
@@ -373,7 +374,6 @@ namespace BattleSoup {
 		public void UI_RefreshSettingUI () {
 			m_Assets.SoundTG.SetIsOnWithoutNotify(s_UseSound.Value);
 			m_Assets.AutoPlayAvATG.SetIsOnWithoutNotify(s_AutoPlayForAvA.Value);
-			m_Assets.CornerSoupTG.SetIsOnWithoutNotify(s_ShowCornerSoup.Value);
 			m_Assets.UseAnimationTG.SetIsOnWithoutNotify(s_UseAnimation.Value);
 		}
 
@@ -385,8 +385,8 @@ namespace BattleSoup {
 
 
 		public void UI_SelectingMapChanged () {
-			MapIndexA.Value = GetMapIndexFromUI(m_Assets.MapSelectorContentA).Clamp(0, AllMaps.Count);
-			MapIndexB.Value = GetMapIndexFromUI(m_Assets.MapSelectorContentB).Clamp(0, AllMaps.Count);
+			s_MapIndexA.Value = GetMapIndexFromUI(m_Assets.MapSelectorContentA).Clamp(0, AllMaps.Count);
+			s_MapIndexB.Value = GetMapIndexFromUI(m_Assets.MapSelectorContentB).Clamp(0, AllMaps.Count);
 			OnMapChanged();
 			// Func
 			int GetMapIndexFromUI (RectTransform container) {
@@ -434,9 +434,6 @@ namespace BattleSoup {
 		}
 
 
-		public void SwitchTurn () => CurrentTurn = CurrentTurn.Opponent();
-
-
 		#endregion
 
 
@@ -461,7 +458,6 @@ namespace BattleSoup {
 				m_Assets.PanelRoot.GetChild(i).gameObject.SetActive(i == (int)state);
 			}
 
-			m_Assets.CornerSoup.gameObject.SetActive(s_ShowCornerSoup.Value && state != GameState.Title);
 			CellStep.Clear();
 			Cheating = false;
 			Cheated = false;
@@ -496,12 +492,12 @@ namespace BattleSoup {
 				case GameState.Playing:
 
 					if (Random.value > 0.5f) CurrentTurn = CurrentTurn.Opponent();
-					MapIndexA.Value = MapIndexA.Value.Clamp(0, AllMaps.Count - 1);
-					MapIndexB.Value = MapIndexB.Value.Clamp(0, AllMaps.Count - 1);
+					s_MapIndexA.Value = s_MapIndexA.Value.Clamp(0, AllMaps.Count - 1);
+					s_MapIndexB.Value = s_MapIndexB.Value.Clamp(0, AllMaps.Count - 1);
 					bool PvA = Mode == GameMode.PvA;
 
 					// A
-					var shiftA = new Vector2Int(0, AllMaps[MapIndexB.Value].Size + 2);
+					var shiftA = new Vector2Int(0, AllMaps[s_MapIndexB.Value].Size + 2);
 					FieldA.Enable = true;
 					FieldA.ShowShips = false;
 					FieldA.DragToMoveShips = false;
@@ -528,6 +524,8 @@ namespace BattleSoup {
 					FieldA.Restart();
 					FieldB.Restart();
 					OnFleetChanged();
+					ReloadShipAbilityUI(FieldA, m_Assets.AbilityContainerA, m_Assets.ShipAbilityItem, PvA);
+					ReloadShipAbilityUI(FieldB, m_Assets.AbilityContainerB, m_Assets.ShipAbilityItem, false);
 
 					break;
 
@@ -631,6 +629,46 @@ namespace BattleSoup {
 		}
 
 
+		private void OnMapChanged () {
+			FieldA.SetMap(AllMaps[s_MapIndexA.Value]);
+			FieldB.SetMap(AllMaps[s_MapIndexB.Value]);
+		}
+
+
+		private void OnFleetChanged () {
+			FieldA.SetShips(
+				GetShipsFromFleetString(Mode == GameMode.PvA ? s_PlayerFleet.Value : GetBotFleetA())
+			);
+			FieldA.RandomPlaceShips(256);
+			FieldB.SetShips(
+				GetShipsFromFleetString(GetBotFleetB())
+			);
+			FieldB.RandomPlaceShips(256);
+		}
+
+
+		private Ship[] GetShipsFromFleetString (string fleet) {
+			var ships = new List<Ship>();
+			var shipNames = fleet.Split(',');
+			foreach (var name in shipNames) {
+				if (ShipPool.TryGetValue(name.AngeHash(), out var ship)) {
+					ships.Add(ship.CreateDataCopy());
+				}
+			}
+			return ships.ToArray();
+		}
+
+
+		// Refresh UI
+		private void RemoveShipFromFleetString (SavingString sString, int index) {
+			var ships = new List<string>(sString.Value.Split(','));
+			if (index >= 0 && index < ships.Count) {
+				ships.RemoveAt(index);
+				sString.Value = ships.Count > 0 ? string.Join(',', ships) : "";
+			}
+		}
+
+
 		private void ReloadFleetRendererUI () {
 			ReloadFleet(
 				Mode == GameMode.PvA ? s_PlayerFleet : null,
@@ -692,42 +730,43 @@ namespace BattleSoup {
 		}
 
 
-		private void RemoveShipFromFleetString (SavingString sString, int index) {
-			var ships = new List<string>(sString.Value.Split(','));
-			if (index >= 0 && index < ships.Count) {
-				ships.RemoveAt(index);
-				sString.Value = ships.Count > 0 ? string.Join(',', ships) : "";
-			}
-		}
+		private void ReloadShipAbilityUI (eField field, RectTransform container, Grabber shipItem, bool interactable) {
+			container.DestroyAllChirldrenImmediate();
+			for (int i = 0; i < field.Ships.Length; i++) {
+				var ship = field.Ships[i];
+				var grab = Instantiate(shipItem, container);
+				grab.gameObject.SetActive(true);
+				var rt = grab.transform as RectTransform;
+				rt.SetAsLastSibling();
+				rt.anchoredPosition3D = rt.anchoredPosition;
+				rt.localRotation = Quaternion.identity;
+				rt.localScale = Vector3.one;
+				var btn = grab.Grab<Button>();
+				btn.interactable = interactable;
+				if (interactable) {
+					btn.onClick.AddListener(() => {
 
 
-		private void OnMapChanged () {
-			FieldA.SetMap(AllMaps[MapIndexA.Value]);
-			FieldB.SetMap(AllMaps[MapIndexB.Value]);
-		}
-
-
-		private void OnFleetChanged () {
-			FieldA.SetShips(
-				GetShipsFromFleetString(Mode == GameMode.PvA ? s_PlayerFleet.Value : GetBotFleetA())
-			);
-			FieldA.RandomPlaceShips(256);
-			FieldB.SetShips(
-				GetShipsFromFleetString(GetBotFleetB())
-			);
-			FieldB.RandomPlaceShips(256);
-		}
-
-
-		private Ship[] GetShipsFromFleetString (string fleet) {
-			var ships = new List<Ship>();
-			var shipNames = fleet.Split(',');
-			foreach (var name in shipNames) {
-				if (ShipPool.TryGetValue(name.AngeHash(), out var ship)) {
-					ships.Add(ship.CreateDataCopy());
+					});
 				}
+				var icon = grab.Grab<Image>();
+				icon.sprite = ship.Icon;
+				var label = grab.Grab<Text>();
+				label.text = ship.DisplayName;
+				var tooltip = grab.Grab<TooltipUI>();
+				tooltip.Tooltip = ship.Discription;
 			}
-			return ships.ToArray();
+		}
+
+
+		private void RefreshInteractableForShipAbilityUI (RectTransform container, eField field, bool interactable) {
+			int count = container.childCount;
+			for (int i = 0; i < count && i < field.Ships.Length; i++) {
+				var ship = field.Ships[i];
+				var btn = container.GetChild(i).GetComponent<Button>();
+				if (btn == null) continue;
+				btn.interactable = interactable && ship.CurrentCooldown <= 0;
+			}
 		}
 
 
@@ -801,6 +840,8 @@ namespace BattleSoup {
 					ReloadFleetRendererUI();
 					OnFleetChanged();
 				});
+				var tooltip = grab.Grab<TooltipUI>();
+				tooltip.Tooltip = ship.Discription;
 			}
 		}
 
@@ -837,12 +878,12 @@ namespace BattleSoup {
 				AllMaps.Sort((a, b) => a.Size.CompareTo(b.Size));
 			} catch (System.Exception ex) { Debug.LogException(ex); }
 
-			MapIndexA.Value = MapIndexA.Value.Clamp(0, AllMaps.Count - 1);
-			MapIndexB.Value = MapIndexB.Value.Clamp(0, AllMaps.Count - 1);
+			s_MapIndexA.Value = s_MapIndexA.Value.Clamp(0, AllMaps.Count - 1);
+			s_MapIndexB.Value = s_MapIndexB.Value.Clamp(0, AllMaps.Count - 1);
 
 			// Reload UI
-			ReloadMapUI(m_Assets.MapSelectorItem, m_Assets.MapSelectorContentA, MapIndexA.Value);
-			ReloadMapUI(m_Assets.MapSelectorItem, m_Assets.MapSelectorContentB, MapIndexB.Value);
+			ReloadMapUI(m_Assets.MapSelectorItem, m_Assets.MapSelectorContentA, s_MapIndexA.Value);
+			ReloadMapUI(m_Assets.MapSelectorItem, m_Assets.MapSelectorContentB, s_MapIndexB.Value);
 
 			// Func
 			void ReloadMapUI (Grabber itemSource, RectTransform content, int selectingIndex) {

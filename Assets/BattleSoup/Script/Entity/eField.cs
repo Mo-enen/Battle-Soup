@@ -179,6 +179,14 @@ namespace BattleSoup {
 					cell.Sonar = 0;
 				}
 			}
+			// Ships
+			for (int i = 0; i < Ships.Length; i++) {
+				var ship = Ships[i];
+				ship.CurrentCooldown = ship.DefaultCooldown;
+				ship.Visible = false;
+				ship.Alive = true;
+			}
+
 		}
 
 
@@ -202,7 +210,7 @@ namespace BattleSoup {
 				// Hit Ship
 				cell.State = CellState.Hit;
 				RefreshAllShipsAliveState();
-				return Ships[cell.ShipIndex].Alive ? ActionResult.HitShip : ActionResult.SunkShip;
+				return Ships[cell.ShipIndex].Alive ? ActionResult.Hit : ActionResult.Sunk;
 			}
 		}
 
@@ -254,7 +262,7 @@ namespace BattleSoup {
 				// Hit Ship
 				cell.State = CellState.Hit;
 				RefreshAllShipsAliveState();
-				return Ships[cell.ShipIndex].Alive ? ActionResult.HitShip : ActionResult.SunkShip;
+				return Ships[cell.ShipIndex].Alive ? ActionResult.Hit : ActionResult.Sunk;
 			}
 		}
 

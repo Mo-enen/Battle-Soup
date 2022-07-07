@@ -19,7 +19,7 @@ namespace BattleSoup {
 			public int Y = 0;
 			public ActionKeyword Keyword = ActionKeyword.None;
 		}
-		public ActionType Type = ActionType.None;
+		public ActionType Type = ActionType.Clear;
 		public int RandomCount = 0;
 		public Operation[] Operations = new Operation[0];
 	}
@@ -28,7 +28,7 @@ namespace BattleSoup {
 
 	public class EntranceUnit : ExecuteUnit {
 		public EntranceType Type = EntranceType.OnAbilityUsed;
-		public ActionResult Keyword = ActionResult.All;
+		public ActionResult Keyword = ActionResult.None;
 	}
 
 
@@ -54,30 +54,17 @@ namespace BattleSoup {
 			}
 		}
 		private static string[] _AllActionNames = null;
-		private static string[] AllEntranceNames => _AllEntranceNames ??= System.Enum.GetNames(typeof(EntranceType));
+		private static string[] AllEntranceNames {
+			get {
+				if (_AllEntranceNames == null) {
+					var names = new List<string>(System.Enum.GetNames(typeof(EntranceType)));
+					names.Sort((a, b) => b.Length.CompareTo(a.Length));
+					_AllEntranceNames = names.ToArray();
+				}
+				return _AllEntranceNames;
+			}
+		}
 		private static string[] _AllEntranceNames = null;
-		private static ActionKeyword A_KEYWORD_ALL {
-			get {
-				if (_A_KEYWORD_ALL == ActionKeyword.None) {
-					foreach (var value in System.Enum.GetValues(typeof(ActionKeyword))) {
-						_A_KEYWORD_ALL |= (ActionKeyword)value;
-					}
-				}
-				return _A_KEYWORD_ALL;
-			}
-		}
-		private static ActionKeyword _A_KEYWORD_ALL = ActionKeyword.None;
-		private static ActionResult E_KEYWORD_ALL {
-			get {
-				if (_E_KEYWORD_ALL == ActionResult.None) {
-					foreach (var value in System.Enum.GetValues(typeof(ActionResult))) {
-						_E_KEYWORD_ALL |= (ActionResult)value;
-					}
-				}
-				return _E_KEYWORD_ALL;
-			}
-		}
-		private static ActionResult _E_KEYWORD_ALL = ActionResult.None;
 
 
 		#endregion
@@ -103,7 +90,7 @@ namespace BattleSoup {
 					if (unit is EntranceUnit eUnit) {
 						// Check for Duplicate Entrance
 						if (cookedEntrance.Contains(eUnit.Type)) {
-							error = $"Duplicate entrance at Line:{i}.";
+							error = $"Duplicate entrance for {eUnit.Type}";
 							return null;
 						} else {
 							cookedEntrance.Add(eUnit.Type);
@@ -112,7 +99,7 @@ namespace BattleSoup {
 					// Add Unit
 					units.Add(unit);
 				} else {
-					error = $"Compile Error at Line:{i}\n" + error;
+					error = $"Compile Error\n" + error;
 					return null;
 				}
 			}
@@ -273,7 +260,6 @@ namespace BattleSoup {
 					}
 				}
 			}
-			if (word == ActionResult.None) word = ActionResult.All;
 
 			// Final
 			entrance.Keyword = word;

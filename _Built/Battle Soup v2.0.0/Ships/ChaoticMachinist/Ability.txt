@@ -1,0 +1,20 @@
+
+// Chao Machinist
+
+OnAbilityUsed
+
+pick [hittable]
+attack
+
+pick [hittable]
+attack
+
+pick [hittable]
+attack
+
+pick [hittable]
+attack
+
+
+OnHitShip
+attack ? [self, currentShip, normalWater, revealedShip]

@@ -1,0 +1,10 @@
+
+// Squid
+
+pick [revealedWater, hitShip, sunkShip, revealedShip]
+
+attack
+reveal (0,1)
+reveal (0,-1)
+reveal (1,0)
+reveal (-1,0)

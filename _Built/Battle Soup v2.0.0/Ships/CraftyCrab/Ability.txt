@@ -1,0 +1,5 @@
+
+// Crafty Crab
+
+OnAttack [self]
+reveal ? [normalWater, noStone]

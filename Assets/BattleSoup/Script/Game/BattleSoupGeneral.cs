@@ -13,8 +13,6 @@ namespace BattleSoup {
 
 	public enum ActionType {
 
-		None,
-
 		// Position Buffer
 		Pick,
 		This,
@@ -25,13 +23,18 @@ namespace BattleSoup {
 		Reveal,
 		Unreveal,
 		Sonar,
+		expand,
+		shrink,
 
 		SunkShip,
 		RevealShip,
+		ExposeShip,
+
 		AddCooldown,
 		ReduceCooldown,
 		AddMaxCooldown,
 		ReduceMaxCooldown,
+		PerformLastUsedAbility,
 
 	}
 
@@ -41,10 +44,11 @@ namespace BattleSoup {
 	public enum EntranceType {
 		OnAbilityUsed,
 		OnAbilityUsedWithOverCooldown,
-		OnNormalAttack,
-		OnShipGetHit,
-		OnShipGetRevealed,
-		OnShipBecomeVisible,
+		OnAttack,
+		OnHitShip,
+		OnHitCurrentShip,
+		OnRevealedShip,
+		OnRevealedCurrentShip,
 	}
 
 
@@ -63,19 +67,22 @@ namespace BattleSoup {
 
 		Ship = 1L << 4,
 		NoShip = 1L << 5,
+		Hittable = 1L << 6,
+		CurrentShip = 1L << 7,
 
-		RevealedShip = 1L << 6,
-		HitShip = 1L << 7,
-		SunkShip = 1L << 8,
+		RevealedShip = 1L << 8,
+		HitShip = 1L << 9,
+		SunkShip = 1L << 10,
 
-		VisibleShip = 1L << 9,
-		InvisibleShip = 1L << 10,
+		VisibleShip = 1L << 11,
+		InvisibleShip = 1L << 12,
 
 		// Action
-		Self = 1L << 11,
-		BreakIfMiss = 1L << 12,
-		BreakIfHit = 1L << 13,
-		breakIfSunk = 1L << 14,
+		Self = 1L << 13,
+		BreakIfMiss = 1L << 14,
+		BreakIfHit = 1L << 15,
+		BreakIfReveal = 1L << 16,
+		breakIfSunk = 1L << 17,
 
 	}
 
@@ -86,16 +93,16 @@ namespace BattleSoup {
 
 		None = 0,
 
-		HitShip = 1L << 0,
-		SunkShip = 1L << 1,
+		Hit = 1L << 0,
+		Sunk = 1L << 1,
 		RevealWater = 1L << 2,
 		RevealShip = 1L << 3,
-		SonarWater = 1L << 4,
+		Sonar = 1L << 4,
+		ExposeShip = 1L << 5,
 
-		Reaveal = RevealWater | RevealShip | SonarWater,
-		Hit = HitShip | SunkShip,
-		Miss = RevealWater | SonarWater,
-		All = HitShip | SunkShip | RevealWater | RevealShip | SonarWater,
+		Reaveal = RevealWater | RevealShip | Sonar,
+		Attack = Hit | Sunk,
+		Miss = RevealWater | Sonar,
 
 	}
 

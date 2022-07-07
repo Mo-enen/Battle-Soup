@@ -1,0 +1,6 @@
+
+// Skull Cove (Different with BT)
+
+OnHitCurrentShip [hit]
+attack ??? [normalWater, revealedShip]
+

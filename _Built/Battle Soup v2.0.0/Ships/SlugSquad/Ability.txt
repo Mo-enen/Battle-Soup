@@ -1,0 +1,8 @@
+
+// Slug Quad
+
+pick [normalWater]
+reveal
+
+pick [normalWater]
+reveal

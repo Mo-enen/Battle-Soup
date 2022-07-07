@@ -1,0 +1,8 @@
+
+// Long Sub
+
+pick
+sonar
+this
+revealShip [self]
+exposeShip [self]

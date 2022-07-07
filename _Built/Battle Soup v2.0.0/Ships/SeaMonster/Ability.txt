@@ -1,10 +1,7 @@
 
-// Sea Monster Ability Example
+// Sea Monster
 
-Attack(???)
-Unreveal(?) [revealed, self]
-
-
-
+attack ???
+unreveal ? [self, revealedWater, revealedShip]
 
 
