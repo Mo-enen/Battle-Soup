@@ -124,11 +124,7 @@ namespace BattleSoup {
 				(cell.ShipIndex >= 0 && cell.State == CellState.Revealed)
 			) {
 				CellStep.AddToLast(new sAttack(localX, localY, this));
-
-
-
-
-
+				CellStep.AddToLast(new sSwitchTurn());
 			}
 		}
 

@@ -2,8 +2,8 @@
     "GlobalName": "KillerSquid",
     "DisplayName": "Killer Squid",
     "Discription": "Can only attack on revealed tiles. Attacks also reveal adjacent tiles",
-    "DefaultCooldown": 1,
-    "MaxCooldown": 1,
+    "DefaultCooldown": 2,
+    "MaxCooldown": 2,
     "Body": "11,10" 
     
 }

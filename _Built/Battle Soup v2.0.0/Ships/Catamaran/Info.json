@@ -2,8 +2,8 @@
     "GlobalName": "Catamaran",
     "DisplayName": "Catamaran",
     "Discription": "Attacks in a 7x1 line.",
-    "DefaultCooldown": 1,
-    "MaxCooldown": 1,
+    "DefaultCooldown": 7,
+    "MaxCooldown": 7,
     "Body": "111,101,111" 
     
 }

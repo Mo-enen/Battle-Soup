@@ -2,8 +2,8 @@
     "GlobalName": "MediumGalleon",
     "DisplayName": "Medium Galleon",
     "Discription": "Attacks twice.",
-    "DefaultCooldown": 1,
-    "MaxCooldown": 1,
+    "DefaultCooldown": 3,
+    "MaxCooldown": 3,
     "Body": "1,1,1" 
     
 }

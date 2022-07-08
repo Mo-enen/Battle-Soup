@@ -2,8 +2,8 @@
     "GlobalName": "Coracle",
     "DisplayName": "Coracle",
     "Discription": "Destroys ships in one hit, can only play in revealed tiles. Reveals a random unoccupied tile on your grid when you play a regular attack",
-    "DefaultCooldown": 1,
-    "MaxCooldown": 1,
+    "DefaultCooldown": 6,
+    "MaxCooldown": 6,
     "Body": "1" 
     
 }

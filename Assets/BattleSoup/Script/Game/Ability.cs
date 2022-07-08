@@ -45,7 +45,7 @@ namespace BattleSoup {
 		// LGC
 		private void PerformAction (ActionUnit unit, out bool _continue) {
 			_continue = true;
-			// Add Step
+			// Add Steps
 
 
 

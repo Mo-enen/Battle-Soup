@@ -2,8 +2,8 @@
     "GlobalName": "Raft",
     "DisplayName": "Raft",
     "Discription": "Attacks in a 2x2 pattern",
-    "DefaultCooldown": 1,
-    "MaxCooldown": 1,
+    "DefaultCooldown": 5,
+    "MaxCooldown": 5,
     "Body": "11,11" 
     
 }

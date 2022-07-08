@@ -2,8 +2,8 @@
     "GlobalName": "SeeSlug",
     "DisplayName": "See Slug",
     "Discription": "Reveals the target position. If nothing is revealed, repeat, up to a limit of 5 times.",
-    "DefaultCooldown": 1,
-    "MaxCooldown": 1,
+    "DefaultCooldown": 3,
+    "MaxCooldown": 3,
     "Body": "110,011,001" 
     
 }

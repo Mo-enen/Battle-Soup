@@ -350,7 +350,29 @@ namespace BattleSoup {
 		#region --- API ---
 
 
-		public void SwitchTurn () => CurrentTurn = CurrentTurn.Opponent();
+		public void SwitchTurn () {
+			var field = CurrentTurn == Turn.A ? FieldA : FieldB;
+			foreach (var ship in field.Ships) {
+				ship.CurrentCooldown--;
+			}
+			CurrentTurn = CurrentTurn.Opponent();
+			RefreshInteractableForShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
+			RefreshInteractableForShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
+		}
+
+
+		public bool UseAbility (Ship ship) {
+			if (ship.CurrentCooldown > 0) return false;
+			if (!AbilityPool.TryGetValue(ship.GlobalCode, out var ability)) return false;
+			ability.Perform(
+				ship.CurrentCooldown == 0 ? EntranceType.OnAbilityUsed : EntranceType.OnAbilityUsedWithOverCooldown,
+				ActionResult.None
+			);
+			ship.CurrentCooldown = ship.MaxCooldown;
+			RefreshInteractableForShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
+			RefreshInteractableForShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
+			return true;
+		}
 
 
 		// UI
@@ -521,9 +543,9 @@ namespace BattleSoup {
 						SwitchState(GameState.Prepare);
 					}
 
+					OnFleetChanged();
 					FieldA.Restart();
 					FieldB.Restart();
-					OnFleetChanged();
 					ReloadShipAbilityUI(FieldA, m_Assets.AbilityContainerA, m_Assets.ShipAbilityItem, PvA);
 					ReloadShipAbilityUI(FieldB, m_Assets.AbilityContainerB, m_Assets.ShipAbilityItem, false);
 
@@ -749,13 +771,18 @@ namespace BattleSoup {
 
 					});
 				}
-				var icon = grab.Grab<Image>();
+				var icon = grab.Grab<Image>("Icon");
 				icon.sprite = ship.Icon;
-				var label = grab.Grab<Text>();
+				var label = grab.Grab<Text>("Label");
 				label.text = ship.DisplayName;
 				var tooltip = grab.Grab<TooltipUI>();
 				tooltip.Tooltip = ship.Discription;
+				var cooldown = grab.Grab<Text>("Cooldown");
+				cooldown.text = ship.DefaultCooldown.ToString();
+				var shape = grab.Grab<ShipShapeUI>();
+				shape.Ship = ship;
 			}
+			RefreshInteractableForShipAbilityUI(container, field, interactable);
 		}
 
 
@@ -763,9 +790,12 @@ namespace BattleSoup {
 			int count = container.childCount;
 			for (int i = 0; i < count && i < field.Ships.Length; i++) {
 				var ship = field.Ships[i];
-				var btn = container.GetChild(i).GetComponent<Button>();
-				if (btn == null) continue;
-				btn.interactable = interactable && ship.CurrentCooldown <= 0;
+				var grab = container.GetChild(i).GetComponent<Grabber>();
+				if (grab == null) continue;
+				var btn = grab.Grab<Button>();
+				btn.interactable = interactable && !GameOver && ship.CurrentCooldown <= 0;
+				var cooldown = grab.Grab<Text>("Cooldown");
+				cooldown.text = !GameOver && ship.CurrentCooldown > 0 ? ship.CurrentCooldown.ToString() : "";
 			}
 		}
 
@@ -826,9 +856,9 @@ namespace BattleSoup {
 			foreach (var (_, ship) in ShipPool) {
 				var grab = Instantiate(m_Assets.FleetSelectorShipItem, m_Assets.FleetSelectorPlayerContent);
 				var rt = grab.transform as RectTransform;
-				var img = grab.Grab<Image>();
+				var img = grab.Grab<Image>("Icon");
 				img.sprite = ship.Icon != null ? ship.Icon : m_Assets.DefaultShipIcon;
-				var label = grab.Grab<Text>();
+				var label = grab.Grab<Text>("Label");
 				label.text = ship.DisplayName;
 				var btn = grab.Grab<Button>();
 				btn.onClick.AddListener(() => {
@@ -842,6 +872,10 @@ namespace BattleSoup {
 				});
 				var tooltip = grab.Grab<TooltipUI>();
 				tooltip.Tooltip = ship.Discription;
+				var shape = grab.Grab<ShipShapeUI>();
+				shape.Ship = ship;
+				var cooldown = grab.Grab<Text>("Cooldown");
+				cooldown.text = ship.MaxCooldown.ToString();
 			}
 		}
 
