@@ -544,8 +544,8 @@ namespace BattleSoup {
 					}
 
 					OnFleetChanged();
-					FieldA.Restart();
-					FieldB.Restart();
+					FieldA.GameStart();
+					FieldB.GameStart();
 					ReloadShipAbilityUI(FieldA, m_Assets.AbilityContainerA, m_Assets.ShipAbilityItem, PvA);
 					ReloadShipAbilityUI(FieldB, m_Assets.AbilityContainerB, m_Assets.ShipAbilityItem, false);
 

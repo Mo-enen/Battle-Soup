@@ -166,7 +166,7 @@ namespace BattleSoup {
 		}
 
 
-		public void Restart () {
+		public void GameStart () {
 			// Cells
 			for (int i = 0; i < MapSize; i++) {
 				for (int j = 0; j < MapSize; j++) {
@@ -178,7 +178,7 @@ namespace BattleSoup {
 			// Ships
 			for (int i = 0; i < Ships.Length; i++) {
 				var ship = Ships[i];
-				ship.CurrentCooldown = ship.DefaultCooldown;
+				ship.CurrentCooldown = ship.DefaultCooldown - 1;
 				ship.Visible = false;
 				ship.Alive = true;
 			}
