@@ -609,6 +609,69 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Wood Panel
+      rect:
+        serializedVersion: 2
+        x: 245
+        y: 301
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 7, y: 7, z: 7, w: 7}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 808d268fda5ebdc41b8d39ebd548236c
+      internalID: 1851841581
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Wood Item
+      rect:
+        serializedVersion: 2
+        x: 245
+        y: 283
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 7, y: 7, z: 7, w: 7}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 47d46b69dfc96744eb5d80155a929c01
+      internalID: -954188774
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Wood Panel B
+      rect:
+        serializedVersion: 2
+        x: 427
+        y: 1
+        width: 48
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 8, y: 13, z: 15, w: 10}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0e4270cc630d7fb4ca3ff833ba1d4f17
+      internalID: 1929336801
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -630,6 +693,7 @@ TextureImporter:
       Setting: -2050515895
       Construction: -1436908655
       Poker: 1205203521
+      Wood Panel B: 1929336801
       CheatLose: 1920047204
       Spoon: -1698021046
       CheatWin: 1893319958
@@ -647,6 +711,8 @@ TextureImporter:
       Reload: 1544891859
       Title Ship 2: -1795022542
       Toggle: -750467815
+      Wood Item: -954188774
+      Wood Panel: 1851841581
       Title Ship 0: -1270888692
   spritePackingTag: 
   pSDRemoveMatte: 0

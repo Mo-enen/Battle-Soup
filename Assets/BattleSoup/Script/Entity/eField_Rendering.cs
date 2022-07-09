@@ -20,7 +20,7 @@ namespace BattleSoup {
 
 
 		#endregion
-		
+
 
 
 
@@ -73,7 +73,7 @@ namespace BattleSoup {
 					// Water Offset Y
 					if (localMouseX == i && localMouseY == j) {
 						// Highlight
-						cell.WaterOffsetY = SoupConst.ISO_HEIGHT / 2;
+						cell.WaterOffsetY = SoupConst.ISO_HEIGHT / 3;
 					} else {
 						// Back to Normal
 						if (cell.WaterOffsetY != 0) cell.WaterOffsetY = cell.WaterOffsetY * 7 / 12;
@@ -86,7 +86,11 @@ namespace BattleSoup {
 
 		// Draw
 		private void DrawWaters () {
-			var (localMouseX, localMouseY) = Global_to_Local(FrameInput.MouseGlobalPosition.x, FrameInput.MouseGlobalPosition.y, 1);
+			var (localMouseX, localMouseY) = Global_to_Local(
+				FrameInput.MouseGlobalPosition.x,
+				FrameInput.MouseGlobalPosition.y,
+				1
+			);
 			var hoveringLocalPosition = new Vector2Int(localMouseX, localMouseY);
 			int count = MapSize * MapSize;
 			for (int i = count - 1; i >= 0; i--) {

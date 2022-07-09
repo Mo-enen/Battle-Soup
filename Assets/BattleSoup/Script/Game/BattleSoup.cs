@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using AngeliaFramework;
@@ -351,6 +350,9 @@ namespace BattleSoup {
 
 
 		public void SwitchTurn () {
+
+			///Grid grid;
+
 			var field = CurrentTurn == Turn.A ? FieldA : FieldB;
 			foreach (var ship in field.Ships) {
 				ship.CurrentCooldown--;

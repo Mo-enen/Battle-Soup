@@ -121,9 +121,9 @@ namespace BattleSoup {
 
 	public static class SoupConst {
 
-		public const int ISO_WIDTH = 32 * 7; // 231
-		public const int ISO_HEIGHT = 16 * 7; // 119
-		public const int ISO_SIZE = 65 * 7; // 455
+		public const int ISO_WIDTH = 32 * 7;
+		public const int ISO_HEIGHT = 16 * 7; 
+		public const int ISO_SIZE = 64 * 7;
 
 		public static BattleSoup.Turn Opponent (this BattleSoup.Turn turn) => 1 - turn;
 

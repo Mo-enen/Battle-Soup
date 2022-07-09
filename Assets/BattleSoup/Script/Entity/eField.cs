@@ -18,11 +18,6 @@ namespace BattleSoup {
 		#region --- VAR ---
 
 
-
-		// Const
-		private static readonly Matrix2x2 L2G = new(SoupConst.ISO_WIDTH, -SoupConst.ISO_WIDTH, SoupConst.ISO_HEIGHT, SoupConst.ISO_HEIGHT);
-		private static Matrix2x2 G2L => _G2L ??= L2G.Inverse(); static Matrix2x2 _G2L = null;
-
 		// Api
 		public Cell this[int x, int y] => Cells[x, y];
 		public Ship[] Ships { get; private set; } = new Ship[0];
@@ -40,7 +35,6 @@ namespace BattleSoup {
 
 		// Data
 		private Cell[,] Cells = null;
-
 
 
 		#endregion
@@ -267,9 +261,12 @@ namespace BattleSoup {
 		public (int globalX, int globalY) Local_to_Global (int localX, int localY, int localZ = 0) {
 			localX += LocalShift.x;
 			localY += LocalShift.y;
-			var point = L2G * new Vector2(localX, localY);
-			int globalX = (int)point.x;
-			int globalY = (int)point.y + localZ * SoupConst.ISO_HEIGHT * 2;
+			var point = new Vector2Int(
+				SoupConst.ISO_WIDTH * localX - SoupConst.ISO_WIDTH * localY,
+				SoupConst.ISO_HEIGHT * localX + SoupConst.ISO_HEIGHT * localY
+			);
+			int globalX = point.x;
+			int globalY = point.y + localZ * SoupConst.ISO_HEIGHT * 2;
 			return (globalX, globalY);
 		}
 
@@ -277,9 +274,16 @@ namespace BattleSoup {
 		public (int localX, int localY) Global_to_Local (int globalX, int globalY, int localZ = 0) {
 			globalX -= SoupConst.ISO_WIDTH;
 			globalY -= localZ * SoupConst.ISO_HEIGHT * 2;
-			var point = G2L * new Vector2(globalX, globalY);
-			int localX = (int)point.x.UFloor(1f);
-			int localY = (int)point.y.UFloor(1f);
+
+			const float GAP_X = SoupConst.ISO_WIDTH * 2f;
+			const float GAP_Y = SoupConst.ISO_HEIGHT * 2f;
+			float gx = (int)(globalX * GAP_X) / GAP_X;
+			float gy = (int)(globalY * GAP_Y) / GAP_Y;
+			float pX = gx / (2f * SoupConst.ISO_WIDTH) + gy / (2f * SoupConst.ISO_HEIGHT);
+			float pY = -gx / (2f * SoupConst.ISO_WIDTH) + gy / (2f * SoupConst.ISO_HEIGHT);
+
+			int localX = (int)pX.UFloor(1f);
+			int localY = (int)pY.UFloor(1f);
 			return (localX - LocalShift.x, localY - LocalShift.y);
 		}
 
