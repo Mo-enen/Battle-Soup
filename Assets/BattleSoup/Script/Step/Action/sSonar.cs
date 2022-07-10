@@ -16,19 +16,19 @@ namespace BattleSoup {
 
 		public override StepResult FrameUpdate (Game game) {
 			base.FrameUpdate(game);
-			if (LocalX < 0 || LocalX >= Field.MapSize || LocalY < 0 || LocalY >= Field.MapSize) return StepResult.Over;
+			if (X < 0 || X >= Field.MapSize || Y < 0 || Y >= Field.MapSize) return StepResult.Over;
 			// Has Ship
-			if (Field[LocalX, LocalY].ShipIndex >= 0) {
-				CellStep.AddToNext(new sAttack(LocalX, LocalY, Field, Fast, false));
+			if (Field[X, Y].ShipIndex >= 0) {
+				CellStep.AddToSecond(new sAttack(X, Y, Field, Fast, false));
 				return StepResult.Over;
 			}
 			// No Ship
-			Field.Sonar(LocalX, LocalY);
+			Field.Sonar(X, Y);
 			int DURATION = Fast ? 6 : 24;
 			if (UseAnimation && LocalFrame < DURATION) {
 				if (LocalFrame % 4 < 2) {
 					float t01 = (float)LocalFrame / DURATION;
-					var (x, y) = Field.Local_to_Global(LocalX, LocalY, 0);
+					var (x, y) = Field.Local_to_Global(X, Y, 0);
 					CellRenderer.Draw(
 						SONAR_CODE,
 						x, y + (int)(t01 * SoupConst.ISO_SIZE / 2),

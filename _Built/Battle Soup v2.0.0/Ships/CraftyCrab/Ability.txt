@@ -1,5 +1,5 @@
 
 // Crafty Crab
 
-OnAttack [self]
+OnOpponentGetAttack
 reveal ? [normalWater, noStone]

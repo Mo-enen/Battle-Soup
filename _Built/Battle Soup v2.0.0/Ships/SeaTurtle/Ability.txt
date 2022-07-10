@@ -3,12 +3,8 @@
 
 pick [hittable]
 attack 
+reduceCooldown [triggerIfHit, this]
 reveal (0,1)
 reveal (0,-1)
 reveal (1,0)
 reveal (-1,0)
-
-
-OnHitShip
-this
-reduceCooldown [self]

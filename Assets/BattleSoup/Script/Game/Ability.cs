@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using AngeliaFramework;
 
 
 namespace BattleSoup {
@@ -10,27 +11,27 @@ namespace BattleSoup {
 		// Api
 		public ExecuteUnit[] Units = null;
 		public readonly Dictionary<EntranceType, int> EntrancePool = new();
+		public bool HasManuallyEntrance = false;
+		public bool HasPassiveEntrance = false;
 
 
 		// API
-		public void Perform (EntranceType entrance, ActionResult performingKeyword) {
+		public bool Perform (
+			EntranceType entrance, in eField selfField, in eField opponentField
+		) {
 
 			// Get Start Line from Pool
-			if (!EntrancePool.TryGetValue(entrance, out int startLine)) return;
+			if (!EntrancePool.TryGetValue(entrance, out int startLine)) return false;
 
-			// Check Limitation for Entrance
-			if (
-				Units[startLine] is not EntranceUnit entranceUnit ||
-				!entranceUnit.Keyword.HasFlag(performingKeyword)
-			) return;
+			bool result = false;
 
 			// Perform all Units
 			for (int i = startLine + 1; i < Units.Length; i++) {
 				var unit = Units[i];
 				switch (unit) {
 					case ActionUnit aUnit:
-						PerformAction(aUnit, out bool _continue);
-						if (!_continue) goto EndPerform;
+						CellStep.AddToLast(new sActionPerformer(aUnit, selfField, opponentField));
+						result = true;
 						break;
 					case EntranceUnit:
 						// End Perform when Hit Another Entrance
@@ -39,16 +40,7 @@ namespace BattleSoup {
 			}
 			EndPerform:;
 
-		}
-
-
-		// LGC
-		private void PerformAction (ActionUnit unit, out bool _continue) {
-			_continue = true;
-			// Add Steps
-
-
-
+			return result;
 		}
 
 

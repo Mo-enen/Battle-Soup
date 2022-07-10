@@ -8,7 +8,7 @@ namespace BattleSoup {
 	[EntityCapacity(1)]
 	[ForceUpdate]
 	[ExcludeInMapEditor]
-	[DontDepawnWhenOutOfRange]
+	[DontDespawnWhenOutOfRange]
 	public class eBackgroundAnimation : Entity {
 
 

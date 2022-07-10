@@ -9,15 +9,15 @@ namespace BattleSoup {
 
 
 		protected eField Field { get; private init; }
-		protected int LocalX { get; private init; }
-		protected int LocalY { get; private init; }
+		protected int X { get; private init; }
+		protected int Y { get; private init; }
 		protected bool Fast { get; private init; }
 		protected bool UseAnimation { get; private set; } = false;
-
+		
 
 		protected sSoupStep (int x, int y, eField field, bool fast = false) {
-			LocalX = x;
-			LocalY = y;
+			X = x;
+			Y = y;
 			Field = field;
 			Fast = fast;
 		}

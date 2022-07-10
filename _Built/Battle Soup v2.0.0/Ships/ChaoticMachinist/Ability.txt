@@ -5,16 +5,17 @@ OnAbilityUsed
 
 pick [hittable]
 attack
+attack ? [triggerIfHit, self, currentShip, normalWater, revealedShip]
 
 pick [hittable]
 attack
+attack ? [triggerIfHit, self, currentShip, normalWater, revealedShip]
 
 pick [hittable]
 attack
+attack ? [triggerIfHit, self, currentShip, normalWater, revealedShip]
 
 pick [hittable]
 attack
+attack ? [triggerIfHit, self, currentShip, normalWater, revealedShip]
 
-
-OnHitShip
-attack ? [self, currentShip, normalWater, revealedShip]

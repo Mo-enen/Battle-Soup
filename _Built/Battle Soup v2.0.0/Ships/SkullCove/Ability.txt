@@ -1,6 +1,6 @@
 
 // Skull Cove (Different with BT)
 
-OnHitCurrentShip [hit]
+OnCurrentShipGetHit
 attack ??? [normalWater, revealedShip]
 

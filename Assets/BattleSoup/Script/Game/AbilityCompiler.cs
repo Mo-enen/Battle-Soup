@@ -19,7 +19,7 @@ namespace BattleSoup {
 			public int Y = 0;
 			public ActionKeyword Keyword = ActionKeyword.None;
 		}
-		public ActionType Type = ActionType.Clear;
+		public ActionType Type = ActionType.None;
 		public int RandomCount = 0;
 		public Operation[] Operations = new Operation[0];
 	}
@@ -28,7 +28,6 @@ namespace BattleSoup {
 
 	public class EntranceUnit : ExecuteUnit {
 		public EntranceType Type = EntranceType.OnAbilityUsed;
-		public ActionResult Keyword = ActionResult.None;
 	}
 
 
@@ -117,16 +116,32 @@ namespace BattleSoup {
 				// Add OnAbilityUsed to Start
 				units.Insert(0, new EntranceUnit() {
 					Type = EntranceType.OnAbilityUsed,
-					Keyword = ActionResult.None,
 				});
 			}
 
 			// Result
-			var result = new Ability() { Units = units.ToArray() };
+			var result = new Ability() {
+				Units = units.ToArray(),
+				HasManuallyEntrance = false,
+				HasPassiveEntrance = false,
+			};
 			for (int i = 0; i < units.Count; i++) {
 				var unit = units[i];
 				if (unit is EntranceUnit eUnit) {
 					result.EntrancePool.TryAdd(eUnit.Type, i);
+					switch (eUnit.Type) {
+						case EntranceType.OnAbilityUsed:
+						case EntranceType.OnAbilityUsedOvercharged:
+							result.HasManuallyEntrance = true;
+							break;
+						case EntranceType.OnOpponentGetAttack:
+						case EntranceType.OnSelfGetAttack:
+						case EntranceType.OnOpponentShipGetHit:
+						case EntranceType.OnSelfShipGetHit:
+						case EntranceType.OnCurrentShipGetHit:
+							result.HasPassiveEntrance = true;
+							break;
+					}
 				}
 			}
 			return result;
@@ -224,11 +239,8 @@ namespace BattleSoup {
 
 
 		private static EntranceUnit CheckForEntrance (string line, out string _error) {
-
 			_error = "";
 			var entrance = new EntranceUnit();
-
-			// Type
 			string targetName = AllEntranceNames.FirstOrDefault(
 				name => line.StartsWith(name, System.StringComparison.OrdinalIgnoreCase)
 			);
@@ -240,29 +252,6 @@ namespace BattleSoup {
 				_error = $"Unknown Entrance Type for \"{line}\"";
 				return null;
 			}
-
-			// Keywords Inside []
-			var word = ActionResult.None;
-			if (line.Length >= 2 && line[0] == '[') {
-				int closeIndex = line.IndexOf(']');
-				if (closeIndex < 0) {
-					_error = "\"]\" not found";
-					return null;
-				}
-				string keywordStr = line[1..closeIndex];
-				if (!string.IsNullOrWhiteSpace(keywordStr)) {
-					var keywords = keywordStr.Split(',');
-					for (int i = 0; i < keywords.Length; i++) {
-						string keyword = keywords[i];
-						if (System.Enum.TryParse<ActionResult>(keyword, true, out var _word)) {
-							word |= _word;
-						}
-					}
-				}
-			}
-
-			// Final
-			entrance.Keyword = word;
 			return entrance;
 		}
 

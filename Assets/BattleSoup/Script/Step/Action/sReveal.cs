@@ -20,11 +20,13 @@ namespace BattleSoup {
 		public override StepResult FrameUpdate (Game game) {
 			base.FrameUpdate(game);
 			int DURATION = Fast ? 6 : 24;
-			Field.Reveal(LocalX, LocalY);
+			var result = Field.Reveal(X, Y);
+			var (_x, _y) = Field.Local_to_Global(X, Y, 1);
+			eTag.SpawnTag(_x, _y, result);
 			if (UseAnimation && LocalFrame < DURATION) {
 				if (LocalFrame % 4 < 2) {
 					float t01 = (float)LocalFrame / DURATION;
-					var (x, y) = Field.Local_to_Global(LocalX, LocalY, 0);
+					var (x, y) = Field.Local_to_Global(X, Y, 0);
 					CellRenderer.Draw(
 						FRAME_CODE,
 						x, y + (int)(t01 * SoupConst.ISO_SIZE / 2),

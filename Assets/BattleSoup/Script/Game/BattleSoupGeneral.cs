@@ -10,45 +10,59 @@ namespace BattleSoup {
 
 
 
-
 	public enum ActionType {
+
+		None,
 
 		// Position Buffer
 		Pick,
-		This,
-		Clear,
 
-		// Operations
+		// Tile
 		Attack,
 		Reveal,
 		Unreveal,
 		Sonar,
-		expand,
-		shrink,
+		Expand,
+		Shrink,
 
+		// Ship
 		SunkShip,
 		RevealShip,
 		ExposeShip,
 
+		// Cooldown
 		AddCooldown,
 		ReduceCooldown,
 		AddMaxCooldown,
 		ReduceMaxCooldown,
+
+		// Other
 		PerformLastUsedAbility,
 
 	}
 
 
 
-
 	public enum EntranceType {
+
 		OnAbilityUsed,
-		OnAbilityUsedWithOverCooldown,
-		OnAttack,
-		OnHitShip,
-		OnHitCurrentShip,
-		OnRevealedShip,
-		OnRevealedCurrentShip,
+		OnAbilityUsedOvercharged,
+
+		OnOpponentGetAttack,
+		OnSelfGetAttack,
+
+		OnOpponentShipGetHit,
+		OnSelfShipGetHit,
+		OnCurrentShipGetHit,
+
+		OnOpponentShipGetRevealed,
+		OnSelfShipGetRevealed,
+		OnCurrentShipGetRevealed,
+
+		OnOpponentShipGetSunk,
+		OnSelfShipGetSunk,
+		OnCurrentShipGetSunk,
+
 	}
 
 
@@ -67,22 +81,37 @@ namespace BattleSoup {
 
 		Ship = 1L << 4,
 		NoShip = 1L << 5,
+
 		Hittable = 1L << 6,
-		CurrentShip = 1L << 7,
 
-		RevealedShip = 1L << 8,
-		HitShip = 1L << 9,
-		SunkShip = 1L << 10,
+		ExposedShip = 1L << 7,
+		UnexposedShip = 1L << 8,
 
-		VisibleShip = 1L << 11,
-		InvisibleShip = 1L << 12,
+		RevealedShip = 1L << 9,
+		UnrevealedShip = 1L << 10,
 
-		// Action
-		Self = 1L << 13,
-		BreakIfMiss = 1L << 14,
-		BreakIfHit = 1L << 15,
-		BreakIfReveal = 1L << 16,
-		breakIfSunk = 1L << 17,
+		HitShip = 1L << 11,
+		SunkShip = 1L << 12,
+
+		VisibleShip = 1L << 13,
+		InvisibleShip = 1L << 14,
+
+		// Target
+		This = 1L << 15,
+		Self = 1L << 16,
+		Opponent = 1L << 17,
+
+		// Break
+		BreakIfMiss = 1L << 18,
+		BreakIfHit = 1L << 19,
+		BreakIfReveal = 1L << 20,
+		BreakIfSunk = 1L << 21,
+
+		// Trigger
+		TriggerIfMiss = 1L << 22,
+		TriggerIfHit = 1L << 23,
+		TriggerIfReveal = 1L << 24,
+		TriggerIfSunk = 1L << 25,
 
 	}
 
@@ -99,10 +128,6 @@ namespace BattleSoup {
 		RevealShip = 1L << 3,
 		Sonar = 1L << 4,
 		ExposeShip = 1L << 5,
-
-		Reaveal = RevealWater | RevealShip | Sonar,
-		Attack = Hit | Sunk,
-		Miss = RevealWater | Sonar,
 
 	}
 
@@ -122,7 +147,7 @@ namespace BattleSoup {
 	public static class SoupConst {
 
 		public const int ISO_WIDTH = 32 * 7;
-		public const int ISO_HEIGHT = 16 * 7; 
+		public const int ISO_HEIGHT = 16 * 7;
 		public const int ISO_SIZE = 64 * 7;
 
 		public static BattleSoup.Turn Opponent (this BattleSoup.Turn turn) => 1 - turn;

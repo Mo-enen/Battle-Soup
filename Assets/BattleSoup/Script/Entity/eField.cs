@@ -9,7 +9,7 @@ namespace BattleSoup {
 	[EntityCapacity(2)]
 	[ExcludeInMapEditor]
 	[ForceUpdate]
-	[DontDepawnWhenOutOfRange]
+	[DontDespawnWhenOutOfRange]
 	public partial class eField : Entity {
 
 

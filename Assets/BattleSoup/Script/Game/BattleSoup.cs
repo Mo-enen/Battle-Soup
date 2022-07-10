@@ -103,6 +103,8 @@ namespace BattleSoup {
 		public GameMode Mode { get; private set; } = GameMode.PvA;
 		public string ShipRoot => Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Ships");
 		public string MapRoot => Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Maps");
+		public eField SelfField => CurrentTurn == Turn.A ? FieldA : FieldB;
+		public eField OpponentField => CurrentTurn == Turn.A ? FieldB : FieldA;
 		public eField FieldA { get; private set; } = null;
 		public eField FieldB { get; private set; } = null;
 		public bool Cheating { get; set; } = false;
@@ -125,10 +127,10 @@ namespace BattleSoup {
 		private bool GameOver = false;
 
 		// Saving
+		private readonly SavingString s_PlayerFleet = new("BattleSoup.PlayerFleet", "Sailboat,SeaMonster,Longboat,MiniSub");
 		private readonly SavingBool s_UseSound = new("BattleSoup.UseSound", true);
 		private readonly SavingBool s_AutoPlayForAvA = new("BattleSoup.AutoPlayForAvA", false);
 		private readonly SavingBool s_UseAnimation = new("BattleSoup.UseAnimation", true);
-		private readonly SavingString s_PlayerFleet = new("BattleSoup.PlayerFleet", "Sailboat,SeaMonster,Longboat,MiniSub");
 		private readonly SavingInt s_SelectingAiA = new("BattleSoup.SelectingAiA", 0);
 		private readonly SavingInt s_SelectingAiB = new("BattleSoup.SelectingAiB", 0);
 		private readonly SavingInt s_MapIndexA = new("BattleSoup.MapIndexA", 0);
@@ -350,9 +352,6 @@ namespace BattleSoup {
 
 
 		public void SwitchTurn () {
-
-			///Grid grid;
-
 			var field = CurrentTurn == Turn.A ? FieldA : FieldB;
 			foreach (var ship in field.Ships) {
 				ship.CurrentCooldown--;
@@ -366,10 +365,12 @@ namespace BattleSoup {
 		public bool UseAbility (Ship ship) {
 			if (ship.CurrentCooldown > 0) return false;
 			if (!AbilityPool.TryGetValue(ship.GlobalCode, out var ability)) return false;
+			if (!ability.HasManuallyEntrance) return false;
 			ability.Perform(
-				ship.CurrentCooldown == 0 ? EntranceType.OnAbilityUsed : EntranceType.OnAbilityUsedWithOverCooldown,
-				ActionResult.None
+				ship.CurrentCooldown == 0 ? EntranceType.OnAbilityUsed : EntranceType.OnAbilityUsedOvercharged,
+				SelfField, OpponentField
 			);
+			CellStep.AddToLast(new sSwitchTurn());
 			ship.CurrentCooldown = ship.MaxCooldown;
 			RefreshInteractableForShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
 			RefreshInteractableForShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
@@ -768,10 +769,7 @@ namespace BattleSoup {
 				var btn = grab.Grab<Button>();
 				btn.interactable = interactable;
 				if (interactable) {
-					btn.onClick.AddListener(() => {
-
-
-					});
+					btn.onClick.AddListener(() => UseAbility(ship));
 				}
 				var icon = grab.Grab<Image>("Icon");
 				icon.sprite = ship.Icon;

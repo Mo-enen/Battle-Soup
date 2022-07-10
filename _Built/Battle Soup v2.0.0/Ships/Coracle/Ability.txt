@@ -4,5 +4,5 @@
 pick [revealedShip]		
 sunkShip(0, 0)			
 
-OnAttack [self]
-reveal ? [self, noShip, normalWater]
+OnSelfGetAttack
+reveal ? [self, noShip, normalWater, noStone]
