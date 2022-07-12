@@ -2,8 +2,8 @@
 // Sea Turtle
 
 pick [hittable]
-attack 
-reduceCooldown [triggerIfHit, this]
+attack (0,0)
+reduceCooldown (0,0) [triggerIfHit, this]
 reveal (0,1)
 reveal (0,-1)
 reveal (1,0)

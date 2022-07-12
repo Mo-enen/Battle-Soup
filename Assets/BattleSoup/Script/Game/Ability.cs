@@ -16,29 +16,27 @@ namespace BattleSoup {
 
 
 		// API
-		public bool Perform (
-			EntranceType entrance, in eField selfField, in eField opponentField
-		) {
+		public bool Perform (EntranceType entrance, in eField selfField, in eField opponentField) {
 
 			// Get Start Line from Pool
 			if (!EntrancePool.TryGetValue(entrance, out int startLine)) return false;
 
-			bool result = false;
+			// Get End Line
+			int endLine = startLine + 1;
+			for (int i = startLine + 1; i < Units.Length; i++) {
+				if (Units[i] is EntranceUnit) break;
+				endLine = i;
+			}
 
 			// Perform all Units
-			for (int i = startLine + 1; i < Units.Length; i++) {
+			bool result = false;
+			for (int i = endLine; i >= startLine + 1; i--) {
 				var unit = Units[i];
-				switch (unit) {
-					case ActionUnit aUnit:
-						CellStep.AddToLast(new sActionPerformer(aUnit, selfField, opponentField));
-						result = true;
-						break;
-					case EntranceUnit:
-						// End Perform when Hit Another Entrance
-						goto EndPerform;
+				if (unit is ActionUnit aUnit) {
+					CellStep.AddToFirst(new sActionPerformer(aUnit, selfField, opponentField));
+					result = true;
 				}
 			}
-			EndPerform:;
 
 			return result;
 		}

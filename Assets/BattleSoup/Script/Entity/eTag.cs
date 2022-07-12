@@ -87,8 +87,7 @@ namespace BattleSoup {
 
 
 		public static void SpawnTag (int x, int y, ActionResult result) {
-			var tag = Game.AddEntity(TagTypeID, x, y) as eTag;
-			tag.Result = result;
+			if (Game.AddEntity(TagTypeID, x, y) is eTag tag) tag.Result = result;
 		}
 
 

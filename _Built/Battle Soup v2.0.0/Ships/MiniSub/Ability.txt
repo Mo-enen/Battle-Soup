@@ -2,5 +2,5 @@
 // Mini Sub
 
 pick
-sonar
+sonar (0, 0)
 

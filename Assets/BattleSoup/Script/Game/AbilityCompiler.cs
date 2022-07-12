@@ -9,19 +9,38 @@ namespace BattleSoup {
 
 
 	// Unit
-	public abstract class ExecuteUnit { }
+	public abstract class ExecuteUnit {
+		public int AbilityID = 0;
+		public int LineIndex = 0;
+	}
 
 
 
 	public class ActionUnit : ExecuteUnit {
-		public class Operation {
-			public int X = 0;
-			public int Y = 0;
-			public ActionKeyword Keyword = ActionKeyword.None;
-		}
+
+
+		public int PositionCount => Positions.Length;
+		public int KeywordCount => Keywords.Length;
+
 		public ActionType Type = ActionType.None;
 		public int RandomCount = 0;
-		public Operation[] Operations = new Operation[0];
+		public Vector2Int[] Positions = new Vector2Int[0];
+		public ActionKeyword?[] Keywords = new ActionKeyword?[0];
+
+
+		public bool TryGetKeyword (int index, out ActionKeyword keyword) {
+			keyword = ActionKeyword.None;
+			if (index < 0 || index >= Keywords.Length) return false;
+			var _k = Keywords[index];
+			if (_k.HasValue) {
+				keyword = _k.Value;
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+
 	}
 
 
@@ -74,7 +93,7 @@ namespace BattleSoup {
 		#region --- API ---
 
 
-		public static Ability Compile (string code, out string error) {
+		public static Ability Compile (int id, string code, out string error) {
 
 			error = "";
 			var units = new List<ExecuteUnit>();
@@ -96,6 +115,8 @@ namespace BattleSoup {
 						}
 					}
 					// Add Unit
+					unit.AbilityID = id;
+					unit.LineIndex = units.Count;
 					units.Add(unit);
 				} else {
 					error = $"Compile Error\n" + error;
@@ -226,14 +247,21 @@ namespace BattleSoup {
 			}
 
 			// All Operations ()[]...()[]...()()()...
-			var operations = new List<ActionUnit.Operation>();
+			var positions = new List<Vector2Int>();
+			var keywords = new List<ActionKeyword?>();
+			bool hasKeyword = false;
 			while (!string.IsNullOrWhiteSpace(line)) {
 				int oldLength = line.Length;
-				line = GetOperation(line, out var operation);
+				line = GetPositionAndKeyword(line, out var pos, out var keyword);
 				if (line.Length >= oldLength) break;
-				operations.Add(operation);
+				if (keyword.HasValue) hasKeyword = true;
+				positions.Add(pos);
+				keywords.Add(keyword);
 			}
-			action.Operations = operations.ToArray();
+
+			if (positions.Count == 0 && action.RandomCount == 0) positions.Add(Vector2Int.zero);
+			action.Positions = positions.ToArray();
+			if (hasKeyword) action.Keywords = keywords.ToArray();
 			return action;
 		}
 
@@ -256,11 +284,11 @@ namespace BattleSoup {
 		}
 
 
-		private static string GetOperation (string line, out ActionUnit.Operation operation) {
+		private static string GetPositionAndKeyword (string line, out Vector2Int position, out ActionKeyword? keyword) {
 
-			operation = new();
 
 			// Get Position in ()
+			position = new Vector2Int(0, 0);
 			int indexL = line.IndexOf('(');
 			int indexR = line.IndexOf(')');
 			if (indexL >= 0 && indexR >= 0 && indexL <= indexR) {
@@ -270,19 +298,20 @@ namespace BattleSoup {
 					int.TryParse(line[(indexL + 1)..indexMid], out int x) &&
 					int.TryParse(line[(indexMid + 1)..indexR], out int y)
 				) {
-					operation.X = x;
-					operation.Y = y;
+					position = new(x, y);
 				}
 			}
 
 			// Get Keywords in [,,,]
+			keyword = null;
 			int lineEnd = indexR >= 0 ? indexR + 1 : 0;
 			int startIndex = line.IndexOf('[', indexR + 1);
 			if (startIndex >= 0) {
 				int endIndex = line.IndexOf(']', startIndex);
 				if (endIndex >= 0) {
 					lineEnd = endIndex + 1;
-					operation.Keyword = GetKeyword(line[(startIndex + 1)..endIndex]);
+					var k = GetKeyword(line[(startIndex + 1)..endIndex]);
+					if (k != ActionKeyword.None) keyword = k;
 				}
 			}
 
@@ -299,7 +328,6 @@ namespace BattleSoup {
 					result |= keyword;
 				}
 			}
-			//Debug.Log(line + "\n" + result);
 			return result;
 		}
 

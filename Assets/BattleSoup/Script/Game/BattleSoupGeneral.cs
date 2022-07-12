@@ -93,25 +93,22 @@ namespace BattleSoup {
 		HitShip = 1L << 11,
 		SunkShip = 1L << 12,
 
-		VisibleShip = 1L << 13,
-		InvisibleShip = 1L << 14,
-
 		// Target
-		This = 1L << 15,
-		Self = 1L << 16,
-		Opponent = 1L << 17,
+		This = 1L << 13,
+		Self = 1L << 14,
+		Opponent = 1L << 15,
 
 		// Break
-		BreakIfMiss = 1L << 18,
-		BreakIfHit = 1L << 19,
-		BreakIfReveal = 1L << 20,
-		BreakIfSunk = 1L << 21,
+		BreakIfMiss = 1L << 16,
+		BreakIfHit = 1L << 17,
+		BreakIfReveal = 1L << 18,
+		BreakIfSunk = 1L << 19,
 
 		// Trigger
-		TriggerIfMiss = 1L << 22,
-		TriggerIfHit = 1L << 23,
-		TriggerIfReveal = 1L << 24,
-		TriggerIfSunk = 1L << 25,
+		TriggerIfMiss = 1L << 20,
+		TriggerIfHit = 1L << 21,
+		TriggerIfReveal = 1L << 22,
+		TriggerIfSunk = 1L << 23,
 
 	}
 
@@ -151,6 +148,74 @@ namespace BattleSoup {
 		public const int ISO_SIZE = 64 * 7;
 
 		public static BattleSoup.Turn Opponent (this BattleSoup.Turn turn) => 1 - turn;
+
+		public static bool Check (this ActionKeyword keyword, Cell cell) {
+
+			if (keyword == ActionKeyword.None) return true;
+
+			// One-Vote-Off
+			if (keyword.HasFlag(ActionKeyword.Stone)) {
+				if (!cell.HasStone) return false;
+			}
+			if (keyword.HasFlag(ActionKeyword.NoStone)) {
+				if (cell.HasStone) return false;
+			}
+
+			if (keyword.HasFlag(ActionKeyword.Ship)) {
+				if (cell.ShipIndex < 0) return false;
+			}
+			if (keyword.HasFlag(ActionKeyword.NoShip)) {
+				if (cell.ShipIndex >= 0) return false;
+			}
+
+			if (keyword.HasFlag(ActionKeyword.ExposedShip)) {
+				if (!cell.HasExposedShip) return false;
+			}
+			if (keyword.HasFlag(ActionKeyword.UnexposedShip)) {
+				if (cell.ShipIndex < 0 || cell.HasExposedShip) return false;
+			}
+
+			// One-Vote-In
+			if (keyword.HasFlag(ActionKeyword.NormalWater)) {
+				if (cell.State == CellState.Normal) return true;
+			}
+			if (keyword.HasFlag(ActionKeyword.RevealedWater)) {
+				if (cell.State == CellState.Revealed && cell.ShipIndex < 0) return true;
+			}
+			if (keyword.HasFlag(ActionKeyword.RevealedShip)) {
+				if (cell.State == CellState.Revealed && cell.ShipIndex >= 0) return true;
+			}
+			if (keyword.HasFlag(ActionKeyword.UnrevealedShip)) {
+				if (cell.State == CellState.Normal && cell.ShipIndex >= 0) return true;
+			}
+			if (keyword.HasFlag(ActionKeyword.HitShip)) {
+				if (cell.State == CellState.Hit && cell.ShipIndex >= 0) return true;
+			}
+			if (keyword.HasFlag(ActionKeyword.SunkShip)) {
+				if (cell.State == CellState.Sunk && cell.ShipIndex >= 0) return true;
+			}
+			if (keyword.HasFlag(ActionKeyword.Hittable)) {
+				if (!cell.HasStone && cell.State == CellState.Normal) return true;
+				if (!cell.HasStone && cell.State == CellState.Revealed) return true;
+			}
+
+			return false;
+		}
+
+	}
+
+
+	public static class SoupUtil {
+
+
+		public static Vector2Int GetPickedPosition (Vector2Int pickingPos, Direction4 pickingDir, int localX, int localY) =>
+			pickingPos + pickingDir switch {
+				Direction4.Down => new(-localX, -localY),
+				Direction4.Left => new(-localY, localX),
+				Direction4.Right => new(localY, -localX),
+				_ or Direction4.Up => new(localX, localY),
+			};
+
 
 	}
 
@@ -267,6 +332,7 @@ namespace BattleSoup {
 
 		public CellState State = CellState.Normal;
 		public bool HasStone = false;
+		public bool HasExposedShip = false;
 		public int Sonar = 0;
 		public readonly List<int> ShipIndexs = new(16);
 		public readonly List<int> ShipRenderIDs = new(16);

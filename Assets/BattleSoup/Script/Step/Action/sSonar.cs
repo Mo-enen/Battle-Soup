@@ -17,13 +17,15 @@ namespace BattleSoup {
 		public override StepResult FrameUpdate (Game game) {
 			base.FrameUpdate(game);
 			if (X < 0 || X >= Field.MapSize || Y < 0 || Y >= Field.MapSize) return StepResult.Over;
-			// Has Ship
-			if (Field[X, Y].ShipIndex >= 0) {
-				CellStep.AddToSecond(new sAttack(X, Y, Field, Fast, false));
-				return StepResult.Over;
+			if (LocalFrame == 0) {
+				// Has Ship
+				if (Field[X, Y].ShipIndex >= 0) {
+					CellStep.AddToFirst(new sAttack(X, Y, Field, Fast, false));
+					return StepResult.Over;
+				}
+				// No Ship
+				Field.Sonar(X, Y);
 			}
-			// No Ship
-			Field.Sonar(X, Y);
 			int DURATION = Fast ? 6 : 24;
 			if (UseAnimation && LocalFrame < DURATION) {
 				if (LocalFrame % 4 < 2) {

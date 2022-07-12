@@ -83,6 +83,7 @@ namespace BattleSoup {
 			public Grabber ShipAbilityItem = null;
 			public RectTransform AbilityContainerA = null;
 			public RectTransform AbilityContainerB = null;
+			public RectTransform PickingHint = null;
 			[Header("Asset")]
 			public Sprite DefaultShipIcon = null;
 			public Sprite PlusSprite = null;
@@ -110,6 +111,8 @@ namespace BattleSoup {
 		public bool Cheating { get; set; } = false;
 		public bool Cheated { get; private set; } = false;
 		public Turn CurrentTurn { get; private set; } = Turn.A;
+		public Vector2Int PickingPosition { get; private set; } = default;
+		public Direction4 PickingDirection { get; private set; } = default;
 
 		// Setting
 		public bool UseSound { get => s_UseSound.Value; set => s_UseSound.Value = value; }
@@ -125,6 +128,7 @@ namespace BattleSoup {
 		private readonly List<SoupAI> AllAi = new();
 		private readonly List<Map> AllMaps = new();
 		private bool GameOver = false;
+		private bool PrevHasStep = false;
 
 		// Saving
 		private readonly SavingString s_PlayerFleet = new("BattleSoup.PlayerFleet", "Sailboat,SeaMonster,Longboat,MiniSub");
@@ -286,6 +290,7 @@ namespace BattleSoup {
 			bool PvA = Mode == GameMode.PvA;
 			bool aTurn = CurrentTurn == Turn.A;
 			bool waitingForPlayer = !GameOver && PvA && aTurn && !CellStep.HasStep;
+			bool picking = CellStep.IsStepping<sPick>();
 
 			FieldA.ShowShips = true;
 			FieldA.AllowHoveringOnShip = inter && PvA && waitingForPlayer;
@@ -293,6 +298,7 @@ namespace BattleSoup {
 			FieldA.HideInvisibleShip = false;
 			FieldA.ClickToAttack = false;
 			FieldA.ClickShipToTriggerAbility = waitingForPlayer;
+			FieldA.SetPickingDirection(PickingDirection);
 
 			FieldB.ShowShips = true;
 			FieldB.AllowHoveringOnShip = false;
@@ -300,6 +306,19 @@ namespace BattleSoup {
 			FieldB.HideInvisibleShip = PvA && !Cheating;
 			FieldB.ClickToAttack = waitingForPlayer;
 			FieldB.ClickShipToTriggerAbility = false;
+			FieldB.SetPickingDirection(PickingDirection);
+
+			// On HasStep Changed
+			if (CellStep.HasStep != PrevHasStep) {
+				RefreshInteractableForShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
+				RefreshInteractableForShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
+				PrevHasStep = CellStep.HasStep;
+			}
+
+			// Picking Hint
+			if (m_Assets.PickingHint.gameObject.activeSelf != picking) {
+				m_Assets.PickingHint.gameObject.SetActive(picking);
+			}
 
 			// AI
 			if (aTurn) {
@@ -366,16 +385,37 @@ namespace BattleSoup {
 			if (ship.CurrentCooldown > 0) return false;
 			if (!AbilityPool.TryGetValue(ship.GlobalCode, out var ability)) return false;
 			if (!ability.HasManuallyEntrance) return false;
-			ability.Perform(
-				ship.CurrentCooldown == 0 ? EntranceType.OnAbilityUsed : EntranceType.OnAbilityUsedOvercharged,
-				SelfField, OpponentField
-			);
+			var entrance = EntranceType.OnAbilityUsed;
+			if (ship.CurrentCooldown < 0 && ability.EntrancePool.ContainsKey(EntranceType.OnAbilityUsedOvercharged)) {
+				entrance = EntranceType.OnAbilityUsedOvercharged;
+			}
+			ability.Perform(entrance, SelfField, OpponentField);
 			CellStep.AddToLast(new sSwitchTurn());
 			ship.CurrentCooldown = ship.MaxCooldown;
 			RefreshInteractableForShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
 			RefreshInteractableForShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
 			return true;
 		}
+
+
+		public bool TryGetAbility (int id, out Ability ability) => AbilityPool.TryGetValue(id, out ability);
+
+
+		// Picking
+		public void SetPickingPosition (Vector2Int pos) => PickingPosition = pos;
+
+
+		public void SwitchPickingDirection () => PickingDirection = PickingDirection switch {
+			Direction4.Up => Direction4.Right,
+			Direction4.Down => Direction4.Left,
+			Direction4.Left => Direction4.Up,
+			_ or Direction4.Right => Direction4.Down,
+		};
+
+
+		public Vector2Int GetPickedPosition (int localX, int localY) => SoupUtil.GetPickedPosition(
+			PickingPosition, PickingDirection, localX, localY
+		);
 
 
 		// UI
@@ -546,6 +586,9 @@ namespace BattleSoup {
 						SwitchState(GameState.Prepare);
 					}
 
+					// Final
+					PickingPosition = default;
+					PickingDirection = default;
 					OnFleetChanged();
 					FieldA.GameStart();
 					FieldB.GameStart();
@@ -793,7 +836,7 @@ namespace BattleSoup {
 				var grab = container.GetChild(i).GetComponent<Grabber>();
 				if (grab == null) continue;
 				var btn = grab.Grab<Button>();
-				btn.interactable = interactable && !GameOver && ship.CurrentCooldown <= 0;
+				btn.interactable = interactable && !GameOver && ship.CurrentCooldown <= 0 && !CellStep.HasStep;
 				var cooldown = grab.Grab<Text>("Cooldown");
 				cooldown.text = !GameOver && ship.CurrentCooldown > 0 ? ship.CurrentCooldown.ToString() : "";
 			}
@@ -840,7 +883,7 @@ namespace BattleSoup {
 						string abPath = Util.CombinePaths(folder.FullName, "Ability.txt");
 						if (Util.FileExists(abPath)) {
 							string code = Util.FileToText(abPath);
-							var exe = AbilityCompiler.Compile(code, out string error);
+							var exe = AbilityCompiler.Compile(globalID, code, out string error);
 							if (exe != null) {
 								AbilityPool.TryAdd(globalID, exe);
 							} else {

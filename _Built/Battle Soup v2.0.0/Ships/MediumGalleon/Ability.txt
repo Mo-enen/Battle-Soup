@@ -2,7 +2,7 @@
 // Mid Galleon
 
 pick [hittable]
-attack
+attack (0,0)
 
 pick [hittable]
-attack
+attack (0,0)

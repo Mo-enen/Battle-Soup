@@ -20,9 +20,11 @@ namespace BattleSoup {
 		public override StepResult FrameUpdate (Game game) {
 			base.FrameUpdate(game);
 			int DURATION = Fast ? 6 : 24;
-			var result = Field.Reveal(X, Y);
 			var (_x, _y) = Field.Local_to_Global(X, Y, 1);
-			eTag.SpawnTag(_x, _y, result);
+			if (LocalFrame == 0) {
+				var result = Field.Reveal(X, Y);
+				eTag.SpawnTag(_x, _y, result);
+			}
 			if (UseAnimation && LocalFrame < DURATION) {
 				if (LocalFrame % 4 < 2) {
 					float t01 = (float)LocalFrame / DURATION;

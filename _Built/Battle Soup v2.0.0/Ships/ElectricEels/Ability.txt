@@ -2,6 +2,6 @@
 // Eels
 
 pick
-reveal
-revealShip
-exposeShip
+reveal (0,0)
+revealShip (0,0)
+exposeShip (0,0)

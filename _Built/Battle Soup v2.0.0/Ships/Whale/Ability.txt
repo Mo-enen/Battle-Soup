@@ -2,7 +2,7 @@
 // Whale
 
 pick
-attack
+attack (0, 0)
 reveal (0,1)
 reveal (0,-1)
 reveal (1,0)

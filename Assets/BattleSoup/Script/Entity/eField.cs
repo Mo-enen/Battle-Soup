@@ -61,8 +61,8 @@ namespace BattleSoup {
 			Update_ClickToAttack();
 			Update_ClickShipToTriggerAbility();
 			DrawWaters();
-			DrawGizmos();
 			DrawUnits();
+			DrawGizmos();
 		}
 
 
@@ -167,6 +167,7 @@ namespace BattleSoup {
 					var cell = Cells[i, j];
 					cell.State = CellState.Normal;
 					cell.Sonar = 0;
+					cell.HasExposedShip = false;
 				}
 			}
 			// Ships
@@ -208,6 +209,12 @@ namespace BattleSoup {
 		public ActionResult Reveal (int x, int y) {
 			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) return ActionResult.None;
 			var cell = Cells[x, y];
+			switch (cell.State) {
+				case CellState.Revealed:
+				case CellState.Hit:
+				case CellState.Sunk:
+					return ActionResult.None;
+			}
 			if (cell.ShipIndex < 0) {
 				// No Ship
 				cell.State = CellState.Revealed;
@@ -257,6 +264,16 @@ namespace BattleSoup {
 		}
 
 
+		public ActionResult Expose (int x, int y) {
+			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) return ActionResult.None;
+			var cell = Cells[x, y];
+			if (cell.ShipIndex < 0) return ActionResult.None;
+			Ships[cell.ShipIndex].Visible = true;
+			RefreshCellShipCache();
+			return ActionResult.ExposeShip;
+		}
+
+
 		// Coord
 		public (int globalX, int globalY) Local_to_Global (int localX, int localY, int localZ = 0) {
 			localX += LocalShift.x;
@@ -300,7 +317,7 @@ namespace BattleSoup {
 					};
 				}
 			}
-			RefreshShipCache();
+			RefreshCellShipCache();
 			RandomPlaceShips(128);
 		}
 
@@ -308,7 +325,7 @@ namespace BattleSoup {
 		// Ship
 		public void SetShips (in Ship[] ships) {
 			Ships = ships;
-			RefreshShipCache();
+			RefreshCellShipCache();
 		}
 
 
@@ -320,7 +337,7 @@ namespace BattleSoup {
 					break;
 				}
 			}
-			RefreshShipCache();
+			RefreshCellShipCache();
 			return success;
 		}
 
@@ -346,7 +363,7 @@ namespace BattleSoup {
 					if (bodyU > MapSize - 1) ship.FieldY -= bodyU - MapSize + 1;
 				}
 			}
-			RefreshShipCache();
+			RefreshCellShipCache();
 		}
 
 
@@ -371,7 +388,7 @@ namespace BattleSoup {
 			) {
 				ship.FieldX = newFieldX;
 				ship.FieldY = newFieldY;
-				RefreshShipCache();
+				RefreshCellShipCache();
 			}
 		}
 
@@ -380,7 +397,7 @@ namespace BattleSoup {
 			if (shipIndex < 0 || shipIndex >= Ships.Length) return;
 			var ship = Ships[shipIndex];
 			ship.Flip = !ship.Flip;
-			RefreshShipCache();
+			RefreshCellShipCache();
 		}
 
 
@@ -464,7 +481,7 @@ namespace BattleSoup {
 		}
 
 
-		private void RefreshShipCache () {
+		private void RefreshCellShipCache () {
 			// Clear
 			for (int j = 0; j < MapSize; j++) {
 				for (int i = 0; i < MapSize; i++) {
@@ -503,6 +520,19 @@ namespace BattleSoup {
 						ship.Valid = false;
 						break;
 					}
+				}
+			}
+			// Expose
+			for (int i = 0; i < MapSize; i++) {
+				for (int j = 0; j < MapSize; j++) {
+					Cells[i, j].HasExposedShip = false;
+				}
+			}
+			for (int i = 0; i < Ships.Length; i++) {
+				var ship = Ships[i];
+				for (int j = 0; j < ship.BodyNodes.Length; j++) {
+					var pos = ship.GetFieldNodePosition(j);
+					if (pos.InLength(MapSize)) Cells[pos.x, pos.y].HasExposedShip = true;
 				}
 			}
 		}

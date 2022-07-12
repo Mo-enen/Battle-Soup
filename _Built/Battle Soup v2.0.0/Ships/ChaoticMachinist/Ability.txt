@@ -4,18 +4,18 @@
 OnAbilityUsed
 
 pick [hittable]
-attack
+attack (0,0)
 attack ? [triggerIfHit, self, currentShip, normalWater, revealedShip]
 
 pick [hittable]
-attack
+attack (0,0)
 attack ? [triggerIfHit, self, currentShip, normalWater, revealedShip]
 
 pick [hittable]
-attack
+attack (0,0)
 attack ? [triggerIfHit, self, currentShip, normalWater, revealedShip]
 
 pick [hittable]
-attack
+attack (0,0)
 attack ? [triggerIfHit, self, currentShip, normalWater, revealedShip]
 

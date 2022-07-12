@@ -16,10 +16,11 @@ namespace BattleSoup {
 		public sAttack (int x, int y, eField field, bool fast = false, bool showCrosshair = true) : base(x, y, field, fast) {
 			ShowCrosshair = showCrosshair;
 		}
-		
+
 
 		public override StepResult FrameUpdate (Game game) {
 			base.FrameUpdate(game);
+			if (X < 0 || Y < 0 || X >= Field.MapSize || Y >= Field.MapSize) return StepResult.Over;
 			int FALL_DURATION = Fast ? 12 : 24;
 			int EXP_DURATION = Fast ? 4 : 8;
 			int realFallDuration = ShowCrosshair ? FALL_DURATION : FALL_DURATION / 2;
