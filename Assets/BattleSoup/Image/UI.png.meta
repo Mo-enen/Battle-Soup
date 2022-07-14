@@ -693,6 +693,27 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Turn Mark
+      rect:
+        serializedVersion: 2
+        x: 615
+        y: 0
+        width: 128
+        height: 116
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 038364078188e994bb0cb5f173685cbc
+      internalID: 2122127840
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -725,6 +746,7 @@ TextureImporter:
       Icon Girl: 1566753909
       Mouse Right: 1978710756
       Mark: 1325594848
+      Turn Mark: 2122127840
       Panel: -2113243177
       VS: -550570813
       Button: 126692845

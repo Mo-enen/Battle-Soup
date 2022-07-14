@@ -40,11 +40,11 @@ namespace BattleSoup {
 
 		[System.Serializable]
 		private class GameAsset {
-			public RectTransform CornerSoup = null;
 			public RectTransform PanelRoot = null;
 			public RectTransform PreparePanel = null;
 			public RectTransform PlacePanel = null;
 			public Button MapShipSelectorNextButton = null;
+			public CanvasScaler CanvasScaler = null;
 			[Header("Dialog")]
 			public RectTransform DialogRoot = null;
 			public RectTransform QuitBattleDialog = null;
@@ -78,15 +78,21 @@ namespace BattleSoup {
 			public Toggle SoundTG = null;
 			public Toggle AutoPlayAvATG = null;
 			public Toggle UseAnimationTG = null;
+			public Toggle[] UiScaleTGs = null;
 			[Header("Playing")]
 			public Toggle CheatTG = null;
 			public Grabber ShipAbilityItem = null;
 			public RectTransform AbilityContainerA = null;
 			public RectTransform AbilityContainerB = null;
 			public RectTransform PickingHint = null;
+			public Image AvatarIconA = null;
+			public Text AvatarLabelA = null;
+			public Text TurnLabel = null;
 			[Header("Asset")]
 			public Sprite DefaultShipIcon = null;
 			public Sprite PlusSprite = null;
+			public Sprite PlayerAvatarIcon = null;
+			public Sprite RobotAvatarIcon = null;
 		}
 
 
@@ -139,6 +145,7 @@ namespace BattleSoup {
 		private readonly SavingInt s_SelectingAiB = new("BattleSoup.SelectingAiB", 0);
 		private readonly SavingInt s_MapIndexA = new("BattleSoup.MapIndexA", 0);
 		private readonly SavingInt s_MapIndexB = new("BattleSoup.MapIndexB", 0);
+		private readonly SavingInt s_UiScale = new("BattleSoup.UiScale", 1);
 
 
 		#endregion
@@ -155,6 +162,7 @@ namespace BattleSoup {
 			base.Initialize();
 
 			Init_AI();
+			SetUiScale(s_UiScale.Value);
 
 			ReloadShipDataFromDisk();
 			ReloadMapDataFromDisk();
@@ -397,6 +405,7 @@ namespace BattleSoup {
 			CurrentTurn = CurrentTurn.Opponent();
 			RefreshShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
 			RefreshShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
+			RefreshTurnLabelUI();
 		}
 
 
@@ -523,6 +532,9 @@ namespace BattleSoup {
 		}
 
 
+		public void UI_SetUiScale (int id) => SetUiScale(id);
+
+
 		#endregion
 
 
@@ -584,6 +596,7 @@ namespace BattleSoup {
 					s_MapIndexA.Value = s_MapIndexA.Value.Clamp(0, AllMaps.Count - 1);
 					s_MapIndexB.Value = s_MapIndexB.Value.Clamp(0, AllMaps.Count - 1);
 					bool PvA = Mode == GameMode.PvA;
+					RefreshTurnLabelUI();
 
 					// A
 					var shiftA = new Vector2Int(0, AllMaps[s_MapIndexB.Value].Size + 2);
@@ -641,6 +654,8 @@ namespace BattleSoup {
 					m_Assets.FleetSelectorLabelB.text = "Opponent Fleet";
 					m_Assets.FleetSelectorPlayer.gameObject.SetActive(true);
 					m_Assets.FleetSelectorRobotA.gameObject.SetActive(false);
+					m_Assets.AvatarIconA.sprite = m_Assets.PlayerAvatarIcon;
+					m_Assets.AvatarLabelA.text = "Player";
 					ReloadFleetRendererUI();
 					OnFleetChanged();
 					break;
@@ -651,6 +666,8 @@ namespace BattleSoup {
 					m_Assets.FleetSelectorLabelB.text = "Robot B Fleet";
 					m_Assets.FleetSelectorPlayer.gameObject.SetActive(false);
 					m_Assets.FleetSelectorRobotA.gameObject.SetActive(true);
+					m_Assets.AvatarIconA.sprite = m_Assets.RobotAvatarIcon;
+					m_Assets.AvatarLabelA.text = "Robot A";
 					ReloadFleetRendererUI();
 					OnFleetChanged();
 					break;
@@ -748,6 +765,19 @@ namespace BattleSoup {
 				}
 			}
 			return ships.ToArray();
+		}
+
+
+		private void SetUiScale (int id) {
+			s_UiScale.Value = id.Clamp(0, 2);
+			m_Assets.CanvasScaler.referenceResolution = new(
+				1024,
+				s_UiScale.Value == 0 ? 1200 :
+				s_UiScale.Value == 1 ? 1024 : 910
+			);
+			m_Assets.UiScaleTGs[0].SetIsOnWithoutNotify(s_UiScale.Value == 0);
+			m_Assets.UiScaleTGs[1].SetIsOnWithoutNotify(s_UiScale.Value == 1);
+			m_Assets.UiScaleTGs[2].SetIsOnWithoutNotify(s_UiScale.Value == 2);
 		}
 
 
@@ -875,6 +905,9 @@ namespace BattleSoup {
 				img.color = ship.Alive ? Color.white : new Color32(230, 71, 46, 255);
 			}
 		}
+
+
+		private void RefreshTurnLabelUI () => m_Assets.TurnLabel.text = CurrentTurn == Turn.A ? Mode == GameMode.PvA ? "Player's Turn" : "Robot A's Turn" : "Robot B's Turn";
 
 
 		// Load Data
