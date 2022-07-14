@@ -11,7 +11,7 @@ namespace BattleSoup {
 		private static readonly int SONAR_CODE = "Water Sonar Frame".AngeHash();
 
 
-		public sSonar (int x, int y, eField field, bool fast = false) : base(x, y, field, fast) { }
+		public sSonar (int x, int y, eField field, Ship ship, bool fast = false) : base(x, y, field, ship, fast) { }
 
 
 		public override StepResult FrameUpdate (Game game) {
@@ -20,7 +20,7 @@ namespace BattleSoup {
 			if (LocalFrame == 0) {
 				// Has Ship
 				if (Field[X, Y].ShipIndex >= 0) {
-					CellStep.AddToFirst(new sAttack(X, Y, Field, Fast, false));
+					CellStep.AddToFirst(new sAttack(X, Y, Field, Ship, Fast, false));
 					return StepResult.Over;
 				}
 				// No Ship

@@ -1,5 +1,5 @@
 
 // Octopus
 
-Sonar ?? [normalWater, noStone]
+sonar ?? [normalWater, revealedWater, noStone]
 

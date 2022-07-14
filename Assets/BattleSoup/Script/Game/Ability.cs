@@ -16,7 +16,7 @@ namespace BattleSoup {
 
 
 		// API
-		public bool Perform (EntranceType entrance, in eField selfField, in eField opponentField) {
+		public bool Perform (Ship ship, EntranceType entrance, in eField selfField, in eField opponentField) {
 
 			// Get Start Line from Pool
 			if (!EntrancePool.TryGetValue(entrance, out int startLine)) return false;
@@ -33,7 +33,9 @@ namespace BattleSoup {
 			for (int i = endLine; i >= startLine + 1; i--) {
 				var unit = Units[i];
 				if (unit is ActionUnit aUnit) {
-					CellStep.AddToFirst(new sActionPerformer(aUnit, selfField, opponentField));
+					CellStep.AddToFirst(new sActionPerformer(
+						aUnit, selfField, opponentField, ship
+					));
 					result = true;
 				}
 			}

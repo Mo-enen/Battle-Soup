@@ -672,6 +672,27 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: ESC
+      rect:
+        serializedVersion: 2
+        x: 476
+        y: 1
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d83f8ea05b69b134fb8a928a3b2a127d
+      internalID: -1301258364
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -714,6 +735,7 @@ TextureImporter:
       Wood Item: -954188774
       Wood Panel: 1851841581
       Title Ship 0: -1270888692
+      ESC: -1301258364
   spritePackingTag: 
   pSDRemoveMatte: 0
   userData: 

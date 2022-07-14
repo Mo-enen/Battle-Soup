@@ -5,24 +5,24 @@ using AngeliaFramework;
 
 
 namespace BattleSoup {
-	public class sReveal : sSoupStep {
+	public class sExpose : sSoupStep {
 
 
 
-		// Const
-		private static readonly int FRAME_CODE = "Water Reveal Frame".AngeHash();
+		private static readonly int FRAME_CODE = "Expose Frame".AngeHash();
 
 
 		// MSG
-		public sReveal (int x, int y, eField field, bool fast = false) : base(x, y, field, fast) { }
+		public sExpose (int x, int y, eField field, Ship ship, bool fast = false) : base(x, y, field, ship, fast) { }
 
 
 		public override StepResult FrameUpdate (Game game) {
 			base.FrameUpdate(game);
+			if (X < 0 || Y < 0 || X >= Field.MapSize || Y >= Field.MapSize) return StepResult.Over;
 			int DURATION = Fast ? 6 : 24;
 			var (_x, _y) = Field.Local_to_Global(X, Y, 1);
 			if (LocalFrame == 0) {
-				var result = Field.Reveal(X, Y);
+				var result = Field.Expose(X, Y);
 				eTag.SpawnTag(_x, _y, result);
 			}
 			if (UseAnimation && LocalFrame < DURATION) {
@@ -40,7 +40,6 @@ namespace BattleSoup {
 			}
 			return StepResult.Over;
 		}
-
 
 
 	}

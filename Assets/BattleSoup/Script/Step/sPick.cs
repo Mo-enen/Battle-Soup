@@ -8,19 +8,23 @@ namespace BattleSoup {
 	public class sPick : Step {
 
 
+		// Api
+		public eField Field { get; init; } = null;
+		public ActionUnit Action { get; init; }
+		public ActionKeyword Keyword { get; init; } = default;
+		public Ship CurrentShip { get; init; }
+
 		// Data
-		private eField Field { get; init; } = null;
-		private ActionUnit Action { get; init; }
-		private ActionKeyword Keyword { get; init; } = default;
 		private bool RequireQuit = false;
 
 
 		// MSG
-		public sPick (eField field, ActionUnit action, ActionKeyword keyword) {
+		public sPick (eField field, ActionUnit action, Ship currentShip, ActionKeyword keyword) {
 			Field = field;
 			Keyword = keyword;
 			Action = action;
 			RequireQuit = false;
+			CurrentShip = currentShip;
 		}
 
 
@@ -53,13 +57,29 @@ namespace BattleSoup {
 		}
 
 
+		public override void OnEnd (Game game) {
+			base.OnEnd(game);
+			Field.ClearPickingInfo();
+			if (RequireQuit) {
+				(game as BattleSoup).AbandonAbility();
+			}
+		}
+
+
 		public override StepResult FrameUpdate (Game game) {
 			if (RequireQuit) return StepResult.Over;
 			var soup = game as BattleSoup;
+			// ESC
+			if (FrameInput.CustomKeyDown(KeyCode.Escape)) {
+				RequireQuit = true;
+				return StepResult.Over;
+			}
+			// Rotate
 			if (FrameInput.MouseRightDown) {
 				soup.SwitchPickingDirection();
 				return StepResult.Continue;
 			}
+			// Left
 			if (!FrameInput.MouseLeftDown) {
 				return StepResult.Continue;
 			}
@@ -76,7 +96,6 @@ namespace BattleSoup {
 				return StepResult.Continue;
 			}
 			soup.SetPickingPosition(new(localX, localY));
-			Field.ClearPickingInfo();
 			return StepResult.Over;
 		}
 

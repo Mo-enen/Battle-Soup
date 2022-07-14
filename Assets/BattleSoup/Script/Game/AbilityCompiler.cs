@@ -41,6 +41,16 @@ namespace BattleSoup {
 		}
 
 
+		public ActionKeyword GetMergedKeyword () {
+			var result = ActionKeyword.None;
+			foreach (var k in Keywords) {
+				if (!k.HasValue) continue;
+				result |= k.Value;
+			}
+			return result;
+		}
+
+
 	}
 
 
@@ -247,20 +257,30 @@ namespace BattleSoup {
 			}
 
 			// All Operations ()[]...()[]...()()()...
-			var positions = new List<Vector2Int>();
+			var positions = new List<Vector2Int?>();
 			var keywords = new List<ActionKeyword?>();
+			bool hasPos = false;
 			bool hasKeyword = false;
 			while (!string.IsNullOrWhiteSpace(line)) {
 				int oldLength = line.Length;
 				line = GetPositionAndKeyword(line, out var pos, out var keyword);
 				if (line.Length >= oldLength) break;
 				if (keyword.HasValue) hasKeyword = true;
+				if (pos.HasValue) hasPos = true;
 				positions.Add(pos);
 				keywords.Add(keyword);
 			}
-
-			if (positions.Count == 0 && action.RandomCount == 0) positions.Add(Vector2Int.zero);
-			action.Positions = positions.ToArray();
+			// Positions >> Final Positions
+			var finalPositions = new List<Vector2Int>();
+			if (hasPos) {
+				foreach (var _pos in positions) {
+					finalPositions.Add(_pos ?? Vector2Int.zero);
+				}
+			} else if (action.RandomCount == 0) {
+				finalPositions.Add(Vector2Int.zero);
+			}
+			// Final
+			action.Positions = finalPositions.ToArray();
 			if (hasKeyword) action.Keywords = keywords.ToArray();
 			return action;
 		}
@@ -284,11 +304,11 @@ namespace BattleSoup {
 		}
 
 
-		private static string GetPositionAndKeyword (string line, out Vector2Int position, out ActionKeyword? keyword) {
+		private static string GetPositionAndKeyword (string line, out Vector2Int? position, out ActionKeyword? keyword) {
 
 
 			// Get Position in ()
-			position = new Vector2Int(0, 0);
+			position = null;
 			int indexL = line.IndexOf('(');
 			int indexR = line.IndexOf(')');
 			if (indexL >= 0 && indexR >= 0 && indexL <= indexR) {

@@ -17,6 +17,7 @@ namespace BattleSoup {
 		private static readonly int Sunk = "Sunk".AngeHash();
 		private static readonly int REVEAL = "Reveal".AngeHash();
 		private static readonly int MISS = "Miss".AngeHash();
+		private static readonly int OBSCURE = "Obscure".AngeHash();
 		private const int DURATION = 48;
 
 		// Api
@@ -55,6 +56,8 @@ namespace BattleSoup {
 					ActionResult.Sunk => Sunk,
 					ActionResult.RevealWater => MISS,
 					ActionResult.RevealShip => REVEAL,
+					ActionResult.UnrevealWater => OBSCURE,
+					ActionResult.UnrevealShip => OBSCURE,
 					_ => 0,
 				};
 				LocalFrame = 0;

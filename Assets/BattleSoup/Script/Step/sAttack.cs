@@ -13,7 +13,7 @@ namespace BattleSoup {
 		private bool ShowCrosshair = true;
 
 		// MSG
-		public sAttack (int x, int y, eField field, bool fast = false, bool showCrosshair = true) : base(x, y, field, fast) {
+		public sAttack (int x, int y, eField field, Ship ship, bool fast = false, bool showCrosshair = true) : base(x, y, field, ship, fast) {
 			ShowCrosshair = showCrosshair;
 		}
 

@@ -162,6 +162,7 @@ namespace BattleSoup {
 			AddEntity(typeof(eBackgroundAnimation).AngeHash(), 0, 0);
 			FieldA = AddEntity(typeof(eField).AngeHash(), 0, 0) as eField;
 			FieldB = AddEntity(typeof(eField).AngeHash(), 0, 0) as eField;
+			FrameInput.AddCustomKey(KeyCode.Escape);
 
 			OnMapChanged();
 			OnFleetChanged();
@@ -310,8 +311,8 @@ namespace BattleSoup {
 
 			// On HasStep Changed
 			if (CellStep.HasStep != PrevHasStep) {
-				RefreshInteractableForShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
-				RefreshInteractableForShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
+				RefreshShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
+				RefreshShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
 				PrevHasStep = CellStep.HasStep;
 			}
 
@@ -319,6 +320,24 @@ namespace BattleSoup {
 			if (m_Assets.PickingHint.gameObject.activeSelf != picking) {
 				m_Assets.PickingHint.gameObject.SetActive(picking);
 			}
+
+			// Stop Ability on Ship Sunk
+			var step = CellStep.CurrentStep;
+			if (step != null) {
+				Ship ship = null;
+				switch (step) {
+					case sSoupStep sStep:
+						ship = sStep.Ship;
+						break;
+					case sPick pick:
+						ship = pick.CurrentShip;
+						break;
+				}
+				if (ship != null && !ship.Alive) {
+					AbandonAbility();
+				}
+			}
+
 
 			// AI
 			if (aTurn) {
@@ -376,8 +395,8 @@ namespace BattleSoup {
 				ship.CurrentCooldown--;
 			}
 			CurrentTurn = CurrentTurn.Opponent();
-			RefreshInteractableForShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
-			RefreshInteractableForShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
+			RefreshShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
+			RefreshShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
 		}
 
 
@@ -389,13 +408,18 @@ namespace BattleSoup {
 			if (ship.CurrentCooldown < 0 && ability.EntrancePool.ContainsKey(EntranceType.OnAbilityUsedOvercharged)) {
 				entrance = EntranceType.OnAbilityUsedOvercharged;
 			}
-			ability.Perform(entrance, SelfField, OpponentField);
+			FieldA.ClearLastActionResult();
+			FieldB.ClearLastActionResult();
+			ability.Perform(ship, entrance, SelfField, OpponentField);
 			CellStep.AddToLast(new sSwitchTurn());
 			ship.CurrentCooldown = ship.MaxCooldown;
-			RefreshInteractableForShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
-			RefreshInteractableForShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
+			RefreshShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
+			RefreshShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
 			return true;
 		}
+
+
+		public void AbandonAbility () => CellStep.Clear(typeof(sSwitchTurn));
 
 
 		public bool TryGetAbility (int id, out Ability ability) => AbilityPool.TryGetValue(id, out ability);
@@ -804,6 +828,7 @@ namespace BattleSoup {
 				var ship = field.Ships[i];
 				var grab = Instantiate(shipItem, container);
 				grab.gameObject.SetActive(true);
+				grab.gameObject.name = "Ship";
 				var rt = grab.transform as RectTransform;
 				rt.SetAsLastSibling();
 				rt.anchoredPosition3D = rt.anchoredPosition;
@@ -814,6 +839,8 @@ namespace BattleSoup {
 				if (interactable) {
 					btn.onClick.AddListener(() => UseAbility(ship));
 				}
+				var img = grab.Grab<Image>("Ship");
+				img.color = Color.white;
 				var icon = grab.Grab<Image>("Icon");
 				icon.sprite = ship.Icon;
 				var label = grab.Grab<Text>("Label");
@@ -825,20 +852,27 @@ namespace BattleSoup {
 				var shape = grab.Grab<ShipShapeUI>();
 				shape.Ship = ship;
 			}
-			RefreshInteractableForShipAbilityUI(container, field, interactable);
+			RefreshShipAbilityUI(container, field, interactable);
 		}
 
 
-		private void RefreshInteractableForShipAbilityUI (RectTransform container, eField field, bool interactable) {
+		private void RefreshShipAbilityUI (RectTransform container, eField field, bool interactable) {
 			int count = container.childCount;
 			for (int i = 0; i < count && i < field.Ships.Length; i++) {
 				var ship = field.Ships[i];
 				var grab = container.GetChild(i).GetComponent<Grabber>();
 				if (grab == null) continue;
 				var btn = grab.Grab<Button>();
-				btn.interactable = interactable && !GameOver && ship.CurrentCooldown <= 0 && !CellStep.HasStep;
+				btn.interactable =
+					interactable &&
+					ship.Alive &&
+					!GameOver &&
+					ship.CurrentCooldown <= 0 &&
+					!CellStep.HasStep;
 				var cooldown = grab.Grab<Text>("Cooldown");
-				cooldown.text = !GameOver && ship.CurrentCooldown > 0 ? ship.CurrentCooldown.ToString() : "";
+				cooldown.text = ship.Alive && !GameOver && ship.CurrentCooldown > 0 ? ship.CurrentCooldown.ToString() : "";
+				var img = grab.Grab<Image>("Ship");
+				img.color = ship.Alive ? Color.white : new Color32(230, 71, 46, 255);
 			}
 		}
 
@@ -887,6 +921,11 @@ namespace BattleSoup {
 							if (exe != null) {
 								AbilityPool.TryAdd(globalID, exe);
 							} else {
+
+
+
+
+
 								Debug.LogError(folder.FullName + "\n" + error);
 							}
 						}

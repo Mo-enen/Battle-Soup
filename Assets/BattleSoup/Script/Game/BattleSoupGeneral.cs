@@ -122,9 +122,12 @@ namespace BattleSoup {
 		Hit = 1L << 0,
 		Sunk = 1L << 1,
 		RevealWater = 1L << 2,
-		RevealShip = 1L << 3,
-		Sonar = 1L << 4,
-		ExposeShip = 1L << 5,
+		UnrevealWater = 1L << 3,
+		RevealShip = 1L << 4,
+		UnrevealShip = 1L << 5,
+		Sonar = 1L << 6,
+		ExposeShip = 1L << 7,
+		UnexposeShip = 1L << 8,
 
 	}
 
@@ -146,6 +149,20 @@ namespace BattleSoup {
 		public const int ISO_WIDTH = 32 * 7;
 		public const int ISO_HEIGHT = 16 * 7;
 		public const int ISO_SIZE = 64 * 7;
+
+	}
+
+
+	public static class SoupUtil {
+
+
+		public static Vector2Int GetPickedPosition (Vector2Int pickingPos, Direction4 pickingDir, int localX, int localY) =>
+			pickingPos + pickingDir switch {
+				Direction4.Down => new(-localX, -localY),
+				Direction4.Left => new(-localY, localX),
+				Direction4.Right => new(localY, -localX),
+				_ or Direction4.Up => new(localX, localY),
+			};
 
 		public static BattleSoup.Turn Opponent (this BattleSoup.Turn turn) => 1 - turn;
 
@@ -202,20 +219,39 @@ namespace BattleSoup {
 			return false;
 		}
 
-	}
+		public static bool CheckTrigger (this ActionKeyword keyword, ActionResult result) {
+			bool trigger = true;
+			if (keyword.HasFlag(ActionKeyword.TriggerIfHit)) {
+				trigger = trigger && result == ActionResult.Hit;
+			}
+			if (keyword.HasFlag(ActionKeyword.TriggerIfMiss)) {
+				trigger = trigger && (result == ActionResult.RevealWater || result == ActionResult.Sonar);
+			}
+			if (keyword.HasFlag(ActionKeyword.TriggerIfReveal)) {
+				trigger = trigger && result == ActionResult.RevealShip;
+			}
+			if (keyword.HasFlag(ActionKeyword.TriggerIfSunk)) {
+				trigger = trigger && result == ActionResult.Sunk;
+			}
+			return trigger;
+		}
 
-
-	public static class SoupUtil {
-
-
-		public static Vector2Int GetPickedPosition (Vector2Int pickingPos, Direction4 pickingDir, int localX, int localY) =>
-			pickingPos + pickingDir switch {
-				Direction4.Down => new(-localX, -localY),
-				Direction4.Left => new(-localY, localX),
-				Direction4.Right => new(localY, -localX),
-				_ or Direction4.Up => new(localX, localY),
-			};
-
+		public static bool CheckBreak (this ActionKeyword keyword, ActionResult result) {
+			bool _break = false;
+			if (keyword.HasFlag(ActionKeyword.BreakIfHit)) {
+				_break = _break || result == ActionResult.Hit;
+			}
+			if (keyword.HasFlag(ActionKeyword.BreakIfMiss)) {
+				_break = _break || result == ActionResult.RevealWater || result == ActionResult.Sonar;
+			}
+			if (keyword.HasFlag(ActionKeyword.BreakIfReveal)) {
+				_break = _break || result == ActionResult.RevealShip;
+			}
+			if (keyword.HasFlag(ActionKeyword.BreakIfSunk)) {
+				_break = _break || result == ActionResult.Sunk;
+			}
+			return _break;
+		}
 
 	}
 

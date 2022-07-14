@@ -32,6 +32,8 @@ namespace BattleSoup {
 		public bool DragToMoveShips { get; set; } = false;
 		public bool ClickToAttack { get; set; } = false;
 		public bool ClickShipToTriggerAbility { get; set; } = false;
+		public ActionResult LastActionResult { get; private set; } = ActionResult.None;
+		public int LastActionFrame { get; private set; } = int.MinValue;
 
 		// Data
 		private Cell[,] Cells = null;
@@ -117,7 +119,7 @@ namespace BattleSoup {
 				cell.State == CellState.Normal ||
 				(cell.ShipIndex >= 0 && cell.State == CellState.Revealed)
 			) {
-				CellStep.AddToLast(new sAttack(localX, localY, this));
+				CellStep.AddToLast(new sAttack(localX, localY, this, null));
 				CellStep.AddToLast(new sSwitchTurn());
 			}
 		}
@@ -191,44 +193,82 @@ namespace BattleSoup {
 
 		// Action
 		public ActionResult Attack (int x, int y) {
-			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) return ActionResult.None;
+			var result = ActionResult.None;
+			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) goto End;
 			var cell = Cells[x, y];
 			if (cell.ShipIndex < 0) {
 				// No Ship
 				cell.State = CellState.Revealed;
-				return ActionResult.RevealWater;
+				result = ActionResult.RevealWater;
 			} else {
 				// Hit Ship
 				cell.State = CellState.Hit;
 				RefreshAllShipsAliveState();
-				return Ships[cell.ShipIndex].Alive ? ActionResult.Hit : ActionResult.Sunk;
+				result = Ships[cell.ShipIndex].Alive ? ActionResult.Hit : ActionResult.Sunk;
 			}
+			End:;
+			LastActionResult = result;
+			LastActionFrame = Game.GlobalFrame;
+			return result;
 		}
 
 
 		public ActionResult Reveal (int x, int y) {
-			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) return ActionResult.None;
+			var result = ActionResult.None;
+			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) goto End;
 			var cell = Cells[x, y];
 			switch (cell.State) {
 				case CellState.Revealed:
 				case CellState.Hit:
 				case CellState.Sunk:
-					return ActionResult.None;
+					result = ActionResult.None;
+					goto End;
 			}
 			if (cell.ShipIndex < 0) {
 				// No Ship
 				cell.State = CellState.Revealed;
-				return ActionResult.RevealWater;
+				result = ActionResult.RevealWater;
 			} else {
 				// Reveal Ship
 				cell.State = CellState.Revealed;
-				return ActionResult.RevealShip;
+				result = ActionResult.RevealShip;
 			}
+			End:;
+			LastActionResult = result;
+			LastActionFrame = Game.GlobalFrame;
+			return result;
+		}
+
+
+		public ActionResult Unreveal (int x, int y) {
+			var result = ActionResult.None;
+			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) goto End;
+			var cell = Cells[x, y];
+			switch (cell.State) {
+				case CellState.Normal:
+				case CellState.Hit:
+				case CellState.Sunk:
+					goto End;
+			}
+			if (cell.ShipIndex < 0) {
+				// No Ship
+				cell.State = CellState.Normal;
+				result = ActionResult.UnrevealWater;
+			} else {
+				// Reveal Ship
+				cell.State = CellState.Normal;
+				result = ActionResult.UnrevealShip;
+			}
+			End:;
+			LastActionResult = result;
+			LastActionFrame = Game.GlobalFrame;
+			return result;
 		}
 
 
 		public ActionResult Sonar (int x, int y) {
-			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) return ActionResult.None;
+			var result = ActionResult.None;
+			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) goto End;
 			var cell = Cells[x, y];
 			if (cell.ShipIndex < 0) {
 				// No Ship
@@ -254,24 +294,35 @@ namespace BattleSoup {
 					}
 					cell.Sonar = minDis;
 				}
-				return ActionResult.RevealWater;
+				result = ActionResult.RevealWater;
 			} else {
 				// Hit Ship
 				cell.State = CellState.Hit;
 				RefreshAllShipsAliveState();
-				return Ships[cell.ShipIndex].Alive ? ActionResult.Hit : ActionResult.Sunk;
+				result = Ships[cell.ShipIndex].Alive ? ActionResult.Hit : ActionResult.Sunk;
 			}
+			End:;
+			LastActionResult = result;
+			LastActionFrame = Game.GlobalFrame;
+			return result;
 		}
 
 
 		public ActionResult Expose (int x, int y) {
-			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) return ActionResult.None;
+			var result = ActionResult.None;
+			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) goto End;
 			var cell = Cells[x, y];
-			if (cell.ShipIndex < 0) return ActionResult.None;
+			if (cell.ShipIndex < 0) result = ActionResult.None;
 			Ships[cell.ShipIndex].Visible = true;
 			RefreshCellShipCache();
-			return ActionResult.ExposeShip;
+			End:;
+			LastActionResult = result;
+			LastActionFrame = Game.GlobalFrame;
+			return result;
 		}
+
+
+		public void ClearLastActionResult () => LastActionResult = ActionResult.None;
 
 
 		// Coord
