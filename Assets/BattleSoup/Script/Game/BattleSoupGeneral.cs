@@ -37,7 +37,8 @@ namespace BattleSoup {
 		ReduceMaxCooldown,
 
 		// Other
-		PerformLastUsedAbility,
+		PerformSelfLastUsedAbility,
+		PerformOpponentLastUsedAbility,
 
 	}
 
@@ -220,20 +221,24 @@ namespace BattleSoup {
 		}
 
 		public static bool CheckTrigger (this ActionKeyword keyword, ActionResult result) {
-			bool trigger = true;
+			bool hasTrigger = false;
 			if (keyword.HasFlag(ActionKeyword.TriggerIfHit)) {
-				trigger = trigger && result == ActionResult.Hit;
+				if (result == ActionResult.Hit) return true;
+				hasTrigger = true;
 			}
 			if (keyword.HasFlag(ActionKeyword.TriggerIfMiss)) {
-				trigger = trigger && (result == ActionResult.RevealWater || result == ActionResult.Sonar);
+				if (result == ActionResult.RevealWater || result == ActionResult.Sonar) return true;
+				hasTrigger = true;
 			}
 			if (keyword.HasFlag(ActionKeyword.TriggerIfReveal)) {
-				trigger = trigger && result == ActionResult.RevealShip;
+				if (result == ActionResult.RevealShip) return true;
+				hasTrigger = true;
 			}
 			if (keyword.HasFlag(ActionKeyword.TriggerIfSunk)) {
-				trigger = trigger && result == ActionResult.Sunk;
+				if (result == ActionResult.Sunk) return true;
+				hasTrigger = true;
 			}
-			return trigger;
+			return !hasTrigger;
 		}
 
 		public static bool CheckBreak (this ActionKeyword keyword, ActionResult result) {

@@ -20,11 +20,11 @@ namespace BattleSoup {
 
 
 		// MSG
-		public sActionPerformer (ActionUnit action, eField selfField, eField opponentField, Ship currentShip) {
+		public sActionPerformer (ActionUnit action, eField selfField, eField opponentField, Ship ship) {
 			Action = action;
 			SelfField = selfField;
 			OpponentField = opponentField;
-			CurrentShip = currentShip;
+			CurrentShip = ship;
 		}
 
 
@@ -81,9 +81,13 @@ namespace BattleSoup {
 					Perform_Cooldown(soup, false, true);
 					break;
 
-				case ActionType.PerformLastUsedAbility:
-
+				case ActionType.PerformSelfLastUsedAbility:
+					soup.UseAbility(SelfField.LastPerformedAbilityID, CurrentShip, SelfField);
 					break;
+				case ActionType.PerformOpponentLastUsedAbility:
+					soup.UseAbility(OpponentField.LastPerformedAbilityID, CurrentShip, SelfField);
+					break;
+
 			}
 			return StepResult.Over;
 		}
@@ -108,7 +112,13 @@ namespace BattleSoup {
 		private void Perform_Attack (BattleSoup soup) {
 			Trigger(soup, Action.RandomCount, (field, pos, keyword) => {
 				CellStep.AddToFirst(new sBreakCheck(keyword, field));
-				CellStep.AddToFirst(new sAttack(pos.x, pos.y, field, CurrentShip, true));
+				CellStep.AddToFirst(new sAttack() {
+					X = pos.x,
+					Y = pos.y,
+					Field = field,
+					Fast = true,
+					Ship = CurrentShip,
+				});
 			});
 		}
 
@@ -116,7 +126,13 @@ namespace BattleSoup {
 		private void Perform_Reveal (BattleSoup soup) {
 			Trigger(soup, Action.RandomCount, (field, pos, keyword) => {
 				CellStep.AddToFirst(new sBreakCheck(keyword, field));
-				CellStep.AddToFirst(new sReveal(pos.x, pos.y, field, CurrentShip, true));
+				CellStep.AddToFirst(new sReveal() {
+					X = pos.x,
+					Y = pos.y,
+					Field = field,
+					Fast = true,
+					Ship = CurrentShip,
+				});
 			});
 		}
 
@@ -124,7 +140,13 @@ namespace BattleSoup {
 		private void Perform_Unreveal (BattleSoup soup) {
 			Trigger(soup, Action.RandomCount, (field, pos, keyword) => {
 				CellStep.AddToFirst(new sBreakCheck(keyword, field));
-				CellStep.AddToFirst(new sUnreveal(pos.x, pos.y, field, CurrentShip, true));
+				CellStep.AddToFirst(new sReveal() {
+					X = pos.x,
+					Y = pos.y,
+					Field = field,
+					Fast = true,
+					Ship = CurrentShip,
+				});
 			});
 		}
 
@@ -132,7 +154,13 @@ namespace BattleSoup {
 		private void Perform_Sonar (BattleSoup soup) {
 			Trigger(soup, Action.RandomCount, (field, pos, keyword) => {
 				CellStep.AddToFirst(new sBreakCheck(keyword, field));
-				CellStep.AddToFirst(new sSonar(pos.x, pos.y, field, CurrentShip, true));
+				CellStep.AddToFirst(new sSonar() {
+					X = pos.x,
+					Y = pos.y,
+					Field = field,
+					Fast = true,
+					Ship = CurrentShip,
+				});
 			});
 		}
 
@@ -140,7 +168,13 @@ namespace BattleSoup {
 		private void Perform_SunkShip (BattleSoup soup) {
 			TriggerForShip(soup, (field, pos, keyword) => {
 				CellStep.AddToFirst(new sBreakCheck(keyword, field));
-				CellStep.AddToFirst(new sAttack(pos.x, pos.y, field, CurrentShip, true));
+				CellStep.AddToFirst(new sAttack() {
+					X = pos.x,
+					Y = pos.y,
+					Field = field,
+					Fast = true,
+					Ship = CurrentShip,
+				});
 			});
 		}
 
@@ -148,7 +182,13 @@ namespace BattleSoup {
 		private void Perform_RevealShip (BattleSoup soup) {
 			TriggerForShip(soup, (field, pos, keyword) => {
 				CellStep.AddToFirst(new sBreakCheck(keyword, field));
-				CellStep.AddToFirst(new sReveal(pos.x, pos.y, field, CurrentShip, true));
+				CellStep.AddToFirst(new sReveal() {
+					X = pos.x,
+					Y = pos.y,
+					Field = field,
+					Fast = true,
+					Ship = CurrentShip,
+				});
 			});
 		}
 
@@ -156,7 +196,13 @@ namespace BattleSoup {
 		private void Perform_ExposeShip (BattleSoup soup) {
 			Trigger(soup, Action.RandomCount, (field, pos, keyword) => {
 				CellStep.AddToFirst(new sBreakCheck(keyword, field));
-				CellStep.AddToFirst(new sExpose(pos.x, pos.y, field, CurrentShip, true));
+				CellStep.AddToFirst(new sExpose() {
+					X = pos.x,
+					Y = pos.y,
+					Field = field,
+					Fast = true,
+					Ship = CurrentShip,
+				});
 			});
 		}
 
@@ -205,10 +251,22 @@ namespace BattleSoup {
 							// Expand
 							if (revealed) {
 								CellStep.AddToFirst(new sBreakCheck(keyword, field));
-								CellStep.AddToFirst(new sReveal(_pos.x, _pos.y, field, CurrentShip, true));
+								CellStep.AddToFirst(new sReveal() {
+									X = _pos.x,
+									Y = _pos.y,
+									Field = field,
+									Fast = true,
+									Ship = CurrentShip,
+								});
 							} else {
 								CellStep.AddToFirst(new sBreakCheck(keyword, field));
-								CellStep.AddToFirst(new sUnreveal(_pos.x, _pos.y, field, CurrentShip, true));
+								CellStep.AddToFirst(new sUnreveal() {
+									X = _pos.x,
+									Y = _pos.y,
+									Field = field,
+									Fast = true,
+									Ship = CurrentShip,
+								});
 							}
 						} else {
 							// Shrink
@@ -227,10 +285,22 @@ namespace BattleSoup {
 							if (_reveal == revealed) {
 								if (revealed) {
 									CellStep.AddToFirst(new sBreakCheck(keyword, field));
-									CellStep.AddToFirst(new sUnreveal(p.x, p.y, field, CurrentShip, true));
+									CellStep.AddToFirst(new sUnreveal() {
+										X = p.x,
+										Y = p.y,
+										Field = field,
+										Fast = true,
+										Ship = CurrentShip,
+									});
 								} else {
 									CellStep.AddToFirst(new sBreakCheck(keyword, field));
-									CellStep.AddToFirst(new sReveal(p.x, p.y, field, CurrentShip, true));
+									CellStep.AddToFirst(new sReveal() {
+										X = p.x,
+										Y = p.y,
+										Field = field,
+										Fast = true,
+										Ship = CurrentShip,
+									});
 								}
 							}
 						}
@@ -241,10 +311,22 @@ namespace BattleSoup {
 							if (_reveal == revealed) {
 								if (revealed) {
 									CellStep.AddToFirst(new sBreakCheck(keyword, field));
-									CellStep.AddToFirst(new sUnreveal(p.x, p.y, field, CurrentShip, true));
+									CellStep.AddToFirst(new sUnreveal() {
+										X = p.x,
+										Y = p.y,
+										Field = field,
+										Fast = true,
+										Ship = CurrentShip,
+									});
 								} else {
 									CellStep.AddToFirst(new sBreakCheck(keyword, field));
-									CellStep.AddToFirst(new sReveal(p.x, p.y, field, CurrentShip, true));
+									CellStep.AddToFirst(new sReveal() {
+										X = p.x,
+										Y = p.y,
+										Field = field,
+										Fast = true,
+										Ship = CurrentShip,
+									});
 								}
 							}
 						}
@@ -256,10 +338,22 @@ namespace BattleSoup {
 							if (_reveal == revealed) {
 								if (revealed) {
 									CellStep.AddToFirst(new sBreakCheck(keyword, field));
-									CellStep.AddToFirst(new sUnreveal(p.x, p.y, field, CurrentShip, true));
+									CellStep.AddToFirst(new sUnreveal() {
+										X = p.x,
+										Y = p.y,
+										Field = field,
+										Fast = true,
+										Ship = CurrentShip,
+									});
 								} else {
 									CellStep.AddToFirst(new sBreakCheck(keyword, field));
-									CellStep.AddToFirst(new sReveal(p.x, p.y, field, CurrentShip, true));
+									CellStep.AddToFirst(new sReveal() {
+										X = p.x,
+										Y = p.y,
+										Field = field,
+										Fast = true,
+										Ship = CurrentShip,
+									});
 								}
 							}
 						}
@@ -270,10 +364,22 @@ namespace BattleSoup {
 							if (_reveal == revealed) {
 								if (revealed) {
 									CellStep.AddToFirst(new sBreakCheck(keyword, field));
-									CellStep.AddToFirst(new sUnreveal(p.x, p.y, field, CurrentShip, true));
+									CellStep.AddToFirst(new sUnreveal() {
+										X = p.x,
+										Y = p.y,
+										Field = field,
+										Fast = true,
+										Ship = CurrentShip,
+									});
 								} else {
 									CellStep.AddToFirst(new sBreakCheck(keyword, field));
-									CellStep.AddToFirst(new sReveal(p.x, p.y, field, CurrentShip, true));
+									CellStep.AddToFirst(new sReveal() {
+										X = p.x,
+										Y = p.y,
+										Field = field,
+										Fast = true,
+										Ship = CurrentShip,
+									});
 								}
 							}
 						}
@@ -286,7 +392,16 @@ namespace BattleSoup {
 		private void Perform_Cooldown (BattleSoup soup, bool add, bool max) {
 			Trigger(soup, Action.RandomCount, (field, pos, keyword) => {
 				CellStep.AddToFirst(new sBreakCheck(keyword, field));
-				CellStep.AddToFirst(new sCooldown(pos.x, pos.y, field, CurrentShip, add, max));
+				CellStep.AddToFirst(new sCooldown() {
+					X = pos.x,
+					Y = pos.y,
+					Field = field,
+					Fast = true,
+					Add = add,
+					ForMax = max,
+					Ship = CurrentShip,
+				});
+
 			});
 		}
 

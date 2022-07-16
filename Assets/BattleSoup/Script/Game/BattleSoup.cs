@@ -45,6 +45,7 @@ namespace BattleSoup {
 			public RectTransform PlacePanel = null;
 			public Button MapShipSelectorNextButton = null;
 			public CanvasScaler CanvasScaler = null;
+			public RectTransform BottomUI = null;
 			[Header("Dialog")]
 			public RectTransform DialogRoot = null;
 			public RectTransform QuitBattleDialog = null;
@@ -93,6 +94,7 @@ namespace BattleSoup {
 			public Sprite PlusSprite = null;
 			public Sprite PlayerAvatarIcon = null;
 			public Sprite RobotAvatarIcon = null;
+			public Sprite EmptyMirrorShipIcon = null;
 		}
 
 
@@ -338,14 +340,13 @@ namespace BattleSoup {
 						ship = sStep.Ship;
 						break;
 					case sPick pick:
-						ship = pick.CurrentShip;
+						ship = pick.Ship;
 						break;
 				}
 				if (ship != null && !ship.Alive) {
 					AbandonAbility();
 				}
 			}
-
 
 			// AI
 			if (aTurn) {
@@ -409,21 +410,29 @@ namespace BattleSoup {
 		}
 
 
-		public bool UseAbility (Ship ship) {
+		public bool UseAbility (Ship ship, eField field) {
 			if (ship.CurrentCooldown > 0) return false;
 			if (!AbilityPool.TryGetValue(ship.GlobalCode, out var ability)) return false;
 			if (!ability.HasManuallyEntrance) return false;
+			bool result = UseAbility(ship.GlobalCode, ship, field);
+			ship.CurrentCooldown = ship.MaxCooldown;
+			return result;
+		}
+
+
+		public bool UseAbility (int id, Ship ship, eField field) {
+			if (!AbilityPool.TryGetValue(id, out var ability)) return false;
 			var entrance = EntranceType.OnAbilityUsed;
 			if (ship.CurrentCooldown < 0 && ability.EntrancePool.ContainsKey(EntranceType.OnAbilityUsedOvercharged)) {
 				entrance = EntranceType.OnAbilityUsedOvercharged;
 			}
 			FieldA.ClearLastActionResult();
 			FieldB.ClearLastActionResult();
-			ability.Perform(ship, entrance, SelfField, OpponentField);
+			bool performed = ability.Perform(ship, entrance, SelfField, OpponentField);
 			CellStep.AddToLast(new sSwitchTurn());
-			ship.CurrentCooldown = ship.MaxCooldown;
 			RefreshShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
 			RefreshShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
+			if (performed) field.LastPerformedAbilityID = id;
 			return true;
 		}
 
@@ -626,7 +635,7 @@ namespace BattleSoup {
 					// Final
 					PickingPosition = default;
 					PickingDirection = default;
-					OnFleetChanged();
+					//OnFleetChanged();
 					FieldA.GameStart();
 					FieldB.GameStart();
 					ReloadShipAbilityUI(FieldA, m_Assets.AbilityContainerA, m_Assets.ShipAbilityItem, PvA);
@@ -675,69 +684,6 @@ namespace BattleSoup {
 		}
 
 
-		private void RefreshCameraView (bool immediately = false) {
-
-			bool availableA = FieldA.Enable;
-			bool availableB = FieldB.Enable;
-
-			if (!availableA && !availableB) return;
-
-			const int MIN_WIDTH = SoupConst.ISO_SIZE * 10;
-			const int MIN_HEIGHT = SoupConst.ISO_SIZE * 10;
-
-			int sizeA = availableA ? FieldA.MapSize : 0;
-			int sizeB = availableB ? FieldB.MapSize : 0;
-
-			int l0 = int.MaxValue;
-			int r0 = int.MinValue;
-			int d0 = int.MaxValue;
-			int u0 = int.MinValue;
-			if (availableA) {
-				(l0, _) = FieldA.Local_to_Global(0, sizeA - 1);
-				(r0, _) = FieldA.Local_to_Global(sizeA, 0);
-				(_, d0) = FieldA.Local_to_Global(0, 0);
-				(_, u0) = FieldA.Local_to_Global(sizeA, sizeA, 1);
-			}
-
-			int l1 = int.MaxValue;
-			int r1 = int.MinValue;
-			int d1 = int.MaxValue;
-			int u1 = int.MinValue;
-			if (availableB) {
-				(l1, _) = FieldB.Local_to_Global(0, sizeB - 1);
-				(r1, _) = FieldB.Local_to_Global(sizeB, 0);
-				(_, d1) = FieldB.Local_to_Global(0, 0);
-				(_, u1) = FieldB.Local_to_Global(sizeB, sizeB, 1);
-			}
-
-			int minX = Mathf.Min(l0, l1);
-			int maxX = Mathf.Max(r0, r1) + SoupConst.ISO_SIZE / 2;
-			int minY = Mathf.Min(d0, d1);
-			int maxY = Mathf.Max(u0, u1);
-
-			var rect = new RectInt(minX, minY, maxX - minX, maxY - minY);
-			rect = rect.Expand(
-				SoupConst.ISO_SIZE / 2, SoupConst.ISO_SIZE / 2,
-				SoupConst.ISO_SIZE / 2, SoupConst.ISO_SIZE
-			);
-			if (rect.width < MIN_WIDTH) {
-				int exp = (MIN_WIDTH - rect.width) / 2;
-				rect = rect.Expand(exp, exp, 0, 0);
-			}
-			if (rect.height < MIN_HEIGHT) {
-				int exp = (MIN_HEIGHT - rect.height) / 2;
-				rect = rect.Expand(0, 0, exp, exp);
-			}
-			var targetCameraRect = rect.ToRect().Envelope((float)Screen.width / Screen.height);
-
-			SetViewPositionDely(
-				(int)(targetCameraRect.x + targetCameraRect.width / 2) - ViewRect.width / 2,
-				(int)targetCameraRect.y, immediately ? 1000 : 220
-			);
-			SetViewSizeDely((int)targetCameraRect.height, immediately ? 1000 : 220);
-		}
-
-
 		private void OnMapChanged () {
 			FieldA.SetMap(AllMaps[s_MapIndexA.Value]);
 			FieldB.SetMap(AllMaps[s_MapIndexB.Value]);
@@ -782,6 +728,73 @@ namespace BattleSoup {
 
 
 		// Refresh UI
+		private void RefreshCameraView (bool immediately = false) {
+
+			bool availableA = FieldA.Enable;
+			bool availableB = FieldB.Enable;
+
+			if (!availableA && !availableB) return;
+
+			const int MIN_WIDTH = SoupConst.ISO_SIZE * 10;
+			const int MIN_HEIGHT = SoupConst.ISO_SIZE * 10;
+
+			int sizeA = availableA ? FieldA.MapSize : 0;
+			int sizeB = availableB ? FieldB.MapSize : 0;
+
+			int l0 = int.MaxValue;
+			int r0 = int.MinValue;
+			int d0 = int.MaxValue;
+			int u0 = int.MinValue;
+			if (availableA) {
+				(l0, _) = FieldA.Local_to_Global(0, sizeA - 1);
+				(r0, _) = FieldA.Local_to_Global(sizeA, 0);
+				(_, d0) = FieldA.Local_to_Global(0, 0);
+				(_, u0) = FieldA.Local_to_Global(sizeA, sizeA, 1);
+			}
+
+			int l1 = int.MaxValue;
+			int r1 = int.MinValue;
+			int d1 = int.MaxValue;
+			int u1 = int.MinValue;
+			if (availableB) {
+				(l1, _) = FieldB.Local_to_Global(0, sizeB - 1);
+				(r1, _) = FieldB.Local_to_Global(sizeB, 0);
+				(_, d1) = FieldB.Local_to_Global(0, 0);
+				(_, u1) = FieldB.Local_to_Global(sizeB, sizeB, 1);
+			}
+
+			int minX = Mathf.Min(l0, l1);
+			int maxX = Mathf.Max(r0, r1) + SoupConst.ISO_SIZE / 2;
+			int minY = Mathf.Min(d0, d1);
+			int maxY = Mathf.Max(u0, u1);
+
+			float bottom01 = m_Assets.BottomUI.rect.height / (m_Assets.BottomUI.parent as RectTransform).rect.height;
+			int uiBottomSize = (int)(ViewRect.height * bottom01);
+			var rect = new RectInt(minX, minY, maxX - minX, maxY - minY);
+			rect = rect.Expand(
+				SoupConst.ISO_SIZE / 2,
+				SoupConst.ISO_SIZE / 2,
+				uiBottomSize,
+				SoupConst.ISO_SIZE
+			);
+			if (rect.width < MIN_WIDTH) {
+				int exp = (MIN_WIDTH - rect.width) / 2;
+				rect = rect.Expand(exp, exp, 0, 0);
+			}
+			if (rect.height < MIN_HEIGHT) {
+				int exp = (MIN_HEIGHT - rect.height) / 2;
+				rect = rect.Expand(0, 0, exp, exp);
+			}
+			var targetCameraRect = rect.ToRect().Envelope((float)Screen.width / Screen.height);
+
+			SetViewPositionDely(
+				(int)(targetCameraRect.x + targetCameraRect.width / 2) - ViewRect.width / 2,
+				(int)targetCameraRect.y, immediately ? 1000 : 220
+			);
+			SetViewSizeDely((int)targetCameraRect.height, immediately ? 1000 : 220);
+		}
+
+
 		private void RemoveShipFromFleetString (SavingString sString, int index) {
 			var ships = new List<string>(sString.Value.Split(','));
 			if (index >= 0 && index < ships.Count) {
@@ -867,7 +880,7 @@ namespace BattleSoup {
 				var btn = grab.Grab<Button>();
 				btn.interactable = interactable;
 				if (interactable) {
-					btn.onClick.AddListener(() => UseAbility(ship));
+					btn.onClick.AddListener(() => UseAbility(ship, field));
 				}
 				var img = grab.Grab<Image>("Ship");
 				img.color = Color.white;
@@ -881,6 +894,13 @@ namespace BattleSoup {
 				cooldown.text = ship.DefaultCooldown.ToString();
 				var shape = grab.Grab<ShipShapeUI>();
 				shape.Ship = ship;
+				var mIcon = grab.Grab<Image>("Mirror Icon");
+				mIcon.sprite = m_Assets.EmptyMirrorShipIcon;
+				if (AbilityPool.TryGetValue(ship.GlobalCode, out var ability)) {
+					mIcon.gameObject.SetActive(ability.HasCopySelfAction || ability.HasCopyOpponentAction);
+				} else {
+					mIcon.gameObject.SetActive(false);
+				}
 			}
 			RefreshShipAbilityUI(container, field, interactable);
 		}
@@ -893,6 +913,7 @@ namespace BattleSoup {
 				var grab = container.GetChild(i).GetComponent<Grabber>();
 				if (grab == null) continue;
 				var btn = grab.Grab<Button>();
+				if (!AbilityPool.TryGetValue(ship.GlobalCode, out var ability)) continue;
 				btn.interactable =
 					interactable &&
 					ship.Alive &&
@@ -903,6 +924,26 @@ namespace BattleSoup {
 				cooldown.text = ship.Alive && !GameOver && ship.CurrentCooldown > 0 ? ship.CurrentCooldown.ToString() : "";
 				var img = grab.Grab<Image>("Ship");
 				img.color = ship.Alive ? Color.white : new Color32(230, 71, 46, 255);
+				var mIcon = grab.Grab<Image>("Mirror Icon");
+				if (mIcon.gameObject.activeSelf) {
+					// Mirror Icon
+					int lastUsedAbility = field.LastPerformedAbilityID;
+					if (ShipPool.TryGetValue(lastUsedAbility, out var targetShip)) {
+						mIcon.sprite = targetShip.Icon != null ? targetShip.Icon : m_Assets.EmptyMirrorShipIcon;
+					} else {
+						mIcon.sprite = m_Assets.EmptyMirrorShipIcon;
+					}
+				}
+				// Mirror Interactable
+				if (btn.interactable && !ability.HasSolidAction) {
+					bool mInter = false;
+					var opponentField = field == FieldA ? FieldB : FieldA;
+					int selfAbilityID = field.LastPerformedAbilityID;
+					int opponentAbilityID = opponentField.LastPerformedAbilityID;
+					if (ability.HasCopySelfAction && selfAbilityID != 0) mInter = true;
+					if (ability.HasCopyOpponentAction && opponentAbilityID != 0) mInter = true;
+					if (!mInter) btn.interactable = false;
+				}
 			}
 		}
 

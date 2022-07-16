@@ -10,17 +10,11 @@ namespace BattleSoup {
 
 
 		// Data
-		private bool Add { get; init; }
-		private bool ForMax { get; init; }
+		public bool Add { get; set; }
+		public bool ForMax { get; set; }
 
 
 		// MSG
-		public sCooldown (int x, int y, eField field, Ship ship, bool add, bool forMax, bool fast = false) : base(x, y, field, ship, fast) {
-			Add = add;
-			ForMax = forMax;
-		}
-
-
 		public override StepResult FrameUpdate (Game game) {
 			base.FrameUpdate(game);
 			if (X < 0 || Y < 0 || X >= Field.MapSize || Y >= Field.MapSize) return StepResult.Over;

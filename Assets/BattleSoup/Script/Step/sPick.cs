@@ -12,19 +12,19 @@ namespace BattleSoup {
 		public eField Field { get; init; } = null;
 		public ActionUnit Action { get; init; }
 		public ActionKeyword Keyword { get; init; } = default;
-		public Ship CurrentShip { get; init; }
+		public Ship Ship { get; init; } = null;
 
 		// Data
 		private bool RequireQuit = false;
 
 
 		// MSG
-		public sPick (eField field, ActionUnit action, Ship currentShip, ActionKeyword keyword) {
+		public sPick (eField field, ActionUnit action, Ship ship, ActionKeyword keyword) {
 			Field = field;
 			Keyword = keyword;
 			Action = action;
 			RequireQuit = false;
-			CurrentShip = currentShip;
+			Ship = ship;
 		}
 
 

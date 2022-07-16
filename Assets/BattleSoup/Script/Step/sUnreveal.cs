@@ -14,9 +14,6 @@ namespace BattleSoup {
 
 
 		// MSG
-		public sUnreveal (int x, int y, eField field, Ship ship, bool fast = false) : base(x, y, field, ship, fast) { }
-
-
 		public override StepResult FrameUpdate (Game game) {
 			base.FrameUpdate(game);
 			if (X < 0 || Y < 0 || X >= Field.MapSize || Y >= Field.MapSize) return StepResult.Over;

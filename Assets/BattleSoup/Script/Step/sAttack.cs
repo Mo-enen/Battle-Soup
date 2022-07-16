@@ -12,12 +12,8 @@ namespace BattleSoup {
 		// Data
 		private bool ShowCrosshair = true;
 
+
 		// MSG
-		public sAttack (int x, int y, eField field, Ship ship, bool fast = false, bool showCrosshair = true) : base(x, y, field, ship, fast) {
-			ShowCrosshair = showCrosshair;
-		}
-
-
 		public override StepResult FrameUpdate (Game game) {
 			base.FrameUpdate(game);
 			if (X < 0 || Y < 0 || X >= Field.MapSize || Y >= Field.MapSize) return StepResult.Over;

@@ -34,6 +34,7 @@ namespace BattleSoup {
 		public bool ClickShipToTriggerAbility { get; set; } = false;
 		public ActionResult LastActionResult { get; private set; } = ActionResult.None;
 		public int LastActionFrame { get; private set; } = int.MinValue;
+		public int LastPerformedAbilityID { get; set; } = 0;
 
 		// Data
 		private Cell[,] Cells = null;
@@ -119,7 +120,12 @@ namespace BattleSoup {
 				cell.State == CellState.Normal ||
 				(cell.ShipIndex >= 0 && cell.State == CellState.Revealed)
 			) {
-				CellStep.AddToLast(new sAttack(localX, localY, this, null));
+				CellStep.AddToLast(new sAttack() {
+					X = localX,
+					Y = localY,
+					Field = this,
+					Fast = false,
+				});
 				CellStep.AddToLast(new sSwitchTurn());
 			}
 		}
@@ -179,7 +185,8 @@ namespace BattleSoup {
 				ship.Visible = false;
 				ship.Alive = true;
 			}
-
+			RefreshCellShipCache();
+			RefreshAllShipsAliveState();
 		}
 
 

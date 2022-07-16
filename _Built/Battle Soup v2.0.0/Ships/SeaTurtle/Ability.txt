@@ -1,9 +1,9 @@
 
 // Sea Turtle
 
-pick [hittable]
+pick [hittable, hitShip]
 attack
-reduceCooldown [triggerIfHit, this]
+reduceCooldown [triggerIfHit, triggerIfSunk, this]
 reveal (0,1)
 reveal (0,-1)
 reveal (1,0)

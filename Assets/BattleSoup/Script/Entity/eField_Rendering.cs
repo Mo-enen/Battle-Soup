@@ -361,7 +361,8 @@ namespace BattleSoup {
 				switch (aUnit.Type) {
 					case ActionType.None:
 					case ActionType.Pick:
-					case ActionType.PerformLastUsedAbility:
+					case ActionType.PerformSelfLastUsedAbility:
+					case ActionType.PerformOpponentLastUsedAbility:
 						continue;
 					case ActionType.Reveal:
 					case ActionType.Unreveal:

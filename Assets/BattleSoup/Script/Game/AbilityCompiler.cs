@@ -155,24 +155,54 @@ namespace BattleSoup {
 				Units = units.ToArray(),
 				HasManuallyEntrance = false,
 				HasPassiveEntrance = false,
+				HasSolidAction = false,
+				HasCopySelfAction = false,
+				HasCopyOpponentAction = false,
 			};
 			for (int i = 0; i < units.Count; i++) {
 				var unit = units[i];
-				if (unit is EntranceUnit eUnit) {
-					result.EntrancePool.TryAdd(eUnit.Type, i);
-					switch (eUnit.Type) {
-						case EntranceType.OnAbilityUsed:
-						case EntranceType.OnAbilityUsedOvercharged:
-							result.HasManuallyEntrance = true;
-							break;
-						case EntranceType.OnOpponentGetAttack:
-						case EntranceType.OnSelfGetAttack:
-						case EntranceType.OnOpponentShipGetHit:
-						case EntranceType.OnSelfShipGetHit:
-						case EntranceType.OnCurrentShipGetHit:
-							result.HasPassiveEntrance = true;
-							break;
-					}
+				switch (unit) {
+					case EntranceUnit eUnit:
+						result.EntrancePool.TryAdd(eUnit.Type, i);
+						switch (eUnit.Type) {
+							case EntranceType.OnAbilityUsed:
+							case EntranceType.OnAbilityUsedOvercharged:
+								result.HasManuallyEntrance = true;
+								break;
+							case EntranceType.OnOpponentGetAttack:
+							case EntranceType.OnSelfGetAttack:
+							case EntranceType.OnOpponentShipGetHit:
+							case EntranceType.OnSelfShipGetHit:
+							case EntranceType.OnCurrentShipGetHit:
+								result.HasPassiveEntrance = true;
+								break;
+						}
+						break;
+					case ActionUnit aUnit:
+						switch (aUnit.Type) {
+							case ActionType.Attack:
+							case ActionType.Reveal:
+							case ActionType.Unreveal:
+							case ActionType.Sonar:
+							case ActionType.Expand:
+							case ActionType.Shrink:
+							case ActionType.SunkShip:
+							case ActionType.RevealShip:
+							case ActionType.ExposeShip:
+							case ActionType.AddCooldown:
+							case ActionType.ReduceCooldown:
+							case ActionType.AddMaxCooldown:
+							case ActionType.ReduceMaxCooldown:
+								result.HasSolidAction = true;
+								break;
+							case ActionType.PerformSelfLastUsedAbility:
+								result.HasCopySelfAction = true;
+								break;
+							case ActionType.PerformOpponentLastUsedAbility:
+								result.HasCopyOpponentAction = true;
+								break;
+						}
+						break;
 				}
 			}
 			return result;

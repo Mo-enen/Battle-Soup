@@ -5,17 +5,17 @@ OnAbilityUsed
 
 pick [hittable]
 attack
-attack ? [triggerIfHit, this, normalWater, revealedShip]
+attack ? [triggerIfHit, triggerIfSunk, this, normalWater, revealedShip]
 
 pick [hittable]
 attack
-attack ? [triggerIfHit, this, normalWater, revealedShip]
+attack ? [triggerIfHit, triggerIfSunk, this, normalWater, revealedShip]
 
 pick [hittable]
 attack
-attack ? [triggerIfHit, this, normalWater, revealedShip]
+attack ? [triggerIfHit, triggerIfSunk, this, normalWater, revealedShip]
 
 pick [hittable]
 attack
-attack ? [triggerIfHit, this, normalWater, revealedShip]
+attack ? [triggerIfHit, triggerIfSunk, this, normalWater, revealedShip]
 

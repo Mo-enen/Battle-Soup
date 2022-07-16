@@ -13,6 +13,9 @@ namespace BattleSoup {
 		public readonly Dictionary<EntranceType, int> EntrancePool = new();
 		public bool HasManuallyEntrance = false;
 		public bool HasPassiveEntrance = false;
+		public bool HasSolidAction = false;
+		public bool HasCopyOpponentAction = false;
+		public bool HasCopySelfAction = false;
 
 
 		// API
@@ -40,7 +43,7 @@ namespace BattleSoup {
 				}
 			}
 
-			return result;
+			return HasSolidAction && result;
 		}
 
 
