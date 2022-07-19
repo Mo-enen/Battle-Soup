@@ -2,8 +2,8 @@
 // Multineer
 
 pick [revealedShip, revealedWater, hitShip, sunkShip]
-attack (0,0)
+attack
 
 pick [revealedShip, revealedWater, hitShip, sunkShip]
-attack (0,0)
+attack
 

@@ -3,5 +3,5 @@
 
 pick
 sonar
-revealShip [this, UnexposedShip]
+revealShip [this, unexposedShip]
 exposeShip [this]

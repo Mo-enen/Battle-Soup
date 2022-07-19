@@ -5,7 +5,7 @@ using UnityEngine;
 
 
 namespace BattleSoup {
-	public class BRevealAndSnipeAI : SoupAI {
+	public class RevealAndSnipeAI : SoupAI {
 
 
 		public override string DisplayName => "Reveal & Snipe (Easy)";

@@ -2,18 +2,18 @@
 // Longboat
 
 pick [hittable]
-attack (0,0) [breakIfMiss, breakIfSunk]
+attack [breakIfMiss, breakIfSunk]
 
 pick [hittable]
-attack (0,0) [breakIfMiss, breakIfSunk]
+attack [breakIfMiss, breakIfSunk]
 
 pick [hittable]
-attack (0,0) [breakIfMiss, breakIfSunk]
+attack [breakIfMiss, breakIfSunk]
 
 pick [hittable]
-attack (0,0) [breakIfMiss, breakIfSunk]
+attack [breakIfMiss, breakIfSunk]
 
 pick [hittable]
-attack (0,0) [breakIfMiss, breakIfSunk]
+attack [breakIfMiss, breakIfSunk]
 
 

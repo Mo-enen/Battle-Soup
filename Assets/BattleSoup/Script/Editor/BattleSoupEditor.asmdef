@@ -3,7 +3,8 @@
     "rootNamespace": "BattleSoup.Editor",
     "references": [
         "BattleSoup",
-        "AngeliaFrameworkEditor"
+        "AngeliaFrameworkEditor",
+        "AngeliaFrameworkRuntime"
     ],
     "includePlatforms": [
         "Editor"

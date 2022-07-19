@@ -3,4 +3,3 @@
 
 pick [revealedWater, revealedShip, hitShip, sunkShip]
 expand
-//shrink

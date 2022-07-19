@@ -9,21 +9,24 @@ namespace BattleSoup {
 
 
 		// Api
-		public eField Field { get; init; } = null;
+		public eField TargetField { get; init; } = null;
+		public eField SelfField { get; init; } = null;
 		public ActionUnit Action { get; init; }
 		public ActionKeyword Keyword { get; init; } = default;
 		public Ship Ship { get; init; } = null;
 
 		// Data
-		private bool RequireQuit = false;
+		private bool RequireAbandonAbility = false;
+		private bool RequireCancelPick = false;
 
 
 		// MSG
-		public sPick (eField field, ActionUnit action, Ship ship, ActionKeyword keyword) {
-			Field = field;
+		public sPick (eField targetField, eField selfField, ActionUnit action, Ship ship, ActionKeyword keyword) {
+			TargetField = targetField;
+			SelfField = selfField;
 			Keyword = keyword;
 			Action = action;
-			RequireQuit = false;
+			RequireAbandonAbility = false;
 			Ship = ship;
 		}
 
@@ -33,9 +36,9 @@ namespace BattleSoup {
 
 			// Check Any Tile Can Pick
 			bool success = false;
-			for (int x = 0; x < Field.MapSize; x++) {
-				for (int y = 0; y < Field.MapSize; y++) {
-					var cell = Field[x, y];
+			for (int x = 0; x < TargetField.MapSize; x++) {
+				for (int y = 0; y < TargetField.MapSize; y++) {
+					var cell = TargetField[x, y];
 					if (Keyword.Check(cell)) {
 						success = true;
 						goto Checked;
@@ -45,33 +48,34 @@ namespace BattleSoup {
 			}
 			Checked:;
 			if (!success) {
-				RequireQuit = true;
+				RequireAbandonAbility = true;
 				return;
 			}
 
 			// Pick Info
 			var soup = game as BattleSoup;
 			if (soup.TryGetAbility(Action.AbilityID, out var ability)) {
-				Field.SetPickingInfo(ability, Keyword, Action.LineIndex);
+				TargetField.SetPickingInfo(ability, Keyword, Action.LineIndex);
 			}
 		}
 
 
 		public override void OnEnd (Game game) {
 			base.OnEnd(game);
-			Field.ClearPickingInfo();
-			if (RequireQuit) {
+			TargetField.ClearPickingInfo();
+			if (RequireAbandonAbility) {
 				(game as BattleSoup).AbandonAbility();
 			}
 		}
 
 
 		public override StepResult FrameUpdate (Game game) {
-			if (RequireQuit) return StepResult.Over;
+			if (RequireAbandonAbility) return StepResult.Over;
+			if (RequireCancelPick) return StepResult.Over;
 			var soup = game as BattleSoup;
 			// ESC
 			if (FrameInput.CustomKeyDown(KeyCode.Escape)) {
-				RequireQuit = true;
+				RequireAbandonAbility = true;
 				return StepResult.Over;
 			}
 			// Rotate
@@ -83,21 +87,24 @@ namespace BattleSoup {
 			if (!FrameInput.MouseLeftDown) {
 				return StepResult.Continue;
 			}
-			var (localX, localY) = Field.Global_to_Local(
+			var (localX, localY) = TargetField.Global_to_Local(
 				FrameInput.MouseGlobalPosition.x,
 				FrameInput.MouseGlobalPosition.y,
 				1
 			);
-			if (localX < 0 || localY < 0 || localX >= Field.MapSize || localY >= Field.MapSize) {
+			if (localX < 0 || localY < 0 || localX >= TargetField.MapSize || localY >= TargetField.MapSize) {
 				return StepResult.Continue;
 			}
-			var cell = Field[localX, localY];
+			var cell = TargetField[localX, localY];
 			if (!Keyword.Check(cell)) {
 				return StepResult.Continue;
 			}
 			soup.SetPickingPosition(new(localX, localY));
 			return StepResult.Over;
 		}
+
+
+		public void CancelPick () => RequireCancelPick = true;
 
 
 	}

@@ -49,19 +49,15 @@ namespace BattleSoup {
 		OnAbilityUsed,
 		OnAbilityUsedOvercharged,
 
-		OnOpponentGetAttack,
 		OnSelfGetAttack,
+		OnOpponentGetAttack,
 
-		OnOpponentShipGetHit,
 		OnSelfShipGetHit,
+		OnOpponentShipGetHit,
 		OnCurrentShipGetHit,
 
-		OnOpponentShipGetRevealed,
-		OnSelfShipGetRevealed,
-		OnCurrentShipGetRevealed,
-
-		OnOpponentShipGetSunk,
 		OnSelfShipGetSunk,
+		OnOpponentShipGetSunk,
 		OnCurrentShipGetSunk,
 
 	}
@@ -104,12 +100,16 @@ namespace BattleSoup {
 		BreakIfHit = 1L << 17,
 		BreakIfReveal = 1L << 18,
 		BreakIfSunk = 1L << 19,
+		BreakIfIsLastShip = 1L << 20,
+		BreakIfIsNotLastShip = 1L << 21,
 
 		// Trigger
-		TriggerIfMiss = 1L << 20,
-		TriggerIfHit = 1L << 21,
-		TriggerIfReveal = 1L << 22,
-		TriggerIfSunk = 1L << 23,
+		TriggerIfMiss = 1L << 22,
+		TriggerIfHit = 1L << 23,
+		TriggerIfReveal = 1L << 24,
+		TriggerIfSunk = 1L << 25,
+		TriggerIfIsLastShip = 1L << 26,
+		TriggerIfIsNotLastShip = 1L << 27,
 
 	}
 
@@ -133,18 +133,6 @@ namespace BattleSoup {
 	}
 
 
-
-	[System.Serializable]
-	public struct Int2 {
-		public int x;
-		public int y;
-		public Int2 (int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
-	}
-
-
 	public static class SoupConst {
 
 		public const int ISO_WIDTH = 32 * 7;
@@ -156,7 +144,6 @@ namespace BattleSoup {
 
 	public static class SoupUtil {
 
-
 		public static Vector2Int GetPickedPosition (Vector2Int pickingPos, Direction4 pickingDir, int localX, int localY) =>
 			pickingPos + pickingDir switch {
 				Direction4.Down => new(-localX, -localY),
@@ -165,7 +152,7 @@ namespace BattleSoup {
 				_ or Direction4.Up => new(localX, localY),
 			};
 
-		public static BattleSoup.Turn Opponent (this BattleSoup.Turn turn) => 1 - turn;
+		public static BattleSoup.Turn Opposite (this BattleSoup.Turn turn) => 1 - turn;
 
 		public static bool Check (this ActionKeyword keyword, Cell cell) {
 
@@ -194,33 +181,41 @@ namespace BattleSoup {
 			}
 
 			// One-Vote-In
+			bool hasKeyword = false;
 			if (keyword.HasFlag(ActionKeyword.NormalWater)) {
 				if (cell.State == CellState.Normal) return true;
+				hasKeyword = true;
 			}
 			if (keyword.HasFlag(ActionKeyword.RevealedWater)) {
 				if (cell.State == CellState.Revealed && cell.ShipIndex < 0) return true;
+				hasKeyword = true;
 			}
 			if (keyword.HasFlag(ActionKeyword.RevealedShip)) {
 				if (cell.State == CellState.Revealed && cell.ShipIndex >= 0) return true;
+				hasKeyword = true;
 			}
 			if (keyword.HasFlag(ActionKeyword.UnrevealedShip)) {
 				if (cell.State == CellState.Normal && cell.ShipIndex >= 0) return true;
+				hasKeyword = true;
 			}
 			if (keyword.HasFlag(ActionKeyword.HitShip)) {
 				if (cell.State == CellState.Hit && cell.ShipIndex >= 0) return true;
+				hasKeyword = true;
 			}
 			if (keyword.HasFlag(ActionKeyword.SunkShip)) {
 				if (cell.State == CellState.Sunk && cell.ShipIndex >= 0) return true;
+				hasKeyword = true;
 			}
 			if (keyword.HasFlag(ActionKeyword.Hittable)) {
 				if (!cell.HasStone && cell.State == CellState.Normal) return true;
 				if (!cell.HasStone && cell.State == CellState.Revealed) return true;
+				hasKeyword = true;
 			}
 
-			return false;
+			return !hasKeyword;
 		}
 
-		public static bool CheckTrigger (this ActionKeyword keyword, ActionResult result) {
+		public static bool CheckTrigger (this ActionKeyword keyword, ActionResult result, int shipCount) {
 			bool hasTrigger = false;
 			if (keyword.HasFlag(ActionKeyword.TriggerIfHit)) {
 				if (result == ActionResult.Hit) return true;
@@ -238,10 +233,18 @@ namespace BattleSoup {
 				if (result == ActionResult.Sunk) return true;
 				hasTrigger = true;
 			}
+			if (keyword.HasFlag(ActionKeyword.TriggerIfIsLastShip)) {
+				if (shipCount == 1) return true;
+				hasTrigger = true;
+			}
+			if (keyword.HasFlag(ActionKeyword.TriggerIfIsNotLastShip)) {
+				if (shipCount != 1) return true;
+				hasTrigger = true;
+			}
 			return !hasTrigger;
 		}
 
-		public static bool CheckBreak (this ActionKeyword keyword, ActionResult result) {
+		public static bool CheckBreak (this ActionKeyword keyword, ActionResult result, int shipCount) {
 			bool _break = false;
 			if (keyword.HasFlag(ActionKeyword.BreakIfHit)) {
 				_break = _break || result == ActionResult.Hit;
@@ -254,6 +257,12 @@ namespace BattleSoup {
 			}
 			if (keyword.HasFlag(ActionKeyword.BreakIfSunk)) {
 				_break = _break || result == ActionResult.Sunk;
+			}
+			if (keyword.HasFlag(ActionKeyword.BreakIfIsLastShip)) {
+				_break = _break || shipCount == 1;
+			}
+			if (keyword.HasFlag(ActionKeyword.BreakIfIsNotLastShip)) {
+				_break = _break || shipCount != 1;
 			}
 			return _break;
 		}
@@ -307,7 +316,7 @@ namespace BattleSoup {
 			return new(
 				FieldX + (Flip ? node.y : node.x),
 				FieldY + (Flip ? node.x : node.y)
-			); ;
+			);
 		}
 
 

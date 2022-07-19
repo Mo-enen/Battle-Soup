@@ -2,6 +2,6 @@
 // Pirate Thief
 
 pick [hittable]
-attack (0,0)
-reduceCooldown (0,0) [triggerIfHit, this]
-addCooldown (0,0)
+attack
+reduceCooldown [triggerIfHit, this]
+addCooldown

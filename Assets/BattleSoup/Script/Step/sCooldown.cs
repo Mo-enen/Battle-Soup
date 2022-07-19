@@ -24,7 +24,11 @@ namespace BattleSoup {
 			if (ForMax) {
 				ship.MaxCooldown += Add ? 1 : -1;
 			} else {
+				ship.CurrentCooldown = ship.CurrentCooldown.Clamp(0, ship.MaxCooldown);
 				ship.CurrentCooldown += Add ? 1 : -1;
+				if (Add && ship.CurrentCooldown <= 1) {
+					ship.CurrentCooldown = 2;
+				}
 			}
 			return StepResult.Over;
 		}

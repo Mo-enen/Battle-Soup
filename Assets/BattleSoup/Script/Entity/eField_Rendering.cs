@@ -49,6 +49,7 @@ namespace BattleSoup {
 		private static readonly int EXPLOSION_CODE_0 = "Explosion 0".AngeHash();
 		private static readonly int EXPLOSION_CODE_1 = "Explosion 1".AngeHash();
 		private static readonly int ISO_PIXEL_CODE = "ISO Pixel".AngeHash();
+		private static readonly int ARROW_CODE = "Arrow".AngeHash();
 
 		// Data
 		private readonly List<PickingCell> PickingLocalPositions = new();
@@ -179,13 +180,12 @@ namespace BattleSoup {
 
 							var tint = ship.Valid ? cell.State switch {
 								CellState.Hit => new Color32(209, 165, 31, 255),
-								CellState.Sunk => new Color32(255, 196, 196, 196),
 								_ => new Color32(255, 255, 255, 255),
 							} : new Color32(255, 16, 16, 255);
 							if (ship.Visible && HideInvisibleShip && ship.Alive) {
 								tint.a = 128;
 							}
-
+							bool sunk = cell.State == CellState.Sunk;
 							int shipID =
 								HoveringShipIndex == shipIndex ? rID_add :
 								ship.Alive ? rID : rID_sunk;
@@ -195,7 +195,7 @@ namespace BattleSoup {
 								ref var rCell = ref CellRenderer.Draw(
 									shipID,
 									flip ? x + SoupConst.ISO_SIZE : x,
-									y + GetWaveOffsetY(x, y),
+									y + (!sunk ? GetWaveOffsetY(x, y) : 0),
 									flip ? -SoupConst.ISO_SIZE : SoupConst.ISO_SIZE,
 									SoupConst.ISO_SIZE * spShip.GlobalHeight / spShip.GlobalWidth,
 									tint
@@ -204,8 +204,7 @@ namespace BattleSoup {
 								int xMin = rCell.Width > 0 ? rCell.X : rCell.X + rCell.Width;
 								int xMax = rCell.Width > 0 ? rCell.X + rCell.Width : rCell.X;
 								if (
-									AllowHoveringOnShip && localMouseChecked &&
-									cell.State != CellState.Sunk &&
+									AllowHoveringOnShip && localMouseChecked && !sunk &&
 									mouseX > xMin &&
 									mouseX < xMax &&
 									mouseY > rCell.Y &&
@@ -301,6 +300,32 @@ namespace BattleSoup {
 		}
 
 
+		private void Update_AbilityPerformingArrow () {
+			if (CellStep.CurrentStep is not sPick pick || pick.TargetField != this) return;
+			var (mX, mY) = Global_to_Local(FrameInput.MouseGlobalPosition.x, FrameInput.MouseGlobalPosition.y, 1);
+			if (!new Vector2Int(mX, mY).InLength(MapSize)) return;
+			var otherField = this == Soup.FieldA ? Soup.FieldB : Soup.FieldA;
+			var ship = pick.Ship;
+			var shipPos = new Vector2Int(ship.FieldX, ship.FieldY);
+			if (ship.BodyNodes.Length > 0) shipPos = ship.GetFieldNodePosition(0);
+			var (startX, startY) = otherField.Local_to_Global(shipPos.x, shipPos.y, 1);
+			startX += SoupConst.ISO_WIDTH;
+			startY += SoupConst.ISO_HEIGHT;
+			var (endX, endY) = Local_to_Global(mX, mY, 1);
+			endX += SoupConst.ISO_WIDTH;
+			endY += SoupConst.ISO_HEIGHT;
+			int rot = (int)Vector2.Angle(Vector2.up, new Vector2(endX - startX, endY - startY));
+			CellRenderer.Draw_9Slice(
+				ARROW_CODE,
+				startX, startY,
+				500, 0, rot,
+				SoupConst.ISO_SIZE * 2 / 3, (int)Vector2.Distance(new(startX, startY), new(endX, endY)),
+				120, 120, 32, 160,
+				new(0, 255, 0, 255)
+			);
+		}
+
+
 		#endregion
 
 
@@ -350,6 +375,7 @@ namespace BattleSoup {
 
 
 		public void SetPickingInfo (Ability ability, ActionKeyword keyword, int actionLineIndex) {
+
 			PickingKeyword = keyword;
 			PickingLocalPositions.Clear();
 			if (ability == null) return;
@@ -395,7 +421,10 @@ namespace BattleSoup {
 		public void SetPickingDirection (Direction4 dir) => PickingDirection = dir;
 
 
-		public void ClearPickingInfo () => PickingLocalPositions.Clear();
+		public void ClearPickingInfo () {
+			PickingKeyword = ActionKeyword.None;
+			PickingLocalPositions.Clear();
+		}
 
 
 		#endregion

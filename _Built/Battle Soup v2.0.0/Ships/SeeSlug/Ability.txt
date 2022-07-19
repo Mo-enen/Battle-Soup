@@ -2,17 +2,17 @@
 // See Slug
 
 pick [normalWater, noStone]
-reveal (0,0) [breakIfReveal]
+reveal [breakIfReveal]
 
 pick [normalWater, noStone]
-reveal (0,0) [breakIfReveal]
+reveal [breakIfReveal]
 
 pick [normalWater, noStone]
-reveal (0,0) [breakIfReveal]
+reveal [breakIfReveal]
 
 pick [normalWater, noStone]
-reveal (0,0) [breakIfReveal]
+reveal [breakIfReveal]
 
 pick [normalWater, noStone]
-reveal (0,0) [breakIfReveal]
+reveal [breakIfReveal]
 

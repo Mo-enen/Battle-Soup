@@ -293,7 +293,8 @@ namespace BattleSoup {
 			bool hasKeyword = false;
 			while (!string.IsNullOrWhiteSpace(line)) {
 				int oldLength = line.Length;
-				line = GetPositionAndKeyword(line, out var pos, out var keyword);
+				line = GetPositionAndKeyword(line, out var pos, out var keyword, out _error);
+				if (!string.IsNullOrEmpty(_error)) return null;
 				if (line.Length >= oldLength) break;
 				if (keyword.HasValue) hasKeyword = true;
 				if (pos.HasValue) hasPos = true;
@@ -334,8 +335,9 @@ namespace BattleSoup {
 		}
 
 
-		private static string GetPositionAndKeyword (string line, out Vector2Int? position, out ActionKeyword? keyword) {
+		private static string GetPositionAndKeyword (string line, out Vector2Int? position, out ActionKeyword? keyword, out string error) {
 
+			error = "";
 
 			// Get Position in ()
 			position = null;
@@ -360,7 +362,7 @@ namespace BattleSoup {
 				int endIndex = line.IndexOf(']', startIndex);
 				if (endIndex >= 0) {
 					lineEnd = endIndex + 1;
-					var k = GetKeyword(line[(startIndex + 1)..endIndex]);
+					var k = GetKeyword(line[(startIndex + 1)..endIndex], out error);
 					if (k != ActionKeyword.None) keyword = k;
 				}
 			}
@@ -369,13 +371,16 @@ namespace BattleSoup {
 		}
 
 
-		private static ActionKeyword GetKeyword (string line) {
+		private static ActionKeyword GetKeyword (string line, out string error) {
+			error = "";
 			var result = ActionKeyword.None;
 			if (string.IsNullOrWhiteSpace(line)) return ActionKeyword.None;
 			var keywordStrs = line.Split(',');
 			foreach (var keywordStr in keywordStrs) {
 				if (System.Enum.TryParse<ActionKeyword>(keywordStr, true, out var keyword)) {
 					result |= keyword;
+				} else {
+					error = $"Unknown keyword \"{keywordStr}\"";
 				}
 			}
 			return result;

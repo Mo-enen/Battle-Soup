@@ -2,7 +2,7 @@
 // Slug Quad
 
 pick [normalWater]
-reveal (0,0)
+reveal
 
 pick [normalWater]
-reveal (0,0)
+reveal

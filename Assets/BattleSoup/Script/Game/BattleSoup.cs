@@ -32,10 +32,12 @@ namespace BattleSoup {
 		}
 
 
+
 		public enum Turn {
 			A = 0,
 			B = 1,
 		}
+
 
 
 		[System.Serializable]
@@ -45,6 +47,7 @@ namespace BattleSoup {
 			public RectTransform PlacePanel = null;
 			public Button MapShipSelectorNextButton = null;
 			public CanvasScaler CanvasScaler = null;
+			public RectTransform TopUI = null;
 			public RectTransform BottomUI = null;
 			[Header("Dialog")]
 			public RectTransform DialogRoot = null;
@@ -89,6 +92,10 @@ namespace BattleSoup {
 			public Image AvatarIconA = null;
 			public Text AvatarLabelA = null;
 			public Text TurnLabel = null;
+			public Button PlayAvA = null;
+			public Button PauseAvA = null;
+			public Text RobotDescriptionA = null;
+			public Text RobotDescriptionB = null;
 			[Header("Asset")]
 			public Sprite DefaultShipIcon = null;
 			public Sprite PlusSprite = null;
@@ -96,7 +103,6 @@ namespace BattleSoup {
 			public Sprite RobotAvatarIcon = null;
 			public Sprite EmptyMirrorShipIcon = null;
 		}
-
 
 
 		#endregion
@@ -110,15 +116,13 @@ namespace BattleSoup {
 		// Api
 		public GameState State { get; private set; } = GameState.Title;
 		public GameMode Mode { get; private set; } = GameMode.PvA;
+		public Turn CurrentTurn { get; private set; } = Turn.A;
 		public string ShipRoot => Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Ships");
 		public string MapRoot => Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Maps");
-		public eField SelfField => CurrentTurn == Turn.A ? FieldA : FieldB;
-		public eField OpponentField => CurrentTurn == Turn.A ? FieldB : FieldA;
 		public eField FieldA { get; private set; } = null;
 		public eField FieldB { get; private set; } = null;
 		public bool Cheating { get; set; } = false;
 		public bool Cheated { get; private set; } = false;
-		public Turn CurrentTurn { get; private set; } = Turn.A;
 		public Vector2Int PickingPosition { get; private set; } = default;
 		public Direction4 PickingDirection { get; private set; } = default;
 
@@ -136,7 +140,11 @@ namespace BattleSoup {
 		private readonly List<SoupAI> AllAi = new();
 		private readonly List<Map> AllMaps = new();
 		private bool GameOver = false;
+		private bool AvAPlaying = true;
 		private bool PrevHasStep = false;
+		private SoupAI RobotA = null;
+		private SoupAI RobotB = null;
+		private int DialogFrame = int.MinValue;
 
 		// Saving
 		private readonly SavingString s_PlayerFleet = new("BattleSoup.PlayerFleet", "Sailboat,SeaMonster,Longboat,MiniSub");
@@ -221,6 +229,7 @@ namespace BattleSoup {
 					break;
 				case GameState.Playing:
 					Update_Playing();
+					Update_Robots();
 					break;
 				case GameState.CardGame:
 
@@ -291,39 +300,38 @@ namespace BattleSoup {
 
 		private void Update_Playing () {
 
-			bool inter = true;
 			foreach (Transform tf in m_Assets.DialogRoot) {
 				if (tf.gameObject.activeSelf) {
-					inter = false;
+					DialogFrame = GlobalFrame;
 					break;
 				}
 			}
+			bool noDialog = GlobalFrame > DialogFrame + 4;
+			var currentStep = CellStep.CurrentStep;
 			bool PvA = Mode == GameMode.PvA;
 			bool aTurn = CurrentTurn == Turn.A;
-			bool waitingForPlayer = !GameOver && PvA && aTurn && !CellStep.HasStep;
-			bool picking = CellStep.IsStepping<sPick>();
+			bool waitingForPlayer = !GameOver && PvA && aTurn && currentStep == null;
+			bool picking = currentStep is sPick;
 
 			FieldA.ShowShips = true;
-			FieldA.AllowHoveringOnShip = inter && PvA && waitingForPlayer;
-			FieldA.AllowHoveringOnWater = inter && PvA && waitingForPlayer;
+			FieldA.AllowHoveringOnShip = noDialog && PvA && waitingForPlayer;
+			FieldA.AllowHoveringOnWater = noDialog && PvA && waitingForPlayer;
 			FieldA.HideInvisibleShip = false;
 			FieldA.ClickToAttack = false;
-			FieldA.ClickShipToTriggerAbility = waitingForPlayer;
 			FieldA.SetPickingDirection(PickingDirection);
 
 			FieldB.ShowShips = true;
 			FieldB.AllowHoveringOnShip = false;
-			FieldB.AllowHoveringOnWater = inter && PvA && waitingForPlayer;
+			FieldB.AllowHoveringOnWater = noDialog && PvA && waitingForPlayer;
 			FieldB.HideInvisibleShip = PvA && !Cheating;
-			FieldB.ClickToAttack = waitingForPlayer;
-			FieldB.ClickShipToTriggerAbility = false;
+			FieldB.ClickToAttack = noDialog && waitingForPlayer;
 			FieldB.SetPickingDirection(PickingDirection);
 
 			// On HasStep Changed
-			if (CellStep.HasStep != PrevHasStep) {
+			if ((currentStep != null) != PrevHasStep) {
 				RefreshShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
 				RefreshShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
-				PrevHasStep = CellStep.HasStep;
+				PrevHasStep = currentStep != null;
 			}
 
 			// Picking Hint
@@ -346,23 +354,6 @@ namespace BattleSoup {
 				if (ship != null && !ship.Alive) {
 					AbandonAbility();
 				}
-			}
-
-			// AI
-			if (aTurn) {
-				if (!PvA) {
-					// Robot A
-
-
-
-				}
-			} else {
-				// Robot B
-
-				/////////// TEST //////////////
-				SwitchTurn();
-				/////////// TEST //////////////
-
 			}
 
 			// Cheat
@@ -390,6 +381,33 @@ namespace BattleSoup {
 		}
 
 
+		private void Update_Robots () {
+			if (GameOver) return;
+			if (Mode == GameMode.AvA && !AvAPlaying) return;
+			if (CurrentTurn == Turn.A) {
+				if (Mode != GameMode.PvA) {
+					// Robot A
+					if (CellStep.CurrentStep == null) {
+						InvokeRobot(RobotA, FieldA, FieldB);
+					} else {
+						if (CellStep.CurrentStep is sPick pick) {
+							InvokeRobotForPick(RobotA, FieldA, FieldB, pick);
+						}
+					}
+				}
+			} else {
+				// Robot B
+				if (CellStep.CurrentStep == null) {
+					InvokeRobot(RobotB, FieldB, FieldA);
+				} else {
+					if (CellStep.CurrentStep is sPick pick) {
+						InvokeRobotForPick(RobotB, FieldB, FieldA, pick);
+					}
+				}
+			}
+		}
+
+
 		#endregion
 
 
@@ -403,37 +421,50 @@ namespace BattleSoup {
 			foreach (var ship in field.Ships) {
 				ship.CurrentCooldown--;
 			}
-			CurrentTurn = CurrentTurn.Opponent();
+			CurrentTurn = CurrentTurn.Opposite();
 			RefreshShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
 			RefreshShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
 			RefreshTurnLabelUI();
 		}
 
 
-		public bool UseAbility (Ship ship, eField field) {
+		// Ability 
+		public bool ClickAbility (Ship ship, eField field) {
 			if (ship.CurrentCooldown > 0) return false;
 			if (!AbilityPool.TryGetValue(ship.GlobalCode, out var ability)) return false;
 			if (!ability.HasManuallyEntrance) return false;
 			bool result = UseAbility(ship.GlobalCode, ship, field);
-			ship.CurrentCooldown = ship.MaxCooldown;
+			CellStep.AddToLast(new sSwitchTurn());
 			return result;
 		}
 
 
 		public bool UseAbility (int id, Ship ship, eField field) {
+			if (ship.CurrentCooldown > 0) return false;
 			if (!AbilityPool.TryGetValue(id, out var ability)) return false;
 			var entrance = EntranceType.OnAbilityUsed;
 			if (ship.CurrentCooldown < 0 && ability.EntrancePool.ContainsKey(EntranceType.OnAbilityUsedOvercharged)) {
 				entrance = EntranceType.OnAbilityUsedOvercharged;
 			}
-			FieldA.ClearLastActionResult();
-			FieldB.ClearLastActionResult();
-			bool performed = ability.Perform(ship, entrance, SelfField, OpponentField);
-			CellStep.AddToLast(new sSwitchTurn());
-			RefreshShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
-			RefreshShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
+			bool performed = PerformAbility(
+				ability, ship, entrance,
+				CurrentTurn == Turn.A ? FieldA : FieldB,
+				CurrentTurn == Turn.A ? FieldB : FieldA
+			);
 			if (performed) field.LastPerformedAbilityID = id;
 			return true;
+		}
+
+
+		public bool PerformAbility (Ability ability, Ship ship, EntranceType entrance, eField selfField, eField opponentField) {
+			if (ship.CurrentCooldown > 0) return false;
+			FieldA.ClearLastActionResult();
+			FieldB.ClearLastActionResult();
+			bool performed = ability.Perform(ship, entrance, selfField, opponentField);
+			ship.CurrentCooldown = ship.MaxCooldown;
+			RefreshShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
+			RefreshShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
+			return performed;
 		}
 
 
@@ -447,12 +478,23 @@ namespace BattleSoup {
 		public void SetPickingPosition (Vector2Int pos) => PickingPosition = pos;
 
 
-		public void SwitchPickingDirection () => PickingDirection = PickingDirection switch {
-			Direction4.Up => Direction4.Right,
-			Direction4.Down => Direction4.Left,
-			Direction4.Left => Direction4.Up,
-			_ or Direction4.Right => Direction4.Down,
-		};
+		public void SwitchPickingDirection () {
+			PickingDirection = PickingDirection switch {
+				Direction4.Up => Direction4.Right,
+				Direction4.Down => Direction4.Left,
+				Direction4.Left => Direction4.Up,
+				_ or Direction4.Right => Direction4.Down,
+			};
+			FieldA.SetPickingDirection(PickingDirection);
+			FieldB.SetPickingDirection(PickingDirection);
+		}
+
+
+		public void SetPickingDirection (Direction4 dir) {
+			PickingDirection = dir;
+			FieldA.SetPickingDirection(dir);
+			FieldB.SetPickingDirection(dir);
+		}
 
 
 		public Vector2Int GetPickedPosition (int localX, int localY) => SoupUtil.GetPickedPosition(
@@ -544,6 +586,14 @@ namespace BattleSoup {
 		public void UI_SetUiScale (int id) => SetUiScale(id);
 
 
+		public void UI_SetAvAPlay (bool play) {
+			bool PvA = Mode == GameMode.PvA;
+			AvAPlaying = play;
+			m_Assets.PlayAvA.gameObject.SetActive(!PvA && !play);
+			m_Assets.PauseAvA.gameObject.SetActive(!PvA && play);
+		}
+
+
 		#endregion
 
 
@@ -573,9 +623,7 @@ namespace BattleSoup {
 			Cheated = false;
 			GameOver = false;
 			FieldA.ClickToAttack = false;
-			FieldA.ClickShipToTriggerAbility = false;
 			FieldB.ClickToAttack = false;
-			FieldB.ClickShipToTriggerAbility = false;
 
 			switch (state) {
 				case GameState.Title:
@@ -588,6 +636,7 @@ namespace BattleSoup {
 					FieldA.AllowHoveringOnShip = true;
 					FieldA.AllowHoveringOnWater = false;
 					FieldA.HideInvisibleShip = false;
+					RobotA = AllAi[s_SelectingAiA.Value.Clamp(0, AllAi.Count)];
 
 					FieldB.Enable = false;
 					FieldB.AllowHoveringOnShip = false;
@@ -595,17 +644,21 @@ namespace BattleSoup {
 					FieldB.HideInvisibleShip = false;
 					FieldB.ShowShips = false;
 					FieldB.DragToMoveShips = false;
+					RobotB = AllAi[s_SelectingAiB.Value.Clamp(0, AllAi.Count)];
 
 					ReloadFleetRendererUI();
 					break;
 
 				case GameState.Playing:
 
-					if (Random.value > 0.5f) CurrentTurn = CurrentTurn.Opponent();
+					if (Random.value > 0.5f) CurrentTurn = CurrentTurn.Opposite();
 					s_MapIndexA.Value = s_MapIndexA.Value.Clamp(0, AllMaps.Count - 1);
 					s_MapIndexB.Value = s_MapIndexB.Value.Clamp(0, AllMaps.Count - 1);
 					bool PvA = Mode == GameMode.PvA;
 					RefreshTurnLabelUI();
+					AvAPlaying = s_AutoPlayForAvA.Value;
+					m_Assets.PlayAvA.gameObject.SetActive(!PvA && !AvAPlaying);
+					m_Assets.PauseAvA.gameObject.SetActive(!PvA && AvAPlaying);
 
 					// A
 					var shiftA = new Vector2Int(0, AllMaps[s_MapIndexB.Value].Size + 2);
@@ -621,6 +674,7 @@ namespace BattleSoup {
 						}
 					}
 					FieldA.LocalShift = shiftA;
+					RobotA = AllAi[s_SelectingAiA.Value.Clamp(0, AllAi.Count)];
 
 					// B
 					FieldB.Enable = true;
@@ -631,11 +685,11 @@ namespace BattleSoup {
 						m_Assets.RobotFailedToPlaceShipsDialog.gameObject.SetActive(true);
 						SwitchState(GameState.Prepare);
 					}
+					RobotB = AllAi[s_SelectingAiB.Value.Clamp(0, AllAi.Count)];
 
 					// Final
 					PickingPosition = default;
 					PickingDirection = default;
-					//OnFleetChanged();
 					FieldA.GameStart();
 					FieldB.GameStart();
 					ReloadShipAbilityUI(FieldA, m_Assets.AbilityContainerA, m_Assets.ShipAbilityItem, PvA);
@@ -699,6 +753,10 @@ namespace BattleSoup {
 				GetShipsFromFleetString(GetBotFleetB())
 			);
 			FieldB.RandomPlaceShips(256);
+			RobotA = AllAi[s_SelectingAiA.Value.Clamp(0, AllAi.Count)];
+			RobotB = AllAi[s_SelectingAiB.Value.Clamp(0, AllAi.Count)];
+			m_Assets.RobotDescriptionA.text = RobotA != null ? RobotA.Description : "";
+			m_Assets.RobotDescriptionB.text = RobotB != null ? RobotB.Description : "";
 		}
 
 
@@ -724,6 +782,80 @@ namespace BattleSoup {
 			m_Assets.UiScaleTGs[0].SetIsOnWithoutNotify(s_UiScale.Value == 0);
 			m_Assets.UiScaleTGs[1].SetIsOnWithoutNotify(s_UiScale.Value == 1);
 			m_Assets.UiScaleTGs[2].SetIsOnWithoutNotify(s_UiScale.Value == 2);
+		}
+
+
+		// Robot
+		private void InvokeRobot (SoupAI robot, eField selfField, eField opponentField) {
+
+			// Analyze
+			robot.Analyze(selfField, opponentField);
+
+			// Perform
+			bool performed = robot.Perform(
+				selfField, -1, out var pos, out int abilityIndex, out _
+			);
+			if (!performed) {
+				SwitchTurn();
+				return;
+			}
+
+			// Add All Steps
+			if (abilityIndex < 0) {
+				// Attack
+				CellStep.AddToFirst(new sAttack() {
+					X = pos.x,
+					Y = pos.y,
+					Ship = null,
+					Field = opponentField,
+					Fast = false,
+				});
+				CellStep.AddToLast(new sSwitchTurn());
+			} else {
+				// Ability
+				if (abilityIndex >= 0 && abilityIndex < selfField.Ships.Length) {
+					ClickAbility(
+						selfField.Ships[abilityIndex],
+						selfField
+					);
+				}
+			}
+
+		}
+
+
+		private void InvokeRobotForPick (SoupAI robot, eField selfField, eField opponentField, sPick pick) {
+
+			// Analyze
+			robot.Analyze(selfField, opponentField);
+
+			// Perform
+			int usingAbilityIndex = -1;
+			for (int i = 0; i < selfField.Ships.Length; i++) {
+				if (pick.Ship == selfField.Ships[i]) {
+					usingAbilityIndex = i;
+					break;
+				}
+			}
+			if (usingAbilityIndex < 0) {
+				SwitchTurn();
+				Debug.LogWarning("Failed to get usingAbilityIndex.");
+				return;
+			}
+
+			bool performed = robot.Perform(
+				selfField, usingAbilityIndex, out var pos, out int abilityIndex, out var abilityDirection
+			);
+			if (!performed || abilityIndex != usingAbilityIndex) {
+				SwitchTurn();
+				return;
+			}
+
+			// Pick
+			pick.CancelPick();
+			SetPickingDirection(abilityDirection);
+			SetPickingPosition(pos);
+
 		}
 
 
@@ -767,16 +899,17 @@ namespace BattleSoup {
 			int maxX = Mathf.Max(r0, r1) + SoupConst.ISO_SIZE / 2;
 			int minY = Mathf.Min(d0, d1);
 			int maxY = Mathf.Max(u0, u1);
-
-			float bottom01 = m_Assets.BottomUI.rect.height / (m_Assets.BottomUI.parent as RectTransform).rect.height;
-			int uiBottomSize = (int)(ViewRect.height * bottom01);
+			int uiTopSize = SoupConst.ISO_SIZE;
+			int uiBottomSize = SoupConst.ISO_SIZE / 2;
+			int viewHeight = ViewRect.height;
+			if (State == GameState.Playing) {
+				float top01 = m_Assets.TopUI.rect.height / (m_Assets.TopUI.parent as RectTransform).rect.height;
+				uiTopSize = (int)(viewHeight * top01) + SoupConst.ISO_SIZE / 2;
+				float bottom01 = m_Assets.BottomUI.rect.height / (m_Assets.BottomUI.parent as RectTransform).rect.height;
+				uiBottomSize = (int)(viewHeight * bottom01);
+			}
 			var rect = new RectInt(minX, minY, maxX - minX, maxY - minY);
-			rect = rect.Expand(
-				SoupConst.ISO_SIZE / 2,
-				SoupConst.ISO_SIZE / 2,
-				uiBottomSize,
-				SoupConst.ISO_SIZE
-			);
+			rect = rect.Expand(SoupConst.ISO_SIZE / 2, SoupConst.ISO_SIZE / 2, uiBottomSize, uiTopSize);
 			if (rect.width < MIN_WIDTH) {
 				int exp = (MIN_WIDTH - rect.width) / 2;
 				rect = rect.Expand(exp, exp, 0, 0);
@@ -791,7 +924,9 @@ namespace BattleSoup {
 				(int)(targetCameraRect.x + targetCameraRect.width / 2) - ViewRect.width / 2,
 				(int)targetCameraRect.y, immediately ? 1000 : 220
 			);
-			SetViewSizeDely((int)targetCameraRect.height, immediately ? 1000 : 220);
+			if (Mathf.Abs(ViewRect.height - targetCameraRect.height) > 4) {
+				SetViewSizeDely((int)targetCameraRect.height, immediately ? 1000 : 220);
+			}
 		}
 
 
@@ -880,7 +1015,7 @@ namespace BattleSoup {
 				var btn = grab.Grab<Button>();
 				btn.interactable = interactable;
 				if (interactable) {
-					btn.onClick.AddListener(() => UseAbility(ship, field));
+					btn.onClick.AddListener(() => ClickAbility(ship, field));
 				}
 				var img = grab.Grab<Image>("Ship");
 				img.color = Color.white;
@@ -901,6 +1036,12 @@ namespace BattleSoup {
 				} else {
 					mIcon.gameObject.SetActive(false);
 				}
+				if (!ability.HasManuallyEntrance) {
+					var cursor = grab.Grab<CursorUI>();
+					cursor.enabled = false;
+				}
+				var bImg = grab.Grab<BlinkImage>();
+				bImg.enabled = false;
 			}
 			RefreshShipAbilityUI(container, field, interactable);
 		}
@@ -914,16 +1055,14 @@ namespace BattleSoup {
 				if (grab == null) continue;
 				var btn = grab.Grab<Button>();
 				if (!AbilityPool.TryGetValue(ship.GlobalCode, out var ability)) continue;
-				btn.interactable =
-					interactable &&
-					ship.Alive &&
-					!GameOver &&
-					ship.CurrentCooldown <= 0 &&
-					!CellStep.HasStep;
+				btn.interactable = ship.Alive && interactable && !GameOver && ship.CurrentCooldown <= 0 && CellStep.CurrentStep == null;
+				var block = btn.colors;
+				block.disabledColor = ship.Alive ? new Color32(200, 200, 200, 128) : Color.white;
+				btn.colors = block;
 				var cooldown = grab.Grab<Text>("Cooldown");
 				cooldown.text = ship.Alive && !GameOver && ship.CurrentCooldown > 0 ? ship.CurrentCooldown.ToString() : "";
 				var img = grab.Grab<Image>("Ship");
-				img.color = ship.Alive ? Color.white : new Color32(230, 71, 46, 255);
+				img.color = ship.Alive ? Color.white : new Color32(242, 76, 46, 255);
 				var mIcon = grab.Grab<Image>("Mirror Icon");
 				if (mIcon.gameObject.activeSelf) {
 					// Mirror Icon
@@ -944,6 +1083,9 @@ namespace BattleSoup {
 					if (ability.HasCopyOpponentAction && opponentAbilityID != 0) mInter = true;
 					if (!mInter) btn.interactable = false;
 				}
+				// Overcooldown
+				var bImg = grab.Grab<BlinkImage>();
+				bImg.enabled = ability.EntrancePool.ContainsKey(EntranceType.OnAbilityUsedOvercharged) && ship.CurrentCooldown < 0;
 			}
 		}
 

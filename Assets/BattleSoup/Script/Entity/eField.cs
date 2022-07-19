@@ -31,13 +31,14 @@ namespace BattleSoup {
 		public bool ShowShips { get; set; } = true;
 		public bool DragToMoveShips { get; set; } = false;
 		public bool ClickToAttack { get; set; } = false;
-		public bool ClickShipToTriggerAbility { get; set; } = false;
 		public ActionResult LastActionResult { get; private set; } = ActionResult.None;
 		public int LastActionFrame { get; private set; } = int.MinValue;
 		public int LastPerformedAbilityID { get; set; } = 0;
+		public int AliveShipCount { get; private set; } = 0;
 
 		// Data
 		private Cell[,] Cells = null;
+		private BattleSoup Soup = null;
 
 
 		#endregion
@@ -46,6 +47,12 @@ namespace BattleSoup {
 
 
 		#region --- MSG ---
+
+
+		public override void OnInitialize (Game game) {
+			base.OnInitialize(game);
+			Soup = game as BattleSoup;
+		}
 
 
 		public override void OnActived () {
@@ -62,7 +69,7 @@ namespace BattleSoup {
 			UpdateRenderCells();
 			Update_DragToMoveShips();
 			Update_ClickToAttack();
-			Update_ClickShipToTriggerAbility();
+			Update_AbilityPerformingArrow();
 			DrawWaters();
 			DrawUnits();
 			DrawGizmos();
@@ -120,22 +127,27 @@ namespace BattleSoup {
 				cell.State == CellState.Normal ||
 				(cell.ShipIndex >= 0 && cell.State == CellState.Revealed)
 			) {
-				CellStep.AddToLast(new sAttack() {
+				CellStep.AddToFirst(new sAttack() {
 					X = localX,
 					Y = localY,
 					Field = this,
 					Fast = false,
+					Ship = null,
+				});
+				CellStep.AddToLast(new sEntranceCallback() {
+					Entrance = EntranceType.OnSelfGetAttack,
+					LocalX = X,
+					LocalY = Y,
+					Field = this,
+				});
+				CellStep.AddToLast(new sEntranceCallback() {
+					Entrance = EntranceType.OnOpponentGetAttack,
+					LocalX = X,
+					LocalY = Y,
+					Field = this,
 				});
 				CellStep.AddToLast(new sSwitchTurn());
 			}
-		}
-
-
-		private void Update_ClickShipToTriggerAbility () {
-			if (!ClickShipToTriggerAbility || !FrameInput.MouseLeftDown) return;
-
-
-
 		}
 
 
@@ -588,9 +600,11 @@ namespace BattleSoup {
 			}
 			for (int i = 0; i < Ships.Length; i++) {
 				var ship = Ships[i];
-				for (int j = 0; j < ship.BodyNodes.Length; j++) {
-					var pos = ship.GetFieldNodePosition(j);
-					if (pos.InLength(MapSize)) Cells[pos.x, pos.y].HasExposedShip = true;
+				if (ship.Visible) {
+					for (int j = 0; j < ship.BodyNodes.Length; j++) {
+						var pos = ship.GetFieldNodePosition(j);
+						if (pos.InLength(MapSize)) Cells[pos.x, pos.y].HasExposedShip = true;
+					}
 				}
 			}
 		}
@@ -606,6 +620,7 @@ namespace BattleSoup {
 
 
 		private void RefreshAllShipsAliveState () {
+			AliveShipCount = 0;
 			for (int i = 0; i < Ships.Length; i++) {
 				var ship = Ships[i];
 				int hitCount = 0;
@@ -619,6 +634,7 @@ namespace BattleSoup {
 					}
 				}
 				ship.Alive = hitCount < ship.BodyNodes.Length;
+				if (ship.Alive) AliveShipCount++;
 				if (requireFixState && !ship.Alive) {
 					for (int j = 0; j < ship.BodyNodes.Length; j++) {
 						var pos = ship.GetFieldNodePosition(j);

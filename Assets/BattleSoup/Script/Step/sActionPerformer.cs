@@ -105,13 +105,13 @@ namespace BattleSoup {
 					field = SelfField;
 				}
 			}
-			CellStep.AddToFirst(new sPick(field, Action, CurrentShip, keyword));
+			CellStep.AddToFirst(new sPick(field, SelfField, Action, CurrentShip, keyword));
 		}
 
 
 		private void Perform_Attack (BattleSoup soup) {
 			Trigger(soup, Action.RandomCount, (field, pos, keyword) => {
-				CellStep.AddToFirst(new sBreakCheck(keyword, field));
+				CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
 				CellStep.AddToFirst(new sAttack() {
 					X = pos.x,
 					Y = pos.y,
@@ -125,7 +125,7 @@ namespace BattleSoup {
 
 		private void Perform_Reveal (BattleSoup soup) {
 			Trigger(soup, Action.RandomCount, (field, pos, keyword) => {
-				CellStep.AddToFirst(new sBreakCheck(keyword, field));
+				CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
 				CellStep.AddToFirst(new sReveal() {
 					X = pos.x,
 					Y = pos.y,
@@ -139,7 +139,7 @@ namespace BattleSoup {
 
 		private void Perform_Unreveal (BattleSoup soup) {
 			Trigger(soup, Action.RandomCount, (field, pos, keyword) => {
-				CellStep.AddToFirst(new sBreakCheck(keyword, field));
+				CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
 				CellStep.AddToFirst(new sReveal() {
 					X = pos.x,
 					Y = pos.y,
@@ -153,7 +153,7 @@ namespace BattleSoup {
 
 		private void Perform_Sonar (BattleSoup soup) {
 			Trigger(soup, Action.RandomCount, (field, pos, keyword) => {
-				CellStep.AddToFirst(new sBreakCheck(keyword, field));
+				CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
 				CellStep.AddToFirst(new sSonar() {
 					X = pos.x,
 					Y = pos.y,
@@ -167,7 +167,7 @@ namespace BattleSoup {
 
 		private void Perform_SunkShip (BattleSoup soup) {
 			TriggerForShip(soup, (field, pos, keyword) => {
-				CellStep.AddToFirst(new sBreakCheck(keyword, field));
+				CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
 				CellStep.AddToFirst(new sAttack() {
 					X = pos.x,
 					Y = pos.y,
@@ -181,7 +181,7 @@ namespace BattleSoup {
 
 		private void Perform_RevealShip (BattleSoup soup) {
 			TriggerForShip(soup, (field, pos, keyword) => {
-				CellStep.AddToFirst(new sBreakCheck(keyword, field));
+				CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
 				CellStep.AddToFirst(new sReveal() {
 					X = pos.x,
 					Y = pos.y,
@@ -195,7 +195,7 @@ namespace BattleSoup {
 
 		private void Perform_ExposeShip (BattleSoup soup) {
 			Trigger(soup, Action.RandomCount, (field, pos, keyword) => {
-				CellStep.AddToFirst(new sBreakCheck(keyword, field));
+				CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
 				CellStep.AddToFirst(new sExpose() {
 					X = pos.x,
 					Y = pos.y,
@@ -250,7 +250,7 @@ namespace BattleSoup {
 						if (expand) {
 							// Expand
 							if (revealed) {
-								CellStep.AddToFirst(new sBreakCheck(keyword, field));
+								CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
 								CellStep.AddToFirst(new sReveal() {
 									X = _pos.x,
 									Y = _pos.y,
@@ -259,7 +259,7 @@ namespace BattleSoup {
 									Ship = CurrentShip,
 								});
 							} else {
-								CellStep.AddToFirst(new sBreakCheck(keyword, field));
+								CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
 								CellStep.AddToFirst(new sUnreveal() {
 									X = _pos.x,
 									Y = _pos.y,
@@ -284,7 +284,7 @@ namespace BattleSoup {
 							bool _reveal = _cell.State != CellState.Normal;
 							if (_reveal == revealed) {
 								if (revealed) {
-									CellStep.AddToFirst(new sBreakCheck(keyword, field));
+									CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
 									CellStep.AddToFirst(new sUnreveal() {
 										X = p.x,
 										Y = p.y,
@@ -293,7 +293,7 @@ namespace BattleSoup {
 										Ship = CurrentShip,
 									});
 								} else {
-									CellStep.AddToFirst(new sBreakCheck(keyword, field));
+									CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
 									CellStep.AddToFirst(new sReveal() {
 										X = p.x,
 										Y = p.y,
@@ -310,7 +310,7 @@ namespace BattleSoup {
 							bool _reveal = _cell.State != CellState.Normal;
 							if (_reveal == revealed) {
 								if (revealed) {
-									CellStep.AddToFirst(new sBreakCheck(keyword, field));
+									CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
 									CellStep.AddToFirst(new sUnreveal() {
 										X = p.x,
 										Y = p.y,
@@ -319,7 +319,7 @@ namespace BattleSoup {
 										Ship = CurrentShip,
 									});
 								} else {
-									CellStep.AddToFirst(new sBreakCheck(keyword, field));
+									CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
 									CellStep.AddToFirst(new sReveal() {
 										X = p.x,
 										Y = p.y,
@@ -337,7 +337,7 @@ namespace BattleSoup {
 							bool _reveal = _cell.State != CellState.Normal;
 							if (_reveal == revealed) {
 								if (revealed) {
-									CellStep.AddToFirst(new sBreakCheck(keyword, field));
+									CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
 									CellStep.AddToFirst(new sUnreveal() {
 										X = p.x,
 										Y = p.y,
@@ -346,7 +346,7 @@ namespace BattleSoup {
 										Ship = CurrentShip,
 									});
 								} else {
-									CellStep.AddToFirst(new sBreakCheck(keyword, field));
+									CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
 									CellStep.AddToFirst(new sReveal() {
 										X = p.x,
 										Y = p.y,
@@ -363,7 +363,7 @@ namespace BattleSoup {
 							bool _reveal = _cell.State != CellState.Normal;
 							if (_reveal == revealed) {
 								if (revealed) {
-									CellStep.AddToFirst(new sBreakCheck(keyword, field));
+									CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
 									CellStep.AddToFirst(new sUnreveal() {
 										X = p.x,
 										Y = p.y,
@@ -372,7 +372,7 @@ namespace BattleSoup {
 										Ship = CurrentShip,
 									});
 								} else {
-									CellStep.AddToFirst(new sBreakCheck(keyword, field));
+									CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
 									CellStep.AddToFirst(new sReveal() {
 										X = p.x,
 										Y = p.y,
@@ -391,7 +391,7 @@ namespace BattleSoup {
 
 		private void Perform_Cooldown (BattleSoup soup, bool add, bool max) {
 			Trigger(soup, Action.RandomCount, (field, pos, keyword) => {
-				CellStep.AddToFirst(new sBreakCheck(keyword, field));
+				CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
 				CellStep.AddToFirst(new sCooldown() {
 					X = pos.x,
 					Y = pos.y,
@@ -432,11 +432,17 @@ namespace BattleSoup {
 
 
 		private void TriggerAllOperations (BattleSoup soup, System.Action<eField, Vector2Int, ActionKeyword> action) {
+			for (int i = 0; i < Action.KeywordCount; i++) {
+				if (Action.TryGetKeyword(i, out var keyword)) {
+					if (!keyword.CheckTrigger(LastActionResult, SelfField.AliveShipCount)) return;
+				}
+			}
 			for (int i = Action.PositionCount - 1; i >= 0; i--) {
 				var position = Action.Positions[i];
 				Vector2Int pos;
 				eField field;
 				Action.TryGetKeyword(i, out var keyword);
+
 
 				// Field
 				if (!keyword.HasFlag(ActionKeyword.This)) {
@@ -446,9 +452,6 @@ namespace BattleSoup {
 					// This
 					field = keyword.HasFlag(ActionKeyword.Opponent) ? OpponentField : SelfField;
 				}
-
-				// Check Trigger
-				if (!keyword.CheckTrigger(LastActionResult)) return;
 
 				// Pos
 				if (!keyword.HasFlag(ActionKeyword.This)) {
@@ -463,6 +466,10 @@ namespace BattleSoup {
 					}
 				}
 
+				if (pos.NotInLength(field.MapSize)) continue;
+				var cell = field[pos.x, pos.y];
+				if (!keyword.Check(cell)) continue;
+
 				// Perform Action
 				action(field, pos, keyword);
 			}
@@ -470,6 +477,11 @@ namespace BattleSoup {
 
 
 		private void TriggerRandom (BattleSoup soup, System.Action<eField, Vector2Int, ActionKeyword> action) {
+			for (int i = 0; i < Action.KeywordCount; i++) {
+				if (Action.TryGetKeyword(i, out var keyword)) {
+					if (!keyword.CheckTrigger(LastActionResult, SelfField.AliveShipCount)) return;
+				}
+			}
 			c_RandomCache.Clear();
 			if (Action.PositionCount == 0) {
 				// All Map
@@ -484,9 +496,6 @@ namespace BattleSoup {
 
 					// Normal
 					var field = keyword.HasFlag(ActionKeyword.Self) ? SelfField : OpponentField;
-
-					// Check Trigger
-					if (!keyword.CheckTrigger(LastActionResult)) return;
 
 					// Random for All Map
 					for (int i = 0; i < Action.RandomCount; i++) {
@@ -508,8 +517,6 @@ namespace BattleSoup {
 				} else {
 					// This
 					var field = keyword.HasFlag(ActionKeyword.Opponent) ? OpponentField : SelfField;
-					// Check Trigger
-					if (!keyword.CheckTrigger(LastActionResult)) return;
 					// Random Inside This Ship
 					for (int i = 0; i < Action.RandomCount; i++) {
 						int indexOffset = Random.Range(0, CurrentShip.BodyNodes.Length);
@@ -548,9 +555,6 @@ namespace BattleSoup {
 							field = keyword.HasFlag(ActionKeyword.Opponent) ? OpponentField : SelfField;
 							pos = new Vector2Int(CurrentShip.FieldX, CurrentShip.FieldY) + position;
 						}
-
-						// Check Trigger
-						if (!keyword.CheckTrigger(LastActionResult)) return;
 
 						// Final
 						if (c_RandomCache.Contains(pos)) continue;

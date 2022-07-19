@@ -2,7 +2,7 @@
 // Coracle
 
 pick [revealedShip]		
-sunkShip(0, 0)			
+sunkShip		
 
-OnSelfGetAttack
+OnOpponentGetAttack
 reveal ? [self, noShip, normalWater, noStone]
