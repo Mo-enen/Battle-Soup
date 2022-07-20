@@ -13,13 +13,13 @@ namespace BattleSoup {
 		#region --- SUB ---
 
 
-		protected class AiCell : Cell {
+		public class AiCell : Cell {
 			public bool HasRevealedShip = false;
 			public bool HasHitShip = false;
 		}
 
 
-		protected class ShipPosition {
+		public class ShipPosition {
 			public int X;
 			public int Y;
 			public bool Flip;
@@ -77,12 +77,13 @@ namespace BattleSoup {
 		public abstract string Fleet { get; }
 
 		// Pro
-		protected int OpponentMapSize { get; private set; } = 0;
-		protected AiCell[,] OpponentCells { get; private set; } = new AiCell[0, 0];
-		protected List<Ship> OpponentShips { get; } = new();
-		protected List<Ship> SelfShips { get; } = new();
-		protected List<ShipPosition>[] AllPositions { get; private set; } = new List<ShipPosition>[0];
-		//protected List<ShipPosition>[] OrangePositions { get; private set; } = new List<ShipPosition>[0];
+		public int OpponentMapSize { get; private set; } = 0;
+		public AiCell[,] OpponentCells { get; private set; } = new AiCell[0, 0];
+		public List<Ship> OpponentShips { get; } = new();
+		public List<Ship> SelfShips { get; } = new();
+		public List<ShipPosition>[] AllPositions { get; private set; } = new List<ShipPosition>[0];
+		public int[,,] ShipWeights_Raw { get; private set; } = new int[0, 0, 0];
+		public float[,,] ShipWeights_Cooked { get; private set; } = new float[0, 0, 0];
 
 
 		#endregion
@@ -99,13 +100,14 @@ namespace BattleSoup {
 			SyncShipsLogic(opponent.Ships, OpponentShips);
 			SyncCellsLogic(opponent);
 
-			Analyze_CreateAllPositions();
+			Analyze_CalculateAllPositions();
 			Analyze_CleanUpForAlonePositions();
 
+			Analyze_CalculateShipWeights();
 		}
 
 
-		public abstract bool Perform (in eField ownField, int usingAbilityIndex, out Vector2Int attackPosition, out int abilityIndex, out Direction4 abilityDirection);
+		public abstract bool Perform (in eField self, int usingAbilityIndex, out Vector2Int attackPosition, out int abilityIndex, out Direction4 abilityDirection);
 
 
 		#endregion
@@ -175,7 +177,7 @@ namespace BattleSoup {
 		}
 
 
-		private void Analyze_CreateAllPositions () {
+		private void Analyze_CalculateAllPositions () {
 
 			// Positions
 			if (AllPositions.Length != OpponentShips.Count) {
@@ -203,9 +205,6 @@ namespace BattleSoup {
 						}
 					}
 				}
-
-				Debug.Log($"Positions: {shipIndex}:{positions.Count}");
-
 			}
 
 
@@ -214,6 +213,10 @@ namespace BattleSoup {
 
 
 		private void Analyze_CleanUpForAlonePositions () {
+
+			// If one ship only have one posible position
+			// other ships must not overlap that position
+
 			var done = new HashSet<int>();
 			var ignorePos = new HashSet<Vector2Int>();
 			for (int safe = 0; safe < OpponentShips.Count * 2; safe++) {
@@ -231,7 +234,6 @@ namespace BattleSoup {
 			}
 			// Func
 			void Clean (int targetShipIndex) {
-				int test = 0;
 				// Get Ignored Pos
 				ignorePos.Clear();
 				var targetPositions = AllPositions[targetShipIndex];
@@ -255,15 +257,57 @@ namespace BattleSoup {
 					for (int i = 0; i < count; i++) {
 						var pos = positions[i];
 						if (pos.Contains(targetShip, ignorePos)) {
-							test++;
 							positions.RemoveAt(i);
 							i--;
 							count--;
 						}
 					}
 				}
-				if (test != 0) Debug.Log("Cleaned: " + test);
 			}
+		}
+
+
+		private void Analyze_CalculateShipWeights () {
+
+			int size = OpponentMapSize;
+
+			// Raw
+			if (
+				ShipWeights_Raw.GetLength(0) != OpponentShips.Count ||
+				ShipWeights_Raw.GetLength(1) != size ||
+				ShipWeights_Raw.GetLength(2) != size
+			) {
+				ShipWeights_Raw = new int[OpponentShips.Count, size, size];
+			}
+			System.Array.Clear(ShipWeights_Raw, 0, ShipWeights_Raw.Length);
+			for (int shipIndex = 0; shipIndex < OpponentShips.Count; shipIndex++) {
+				var ship = OpponentShips[shipIndex];
+				var positions = AllPositions[shipIndex];
+				foreach (var sPos in positions) {
+					for (int i = 0; i < ship.BodyNodes.Length; i++) {
+						var (x, y) = sPos.GetNodePosition(ship, i);
+						if (x < 0 || y < 0 || x >= size || y >= size) continue;
+						ShipWeights_Raw[shipIndex, x, y]++;
+					}
+				}
+			}
+
+			// Cooked
+			if (
+				ShipWeights_Cooked.GetLength(0) != OpponentShips.Count ||
+				ShipWeights_Cooked.GetLength(1) != size ||
+				ShipWeights_Cooked.GetLength(2) != size
+			) {
+				ShipWeights_Cooked = new float[OpponentShips.Count, size, size];
+			}
+			System.Array.Clear(ShipWeights_Cooked, 0, ShipWeights_Cooked.Length);
+
+
+
+
+
+
+
 		}
 
 

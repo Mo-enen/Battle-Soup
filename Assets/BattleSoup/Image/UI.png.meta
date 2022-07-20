@@ -702,7 +702,7 @@ TextureImporter:
         width: 128
         height: 116
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -710,6 +710,27 @@ TextureImporter:
       bones: []
       spriteID: 038364078188e994bb0cb5f173685cbc
       internalID: 2122127840
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dev
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 140
+        width: 165
+        height: 165
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b0c2d92da870a7747898d900fee6458e
+      internalID: 390764257
       vertices: []
       indices: 
       edges: []
@@ -742,10 +763,11 @@ TextureImporter:
       Win: 1757180342
       Lose: -1458830814
       Cucumber: -1186084701
+      Dev: 390764257
       Title Ship 3: 1629271374
       Icon Girl: 1566753909
-      Mouse Right: 1978710756
       Mark: 1325594848
+      Mouse Right: 1978710756
       Turn Mark: 2122127840
       Panel: -2113243177
       VS: -550570813

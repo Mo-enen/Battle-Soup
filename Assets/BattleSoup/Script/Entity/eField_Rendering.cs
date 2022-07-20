@@ -45,20 +45,23 @@ namespace BattleSoup {
 		private static readonly int WATER_REVEAL_FULL_CODE = "Water Reveal Fullsize".AngeHash();
 		private static readonly int CANNON_CODE = "CannonBall".AngeHash();
 		private static readonly int CROSSHAIR_CODE = "Crosshair".AngeHash();
-		private static readonly int[] SONAR_CODES = new int[] { "Sonar Unknown".AngeHash(), "Sonar 1".AngeHash(), "Sonar 2".AngeHash(), "Sonar 3".AngeHash(), "Sonar 4".AngeHash(), "Sonar 5".AngeHash(), "Sonar 6".AngeHash(), "Sonar 7".AngeHash(), "Sonar 8".AngeHash(), "Sonar 9".AngeHash(), "Sonar 9Plus".AngeHash(), };
+		private static readonly int[] NUMBER_CODES = new int[] { "Sonar Unknown".AngeHash(), "Sonar 1".AngeHash(), "Sonar 2".AngeHash(), "Sonar 3".AngeHash(), "Sonar 4".AngeHash(), "Sonar 5".AngeHash(), "Sonar 6".AngeHash(), "Sonar 7".AngeHash(), "Sonar 8".AngeHash(), "Sonar 9".AngeHash(), "Sonar 9Plus".AngeHash(), };
 		private static readonly int EXPLOSION_CODE_0 = "Explosion 0".AngeHash();
 		private static readonly int EXPLOSION_CODE_1 = "Explosion 1".AngeHash();
 		private static readonly int ISO_PIXEL_CODE = "ISO Pixel".AngeHash();
 		private static readonly int ARROW_CODE = "Arrow".AngeHash();
+
+		// Api
+		public int[,,] Weights { get; set; } = null;
 
 		// Data
 		private readonly List<PickingCell> PickingLocalPositions = new();
 		private Direction4 PickingDirection = Direction4.Up;
 		private ActionKeyword PickingKeyword = ActionKeyword.None;
 		private RenderingCell[,] RenderCells = null;
+		private Vector2Int DraggingShipLocalOffset = default;
 		private int HoveringShipIndex = -1;
 		private int DraggingShipIndex = -1;
-		private Vector2Int DraggingShipLocalOffset = default;
 
 
 		#endregion
@@ -134,7 +137,6 @@ namespace BattleSoup {
 
 
 		private void DrawUnits () {
-
 			int count = MapSize * MapSize;
 			int hoveringShipIndex = -1;
 			int mouseX = FrameInput.MouseGlobalPosition.x;
@@ -166,7 +168,7 @@ namespace BattleSoup {
 				}
 
 				// Draw All Ships in Cell
-				if (ShowShips) {
+				if (ShowShips && !DrawDevInfo) {
 					for (int i = 0; i < cell.ShipIndexs.Count; i++) {
 						int rID = cell.ShipRenderIDs[i];
 						int rID_add = cell.ShipRenderIDsAdd[i];
@@ -222,6 +224,7 @@ namespace BattleSoup {
 
 
 		private void DrawGizmos () {
+			if (DrawDevInfo) return;
 			var (localMouseX, localMouseY) = Global_to_Local(FrameInput.MouseGlobalPosition.x, FrameInput.MouseGlobalPosition.y, 1);
 			bool mouseInMap = localMouseX >= 0 && localMouseX < MapSize && localMouseY >= 0 && localMouseY < MapSize;
 			int count = MapSize * MapSize;
@@ -232,7 +235,7 @@ namespace BattleSoup {
 				// Sonar Number
 				if (cell.Sonar != 0) {
 					CellRenderer.Draw(
-						SONAR_CODES[cell.Sonar.Clamp(0, SONAR_CODES.Length - 1)],
+						NUMBER_CODES[cell.Sonar.Clamp(0, NUMBER_CODES.Length - 1)],
 						x, y + (cell.HasStone ? SoupConst.ISO_SIZE / 8 : 0),
 						SoupConst.ISO_SIZE, SoupConst.ISO_SIZE
 					);
@@ -280,7 +283,7 @@ namespace BattleSoup {
 							if (_cell.State == CellState.Normal && !_cell.HasStone) {
 								var (gx, gy) = Local_to_Global(x, y0, 0);
 								CellRenderer.Draw(
-									SONAR_CODES[0], gx, gy, SoupConst.ISO_SIZE, SoupConst.ISO_SIZE
+									NUMBER_CODES[0], gx, gy, SoupConst.ISO_SIZE, SoupConst.ISO_SIZE
 								);
 							}
 						}
@@ -290,7 +293,7 @@ namespace BattleSoup {
 							if (_cell.State == CellState.Normal && !_cell.HasStone) {
 								var (gx, gy) = Local_to_Global(x, y1, 0);
 								CellRenderer.Draw(
-									SONAR_CODES[0], gx, gy, SoupConst.ISO_SIZE, SoupConst.ISO_SIZE
+									NUMBER_CODES[0], gx, gy, SoupConst.ISO_SIZE, SoupConst.ISO_SIZE
 								);
 							}
 						}
@@ -301,6 +304,7 @@ namespace BattleSoup {
 
 
 		private void Update_AbilityPerformingArrow () {
+			if (DrawDevInfo) return;
 			if (CellStep.CurrentStep is not sPick pick || pick.TargetField != this) return;
 			var (mX, mY) = Global_to_Local(FrameInput.MouseGlobalPosition.x, FrameInput.MouseGlobalPosition.y, 1);
 			if (!new Vector2Int(mX, mY).InLength(MapSize)) return;
@@ -323,6 +327,21 @@ namespace BattleSoup {
 				120, 120, 32, 160,
 				new(0, 255, 0, 255)
 			);
+		}
+
+
+		private void DrawWeights () {
+			if (Weights == null || !DrawDevInfo) return;
+			if (DevShipIndex < 0 || DevShipIndex >= Weights.GetLength(0)) return;
+			if (MapSize != Weights.GetLength(1) || MapSize != Weights.GetLength(2)) return;
+			foreach (var pos in IsoArray) {
+				if (!pos.InLength(MapSize)) continue;
+				int weight = Weights[DevShipIndex, pos.x, pos.y];
+				if (weight <= 0) continue;
+				int code = NUMBER_CODES[weight.Clamp(1, NUMBER_CODES.Length - 1)];
+				var (x, y) = Local_to_Global(pos.x, pos.y, 0);
+				CellRenderer.Draw(code, x, y + SoupConst.ISO_HEIGHT / 2, SoupConst.ISO_SIZE, SoupConst.ISO_SIZE);
+			}
 		}
 
 
@@ -374,6 +393,7 @@ namespace BattleSoup {
 		}
 
 
+		// Picking
 		public void SetPickingInfo (Ability ability, ActionKeyword keyword, int actionLineIndex) {
 
 			PickingKeyword = keyword;

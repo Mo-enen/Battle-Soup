@@ -31,10 +31,12 @@ namespace BattleSoup {
 		public bool ShowShips { get; set; } = true;
 		public bool DragToMoveShips { get; set; } = false;
 		public bool ClickToAttack { get; set; } = false;
+		public bool DrawDevInfo { get; set; } = false;
 		public ActionResult LastActionResult { get; private set; } = ActionResult.None;
 		public int LastActionFrame { get; private set; } = int.MinValue;
 		public int LastPerformedAbilityID { get; set; } = 0;
 		public int AliveShipCount { get; private set; } = 0;
+		public int DevShipIndex { get; set; }
 
 		// Data
 		private Cell[,] Cells = null;
@@ -73,6 +75,7 @@ namespace BattleSoup {
 			DrawWaters();
 			DrawUnits();
 			DrawGizmos();
+			DrawWeights();
 		}
 
 
@@ -332,7 +335,9 @@ namespace BattleSoup {
 			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) goto End;
 			var cell = Cells[x, y];
 			if (cell.ShipIndex < 0) result = ActionResult.None;
-			Ships[cell.ShipIndex].Visible = true;
+			if (cell.ShipIndex >= 0) {
+				Ships[cell.ShipIndex].Visible = true;
+			}
 			RefreshCellShipCache();
 			End:;
 			LastActionResult = result;
