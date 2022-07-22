@@ -8,50 +8,99 @@ namespace BattleSoup {
 	public class BattleAttackerEasyAI : SoupAI {
 
 
-		public override string DisplayName => "Battle Attacker (Easy)";
+		private const int SAILBOAT = 0;
+		private const int SEAMONSTER = 1;
+		private const int LONGBAOT = 2;
+		private const int MINISUB = 3;
+
+		public override string DisplayName => "Battle Attacker";
 		public override string Description => "Battle Attacker AI created by Moenen.";
 		public override string Fleet => "Sailboat,SeaMonster,Longboat,MiniSub";
 
 
+		// MSG
+		public override PerformResult Perform (int abilityIndex) {
+			if (OpponentShips == null || OpponentShips.Count != 4) return null;
+			return abilityIndex switch {
+				-1 => FreeStart(),
+				0 => Perform_SailBoat(OpponentShips[abilityIndex]),
+				1 => Perform_SeaMonster(OpponentShips[abilityIndex]),
+				2 => Perform_Loagboat(OpponentShips[abilityIndex]),
+				3 => Perform_MiniSub(OpponentShips[abilityIndex]),
+				_ => null,
+			};
+		}
 
-		public override bool Perform (
-			in eField self, int usingAbilityIndex,
-			out Vector2Int attackPosition, out int abilityIndex, out Direction4 abilityDirection
-		) {
-			attackPosition = default;
-			abilityIndex = -1;
-			abilityDirection = default;
-			int mapSize = OpponentMapSize;
+
+		protected override PerformResult FreeStart () {
+			
+			// Check for Loadboat
+			if (ShipIsReady(LONGBAOT)) {
 
 
-
-			/////////////////// TEMP /////////////////////
-
-			int offsetX = Random.Range(0, mapSize);
-			int offsetY = Random.Range(0, mapSize);
-			for (int i = 0; i < mapSize; i++) {
-				for (int j = 0; j < mapSize; j++) {
-					int x = (offsetX + i) % mapSize;
-					int y = (offsetY + j) % mapSize;
-					var cell = OpponentCells[x, y];
-					if (
-						cell.HasStone ||
-						(cell.ShipIndex < 0 && cell.State == CellState.Revealed) ||
-						cell.State == CellState.Sunk ||
-						cell.State == CellState.Hit
-					) continue;
-					attackPosition.x = x;
-					attackPosition.y = y;
-					goto EndLoop;
-				}
 			}
-			EndLoop:;
+
+			// Check for Sailboat
+			if (ShipIsReady(SAILBOAT)) {
 
 
-			/////////////////// TEMP /////////////////////
+			}
+
+			// Check for MiniSub
+			if (ShipIsReady(MINISUB)) {
 
 
-			return true;
+			}
+
+			// Check for SeaMon
+			if (ShipIsReady(SEAMONSTER)) {
+
+
+			}
+
+			return new PerformResult(-1);
+		}
+
+
+		// Ships
+		private PerformResult Perform_SailBoat (in Ship ship) {
+			if (ship.GlobalName != "Sailboat") return null;
+			if (ship.CurrentCooldown > 0) return null;
+			if (!ship.Alive) return null;
+
+
+
+			return new PerformResult(0);
+		}
+
+
+		private PerformResult Perform_SeaMonster (in Ship ship) {
+			if (ship.GlobalName != "SeaMonster") return null;
+			if (ship.CurrentCooldown > 0) return null;
+			if (!ship.Alive) return null;
+			return new PerformResult(1);
+		}
+
+
+		private PerformResult Perform_Loagboat (in Ship ship) {
+			if (ship.GlobalName != "Longboat") return null;
+			if (ship.CurrentCooldown > 0) return null;
+			if (!ship.Alive) return null;
+
+
+
+			return new PerformResult(2);
+		}
+
+
+		private PerformResult Perform_MiniSub (in Ship ship) {
+			if (ship.GlobalName != "MiniSub") return null;
+			if (ship.CurrentCooldown > 0) return null;
+			if (!ship.Alive) return null;
+
+
+
+			return new PerformResult(3);
 		}
 
 

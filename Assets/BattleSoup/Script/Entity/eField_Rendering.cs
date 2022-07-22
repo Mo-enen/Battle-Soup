@@ -321,12 +321,17 @@ namespace BattleSoup {
 			endX += SoupConst.ISO_WIDTH;
 			endY += SoupConst.ISO_HEIGHT;
 			int rot = (int)Vector2.Angle(Vector2.up, new Vector2(endX - startX, endY - startY));
+			const int SIZE = 1000;
 			CellRenderer.Draw_9Slice(
 				ARROW_CODE,
 				startX, startY,
 				500, 0, rot,
-				SoupConst.ISO_SIZE * 2 / 3, (int)Vector2.Distance(new(startX, startY), new(endX, endY)),
-				120, 120, 32, 160,
+				SoupConst.ISO_SIZE * SIZE / 3000,
+				(int)Vector2.Distance(new(startX, startY), new(endX, endY)),
+				60 * SIZE / 1000,
+				60 * SIZE / 1000,
+				32,
+				160 * SIZE / 1000,
 				new(0, 255, 0, 255)
 			);
 		}

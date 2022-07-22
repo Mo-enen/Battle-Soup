@@ -267,6 +267,9 @@ namespace BattleSoup {
 			return _break;
 		}
 
+		public static bool IsManualEntrance (this EntranceType entrance) => entrance == EntranceType.OnAbilityUsed || entrance == EntranceType.OnAbilityUsedOvercharged;
+
+
 	}
 
 
@@ -417,6 +420,16 @@ namespace BattleSoup {
 		}
 
 
+	}
+
+
+	public class PerformResult {
+		public Vector2Int Position;
+		public int AbilityIndex;
+		public Direction4 Direction;
+		public PerformResult (int abilityIndex) {
+			AbilityIndex = abilityIndex;
+		}
 	}
 
 

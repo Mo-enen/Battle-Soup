@@ -35,7 +35,7 @@ namespace BattleSoup {
 			switch (type) {
 
 				case ActionType.Pick:
-					Perform_Pick();
+					Perform_Pick(soup);
 					break;
 
 				case ActionType.Attack:
@@ -94,7 +94,7 @@ namespace BattleSoup {
 
 
 		// LGC - Perform
-		private void Perform_Pick () {
+		private void Perform_Pick (BattleSoup soup) {
 			var field = OpponentField;
 			var keyword = ActionKeyword.None;
 			if (Action.KeywordCount > 0) {
@@ -105,7 +105,10 @@ namespace BattleSoup {
 					field = SelfField;
 				}
 			}
-			CellStep.AddToFirst(new sPick(field, SelfField, Action, CurrentShip, keyword));
+			CellStep.AddToFirst(new sPick(
+				field, SelfField, Action, CurrentShip, keyword,
+				soup.Mode == BattleSoup.GameMode.PvA && SelfField == soup.FieldA
+			));
 		}
 
 

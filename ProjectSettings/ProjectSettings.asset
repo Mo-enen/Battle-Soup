@@ -596,20 +596,23 @@ PlayerSettings:
   webGLMemoryGeometricGrowthStep: 0.2
   webGLMemoryGeometricGrowthCap: 96
   scriptingDefineSymbols:
-    Android: CT_FB;CT_FB_PRO
-    CloudRendering: CT_FB;CT_FB_PRO
-    GameCoreXboxOne: CT_FB;CT_FB_PRO
-    Lumin: CT_FB;CT_FB_PRO
-    Nintendo Switch: CT_FB;CT_FB_PRO
-    PS4: CT_FB;CT_FB_PRO
-    PS5: CT_FB;CT_FB_PRO
-    Stadia: CT_FB;CT_FB_PRO
-    Standalone: CT_FB;CT_FB_PRO
-    WebGL: CT_FB;CT_FB_PRO
-    Windows Store Apps: CT_FB;CT_FB_PRO
-    XboxOne: CT_FB;CT_FB_PRO
+    Android: CT_FB;CT_FB_PRO;UNITY_POST_PROCESSING_STACK_V2
+    CloudRendering: CT_FB;CT_FB_PRO;UNITY_POST_PROCESSING_STACK_V2
+    EmbeddedLinux: UNITY_POST_PROCESSING_STACK_V2
+    GameCoreScarlett: UNITY_POST_PROCESSING_STACK_V2
+    GameCoreXboxOne: CT_FB;CT_FB_PRO;UNITY_POST_PROCESSING_STACK_V2
+    Lumin: CT_FB;CT_FB_PRO;UNITY_POST_PROCESSING_STACK_V2
+    Nintendo Switch: CT_FB;CT_FB_PRO;UNITY_POST_PROCESSING_STACK_V2
+    PS4: CT_FB;CT_FB_PRO;UNITY_POST_PROCESSING_STACK_V2
+    PS5: CT_FB;CT_FB_PRO;UNITY_POST_PROCESSING_STACK_V2
+    QNX: UNITY_POST_PROCESSING_STACK_V2
+    Stadia: CT_FB;CT_FB_PRO;UNITY_POST_PROCESSING_STACK_V2
+    Standalone: CT_FB;CT_FB_PRO;UNITY_POST_PROCESSING_STACK_V2
+    WebGL: CT_FB;CT_FB_PRO;UNITY_POST_PROCESSING_STACK_V2
+    Windows Store Apps: CT_FB;CT_FB_PRO;UNITY_POST_PROCESSING_STACK_V2
+    XboxOne: CT_FB;CT_FB_PRO;UNITY_POST_PROCESSING_STACK_V2
     iPhone: CT_FB;CT_FB_PRO
-    tvOS: CT_FB;CT_FB_PRO
+    tvOS: CT_FB;CT_FB_PRO;UNITY_POST_PROCESSING_STACK_V2
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:

@@ -14,6 +14,7 @@ namespace BattleSoup {
 		public ActionUnit Action { get; init; }
 		public ActionKeyword Keyword { get; init; } = default;
 		public Ship Ship { get; init; } = null;
+		public bool Interactable { get; init; } = true;
 
 		// Data
 		private bool RequireAbandonAbility = false;
@@ -21,13 +22,14 @@ namespace BattleSoup {
 
 
 		// MSG
-		public sPick (eField targetField, eField selfField, ActionUnit action, Ship ship, ActionKeyword keyword) {
+		public sPick (eField targetField, eField selfField, ActionUnit action, Ship ship, ActionKeyword keyword, bool interactable) {
 			TargetField = targetField;
 			SelfField = selfField;
 			Keyword = keyword;
 			Action = action;
 			RequireAbandonAbility = false;
 			Ship = ship;
+			Interactable = interactable;
 		}
 
 
@@ -72,6 +74,7 @@ namespace BattleSoup {
 		public override StepResult FrameUpdate (Game game) {
 			if (RequireAbandonAbility) return StepResult.Over;
 			if (RequireCancelPick) return StepResult.Over;
+			if (!Interactable) return StepResult.Continue;
 			var soup = game as BattleSoup;
 			// ESC
 			if (FrameInput.CustomKeyDown(KeyCode.Escape)) {

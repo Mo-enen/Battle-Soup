@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using AngeliaFramework;
+using UnityEngine.Rendering.PostProcessing;
 
 
 // Start Remake at 2022/6/23
@@ -49,6 +50,7 @@ namespace BattleSoup {
 			public CanvasScaler CanvasScaler = null;
 			public RectTransform TopUI = null;
 			public RectTransform BottomUI = null;
+			public PostProcessVolume EffectVolume = null;
 			[Header("Dialog")]
 			public RectTransform DialogRoot = null;
 			public RectTransform QuitBattleDialog = null;
@@ -82,6 +84,7 @@ namespace BattleSoup {
 			public Toggle SoundTG = null;
 			public Toggle AutoPlayAvATG = null;
 			public Toggle UseAnimationTG = null;
+			public Toggle UseEffectTG = null;
 			public Toggle[] UiScaleTGs = null;
 			[Header("Playing")]
 			public Toggle CheatTG = null;
@@ -105,6 +108,7 @@ namespace BattleSoup {
 			public Sprite RobotAvatarIcon = null;
 			public Sprite EmptyMirrorShipIcon = null;
 		}
+
 
 
 		#endregion
@@ -154,6 +158,7 @@ namespace BattleSoup {
 		private readonly SavingBool s_UseSound = new("BattleSoup.UseSound", true);
 		private readonly SavingBool s_AutoPlayForAvA = new("BattleSoup.AutoPlayForAvA", false);
 		private readonly SavingBool s_UseAnimation = new("BattleSoup.UseAnimation", true);
+		private readonly SavingBool s_UseScreenEffect = new("BattleSoup.UseScreenEffect", true);
 		private readonly SavingInt s_SelectingAiA = new("BattleSoup.SelectingAiA", 0);
 		private readonly SavingInt s_SelectingAiB = new("BattleSoup.SelectingAiB", 0);
 		private readonly SavingInt s_MapIndexA = new("BattleSoup.MapIndexA", 0);
@@ -176,6 +181,7 @@ namespace BattleSoup {
 
 			Init_AI();
 			SetUiScale(s_UiScale.Value);
+			SetUseScreenEffect(s_UseScreenEffect.Value);
 
 			ReloadShipDataFromDisk();
 			ReloadMapDataFromDisk();
@@ -302,9 +308,9 @@ namespace BattleSoup {
 
 
 		private void Update_Playing () {
-
-			foreach (Transform tf in m_Assets.DialogRoot) {
-				if (tf.gameObject.activeSelf) {
+			int dialogCount = m_Assets.DialogRoot.childCount;
+			for (int i = 0; i < dialogCount; i++) {
+				if (m_Assets.DialogRoot.GetChild(i).gameObject.activeSelf) {
 					DialogFrame = GlobalFrame;
 					break;
 				}
@@ -468,7 +474,9 @@ namespace BattleSoup {
 			FieldA.ClearLastActionResult();
 			FieldB.ClearLastActionResult();
 			bool performed = ability.Perform(ship, entrance, selfField, opponentField);
-			ship.CurrentCooldown = ship.MaxCooldown;
+			if (!ability.HasManuallyEntrance || entrance.IsManualEntrance()) {
+				ship.CurrentCooldown = ship.MaxCooldown;
+			}
 			RefreshShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
 			RefreshShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
 			return performed;
@@ -608,6 +616,9 @@ namespace BattleSoup {
 			FieldA.DrawHitInfo = hitInfo;
 			FieldB.DrawHitInfo = hitInfo;
 		}
+
+
+		public void UI_UseScreenEffect (bool use) => SetUseScreenEffect(use);
 
 
 		#endregion
@@ -816,6 +827,13 @@ namespace BattleSoup {
 		}
 
 
+		private void SetUseScreenEffect (bool use) {
+			s_UseScreenEffect.Value = use;
+			m_Assets.UseEffectTG.SetIsOnWithoutNotify(use);
+			m_Assets.EffectVolume.enabled = use;
+		}
+
+
 		// Dev
 		private void SetDevMode (bool devMode) {
 			DevMode = devMode;
@@ -833,14 +851,13 @@ namespace BattleSoup {
 			robot.Analyze(selfField, opponentField);
 
 			// Perform
-			bool performed = robot.Perform(
-				selfField, -1, out var pos, out int abilityIndex, out _
-			);
-			if (!performed) {
+			var result = robot.Perform(-1);
+			if (result == null) {
 				SwitchTurn();
 				return;
 			}
-
+			int abilityIndex = result.AbilityIndex;
+			var pos = result.Position;
 			// Add All Steps
 			if (abilityIndex < 0) {
 				// Attack
@@ -883,18 +900,16 @@ namespace BattleSoup {
 				return;
 			}
 
-			bool performed = robot.Perform(
-				selfField, usingAbilityIndex, out var pos, out int abilityIndex, out var abilityDirection
-			);
-			if (!performed || abilityIndex != usingAbilityIndex) {
+			var result = robot.Perform(usingAbilityIndex);
+			if (result == null || result.AbilityIndex != usingAbilityIndex) {
 				SwitchTurn();
 				return;
 			}
 
 			// Pick
 			pick.CancelPick();
-			SetPickingDirection(abilityDirection);
-			SetPickingPosition(pos);
+			SetPickingDirection(result.Direction);
+			SetPickingPosition(result.Position);
 
 		}
 

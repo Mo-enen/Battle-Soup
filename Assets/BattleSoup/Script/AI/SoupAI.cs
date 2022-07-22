@@ -91,6 +91,10 @@ namespace BattleSoup {
 		public List<ShipPosition>[] AllPositions { get; private set; } = new List<ShipPosition>[0];
 		public int[,,] ShipWeights { get; private set; } = new int[0, 0, 0];
 		public int[,,] HitShipWeights { get; private set; } = new int[0, 0, 0];
+		public int ValidCellCount { get; private set; } = 0;
+		public int HittableCellCount { get; private set; } = 0;
+		public int HitCellCount { get; private set; } = 0;
+		public int RevealedShipCellCount { get; private set; } = 0;
 
 
 		#endregion
@@ -101,7 +105,7 @@ namespace BattleSoup {
 		#region --- API ---
 
 
-		public abstract bool Perform (in eField self, int usingAbilityIndex, out Vector2Int attackPosition, out int abilityIndex, out Direction4 abilityDirection);
+		public abstract PerformResult Perform (int abilityIndex);
 
 
 		public void Analyze (in eField self, in eField opponent) {
@@ -109,6 +113,8 @@ namespace BattleSoup {
 			SyncShipsLogic(self.Ships, SelfShips);
 			SyncShipsLogic(opponent.Ships, OpponentShips);
 			SyncCellsLogic(opponent);
+
+			Analyze_FieldInfo();
 
 			Analyze_CalculateAllPositions();
 			Analyze_CleanUpForAlonePositions();
@@ -118,6 +124,28 @@ namespace BattleSoup {
 			Analyze_CalculateShipWeights();
 			Analyze_CalculateHitShipWeights();
 
+		}
+
+
+		// Abs
+		protected abstract PerformResult FreeStart ();
+
+
+		// Virtual
+		protected virtual PerformResult Perform_Attack () {
+
+
+
+
+
+			return new PerformResult(-1);
+		}
+
+
+		protected bool ShipIsReady (int index) {
+			if (index < 0 || index >= OpponentShips.Count) return false;
+			var ship = OpponentShips[index];
+			return ship.Alive && ship.CurrentCooldown <= 0;
 		}
 
 
@@ -187,6 +215,29 @@ namespace BattleSoup {
 							targetCell.ShipIndexs[0] = sourceCell.ShipIndex;
 						}
 					}
+				}
+			}
+		}
+
+
+		// Info
+		private void Analyze_FieldInfo () {
+			ValidCellCount = 0;
+			HittableCellCount = 0;
+			HitCellCount = 0;
+			RevealedShipCellCount = 0;
+			int size = OpponentMapSize;
+			for (int j = 0; j < size; j++) {
+				for (int i = 0; i < size; i++) {
+					var cell = OpponentCells[i, j];
+					// Valid 
+					if (!cell.HasStone) ValidCellCount++;
+					// Hittable
+					if (cell.State == CellState.Normal || cell.HasRevealedShip) HittableCellCount++;
+					// Hit
+					if (cell.State == CellState.Hit) HitCellCount++;
+					// Revealed Ship
+					if (cell.HasRevealedShip) RevealedShipCellCount++;
 				}
 			}
 		}
