@@ -292,8 +292,12 @@ namespace BattleSoup {
 		[System.NonSerialized] public bool Visible = false;
 		[System.NonSerialized] public bool Valid = true;
 		[System.NonSerialized] public bool Alive = true;
+		[System.NonSerialized] public bool IsSymmetric = false;
 		[System.NonSerialized] public Vector2Int[] BodyNodes = null;
 		[System.NonSerialized] public Sprite Icon = null;
+
+		// Cache
+		private static readonly HashSet<Vector2Int> c_Symmetric = new();
 
 
 
@@ -307,6 +311,7 @@ namespace BattleSoup {
 			FieldY = 0;
 			Flip = false;
 			BodyNodes = GetBodyNode(Body);
+			IsSymmetric = GetIsSymmetric();
 		}
 
 
@@ -349,6 +354,14 @@ namespace BattleSoup {
 				}
 			}
 			return result.ToArray();
+		}
+
+
+		private bool GetIsSymmetric () {
+			c_Symmetric.Clear();
+			foreach (var node in BodyNodes) c_Symmetric.TryAdd(node);
+			foreach (var node in BodyNodes) if (!c_Symmetric.Contains(new(node.y, node.x))) return false;
+			return true;
 		}
 
 

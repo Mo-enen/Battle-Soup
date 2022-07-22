@@ -32,6 +32,7 @@ namespace BattleSoup {
 		public bool DragToMoveShips { get; set; } = false;
 		public bool ClickToAttack { get; set; } = false;
 		public bool DrawDevInfo { get; set; } = false;
+		public bool DrawHitInfo { get; set; } = false;
 		public ActionResult LastActionResult { get; private set; } = ActionResult.None;
 		public int LastActionFrame { get; private set; } = int.MinValue;
 		public int LastPerformedAbilityID { get; set; } = 0;
@@ -629,18 +630,16 @@ namespace BattleSoup {
 			for (int i = 0; i < Ships.Length; i++) {
 				var ship = Ships[i];
 				int hitCount = 0;
-				bool requireFixState = false;
 				for (int j = 0; j < ship.BodyNodes.Length; j++) {
 					var pos = ship.GetFieldNodePosition(j);
 					var cell = Cells[pos.x, pos.y];
 					if (cell.State == CellState.Hit || cell.State == CellState.Sunk) {
 						hitCount++;
-						if (cell.State == CellState.Hit) requireFixState = true;
 					}
 				}
 				ship.Alive = hitCount < ship.BodyNodes.Length;
 				if (ship.Alive) AliveShipCount++;
-				if (requireFixState && !ship.Alive) {
+				if (!ship.Alive) {
 					for (int j = 0; j < ship.BodyNodes.Length; j++) {
 						var pos = ship.GetFieldNodePosition(j);
 						var cell = Cells[pos.x, pos.y];

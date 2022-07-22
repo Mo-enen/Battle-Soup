@@ -86,6 +86,7 @@ namespace BattleSoup {
 			[Header("Playing")]
 			public Toggle CheatTG = null;
 			public Toggle DevTG = null;
+			public Toggle DevHitTG = null;
 			public Grabber ShipAbilityItem = null;
 			public RectTransform AbilityContainerA = null;
 			public RectTransform AbilityContainerB = null;
@@ -318,14 +319,14 @@ namespace BattleSoup {
 			FieldA.ShowShips = true;
 			FieldA.AllowHoveringOnShip = noDialog && PvA && waitingForPlayer;
 			FieldA.AllowHoveringOnWater = noDialog && PvA && waitingForPlayer;
-			FieldA.HideInvisibleShip = false;
+			FieldA.HideInvisibleShip = !PvA && !Cheating;
 			FieldA.ClickToAttack = false;
 			FieldA.SetPickingDirection(PickingDirection);
 
 			FieldB.ShowShips = true;
 			FieldB.AllowHoveringOnShip = false;
 			FieldB.AllowHoveringOnWater = noDialog && PvA && waitingForPlayer;
-			FieldB.HideInvisibleShip = PvA && !Cheating;
+			FieldB.HideInvisibleShip = !Cheating;
 			FieldB.ClickToAttack = noDialog && waitingForPlayer;
 			FieldB.SetPickingDirection(PickingDirection);
 
@@ -359,10 +360,13 @@ namespace BattleSoup {
 			}
 
 			// Cheat
-			bool showCheat = !GameOver && PvA;
 			if (Cheating) Cheated = true;
 			if (m_Assets.CheatTG.isOn != Cheating) m_Assets.CheatTG.SetIsOnWithoutNotify(Cheating);
-			if (m_Assets.CheatTG.gameObject.activeSelf != showCheat) m_Assets.CheatTG.gameObject.SetActive(showCheat);
+
+			// Dev Hit
+			if (m_Assets.DevHitTG.gameObject.activeSelf != DevMode) {
+				m_Assets.DevHitTG.gameObject.SetActive(DevMode);
+			}
 
 			// Gameover Check
 			if (!GameOver) {
@@ -393,11 +397,7 @@ namespace BattleSoup {
 					if (CellStep.CurrentStep == null) {
 						InvokeRobot(RobotA, FieldA, FieldB);
 					} else if (CellStep.CurrentStep is sPick pick) {
-						InvokeRobotForPick(RobotA, FieldA, pick);
-					}
-				} else {
-					if (CellStep.CurrentStep == null || CellStep.CurrentStep is sPick) {
-						RobotA.Analyze(FieldA, FieldB);
+						InvokeRobotForPick(RobotA, FieldA, FieldB, pick);
 					}
 				}
 			} else {
@@ -405,7 +405,7 @@ namespace BattleSoup {
 				if (CellStep.CurrentStep == null) {
 					InvokeRobot(RobotB, FieldB, FieldA);
 				} else if (CellStep.CurrentStep is sPick pick) {
-					InvokeRobotForPick(RobotB, FieldB, pick);
+					InvokeRobotForPick(RobotB, FieldB, FieldA, pick);
 				}
 			}
 		}
@@ -422,12 +422,12 @@ namespace BattleSoup {
 		public void SwitchTurn () {
 			RobotA.Analyze(FieldA, FieldB);
 			RobotB.Analyze(FieldB, FieldA);
-			FieldA.Weights = RobotB.ShipWeights_Raw;
-			FieldB.Weights = RobotA.ShipWeights_Raw;
+			FieldA.Weights = RobotB.ShipWeights;
+			FieldB.Weights = RobotA.ShipWeights;
+			FieldA.HitWeights = RobotB.HitShipWeights;
+			FieldB.HitWeights = RobotA.HitShipWeights;
 			var field = CurrentTurn == Turn.A ? FieldA : FieldB;
-			foreach (var ship in field.Ships) {
-				ship.CurrentCooldown--;
-			}
+			foreach (var ship in field.Ships) ship.CurrentCooldown--;
 			CurrentTurn = CurrentTurn.Opposite();
 			RefreshShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
 			RefreshShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
@@ -604,6 +604,12 @@ namespace BattleSoup {
 		public void UI_ShowDevMode (bool devMode) => SetDevMode(devMode);
 
 
+		public void UI_SetDrawHitInfo (bool hitInfo) {
+			FieldA.DrawHitInfo = hitInfo;
+			FieldB.DrawHitInfo = hitInfo;
+		}
+
+
 		#endregion
 
 
@@ -637,6 +643,8 @@ namespace BattleSoup {
 			if (state != GameState.Playing) {
 				FieldA.Weights = null;
 				FieldB.Weights = null;
+				FieldA.HitWeights = null;
+				FieldB.HitWeights = null;
 			}
 			FieldA.DevShipIndex = 0;
 			FieldB.DevShipIndex = 0;
@@ -653,6 +661,7 @@ namespace BattleSoup {
 					FieldA.AllowHoveringOnShip = true;
 					FieldA.AllowHoveringOnWater = false;
 					FieldA.HideInvisibleShip = false;
+					FieldA.GameStart();
 
 					FieldB.Enable = false;
 					FieldB.AllowHoveringOnShip = false;
@@ -660,6 +669,7 @@ namespace BattleSoup {
 					FieldB.HideInvisibleShip = false;
 					FieldB.ShowShips = false;
 					FieldB.DragToMoveShips = false;
+					FieldB.GameStart();
 
 					ReloadRobots();
 					ReloadFleetRendererUI();
@@ -712,8 +722,10 @@ namespace BattleSoup {
 
 					RobotA.Analyze(FieldA, FieldB);
 					RobotB.Analyze(FieldB, FieldA);
-					FieldA.Weights = RobotB.ShipWeights_Raw;
-					FieldB.Weights = RobotA.ShipWeights_Raw;
+					FieldA.Weights = RobotB.ShipWeights;
+					FieldB.Weights = RobotA.ShipWeights;
+					FieldA.HitWeights = RobotB.HitShipWeights;
+					FieldB.HitWeights = RobotA.HitShipWeights;
 
 					break;
 
@@ -818,6 +830,8 @@ namespace BattleSoup {
 		// Robot
 		private void InvokeRobot (SoupAI robot, eField selfField, eField opponentField) {
 
+			robot.Analyze(selfField, opponentField);
+
 			// Perform
 			bool performed = robot.Perform(
 				selfField, -1, out var pos, out int abilityIndex, out _
@@ -851,7 +865,9 @@ namespace BattleSoup {
 		}
 
 
-		private void InvokeRobotForPick (SoupAI robot, eField selfField, sPick pick) {
+		private void InvokeRobotForPick (SoupAI robot, eField selfField, eField opponentField, sPick pick) {
+
+			robot.Analyze(selfField, opponentField);
 
 			// Perform
 			int usingAbilityIndex = -1;
@@ -1124,7 +1140,7 @@ namespace BattleSoup {
 				}
 
 				var dev = grab.Grab<RectTransform>("Dev");
-				dev.gameObject.SetActive(DevMode && field.DevShipIndex == i);
+				dev.gameObject.SetActive(DevMode && field.DevShipIndex == i && ship.Alive);
 
 				// Mirror Interactable
 				if (btn.interactable && !ability.HasSolidAction) {
