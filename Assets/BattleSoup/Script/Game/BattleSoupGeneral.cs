@@ -292,7 +292,7 @@ namespace BattleSoup {
 		[System.NonSerialized] public int FieldY = 0;
 		[System.NonSerialized] public bool Flip = false;
 		[System.NonSerialized] public int CurrentCooldown = 1;
-		[System.NonSerialized] public bool Visible = false;
+		[System.NonSerialized] public bool Exposed = false;
 		[System.NonSerialized] public bool Valid = true;
 		[System.NonSerialized] public bool Alive = true;
 		[System.NonSerialized] public bool IsSymmetric = false;
@@ -423,12 +423,15 @@ namespace BattleSoup {
 	}
 
 
-	public class PerformResult {
+	public struct PerformResult {
+		public static readonly PerformResult ATTACK = new(-1);
 		public Vector2Int Position;
 		public int AbilityIndex;
 		public Direction4 Direction;
 		public PerformResult (int abilityIndex) {
 			AbilityIndex = abilityIndex;
+			Position = default;
+			Direction = default;
 		}
 	}
 

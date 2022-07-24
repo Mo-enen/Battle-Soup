@@ -426,6 +426,7 @@ namespace BattleSoup {
 
 
 		public void SwitchTurn () {
+			CellStep.Clear();
 			RobotA.Analyze(FieldA, FieldB);
 			RobotB.Analyze(FieldB, FieldA);
 			FieldA.Weights = RobotB.ShipWeights;
@@ -442,17 +443,17 @@ namespace BattleSoup {
 
 
 		// Ability 
-		public bool ClickAbility (Ship ship, eField field) {
+		public bool ClickAbility (Ship ship, eField selfField) {
 			if (ship.CurrentCooldown > 0) return false;
 			if (!AbilityPool.TryGetValue(ship.GlobalCode, out var ability)) return false;
 			if (!ability.HasManuallyEntrance) return false;
-			bool result = UseAbility(ship.GlobalCode, ship, field);
+			bool result = UseAbility(ship.GlobalCode, ship, selfField);
 			CellStep.AddToLast(new sSwitchTurn());
 			return result;
 		}
 
 
-		public bool UseAbility (int id, Ship ship, eField field) {
+		public bool UseAbility (int id, Ship ship, eField selfField) {
 			if (ship.CurrentCooldown > 0) return false;
 			if (!AbilityPool.TryGetValue(id, out var ability)) return false;
 			var entrance = EntranceType.OnAbilityUsed;
@@ -461,10 +462,10 @@ namespace BattleSoup {
 			}
 			bool performed = PerformAbility(
 				ability, ship, entrance,
-				CurrentTurn == Turn.A ? FieldA : FieldB,
-				CurrentTurn == Turn.A ? FieldB : FieldA
+				selfField,
+				selfField == FieldA ? FieldB : FieldA
 			);
-			if (performed) field.LastPerformedAbilityID = id;
+			if (performed) selfField.LastPerformedAbilityID = id;
 			return true;
 		}
 
@@ -852,10 +853,6 @@ namespace BattleSoup {
 
 			// Perform
 			var result = robot.Perform(-1);
-			if (result == null) {
-				SwitchTurn();
-				return;
-			}
 			int abilityIndex = result.AbilityIndex;
 			var pos = result.Position;
 			// Add All Steps
@@ -871,12 +868,14 @@ namespace BattleSoup {
 				CellStep.AddToLast(new sSwitchTurn());
 			} else {
 				// Ability
+				bool performed = false;
 				if (abilityIndex >= 0 && abilityIndex < selfField.Ships.Length) {
-					ClickAbility(
+					performed = ClickAbility(
 						selfField.Ships[abilityIndex],
 						selfField
 					);
 				}
+				if (!performed) SwitchTurn();
 			}
 
 		}
@@ -894,6 +893,7 @@ namespace BattleSoup {
 					break;
 				}
 			}
+
 			if (usingAbilityIndex < 0) {
 				SwitchTurn();
 				Debug.LogWarning("Failed to get usingAbilityIndex.");
@@ -901,7 +901,7 @@ namespace BattleSoup {
 			}
 
 			var result = robot.Perform(usingAbilityIndex);
-			if (result == null || result.AbilityIndex != usingAbilityIndex) {
+			if (result.AbilityIndex != usingAbilityIndex) {
 				SwitchTurn();
 				return;
 			}

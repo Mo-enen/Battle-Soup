@@ -43,7 +43,6 @@ namespace BattleSoup {
 		private static readonly int WATER_HIGHLIGHT_CODE = "Water Highlight".AngeHash();
 		private static readonly int WATER_REVEAL_SHIP_CODE = "Water Reveal Ship".AngeHash();
 		private static readonly int WATER_REVEAL_FULL_CODE = "Water Reveal Fullsize".AngeHash();
-		private static readonly int CANNON_CODE = "CannonBall".AngeHash();
 		private static readonly int CROSSHAIR_CODE = "Crosshair".AngeHash();
 		private static readonly int[] NUMBER_CODES = new int[] { "Sonar Unknown".AngeHash(), "Sonar 1".AngeHash(), "Sonar 2".AngeHash(), "Sonar 3".AngeHash(), "Sonar 4".AngeHash(), "Sonar 5".AngeHash(), "Sonar 6".AngeHash(), "Sonar 7".AngeHash(), "Sonar 8".AngeHash(), "Sonar 9".AngeHash(), "Sonar 9Plus".AngeHash(), };
 		private static readonly int EXPLOSION_CODE_0 = "Explosion 0".AngeHash();
@@ -179,14 +178,14 @@ namespace BattleSoup {
 						var ship = Ships[shipIndex];
 						if (
 							shipIndex >= 0 &&
-							(!HideInvisibleShip || ship.Visible || !ship.Alive)
+							(!HideInvisibleShip || ship.Exposed || !ship.Alive)
 						) {
 
 							var tint = ship.Valid ? cell.State switch {
 								CellState.Hit => new Color32(255, 194, 41, 255),
 								_ => new Color32(255, 255, 255, 255),
 							} : new Color32(255, 16, 16, 255);
-							if (ship.Visible && HideInvisibleShip && ship.Alive) {
+							if (ship.Exposed && HideInvisibleShip && ship.Alive) {
 								tint.a = 128;
 							}
 							bool sunk = cell.State == CellState.Sunk;
@@ -365,29 +364,16 @@ namespace BattleSoup {
 		#region --- API ---
 
 
-		public void DrawCannonBall (int localX, int localY, float t01) {
+		public void DrawCrosshair (int localX, int localY) {
 			var (x, y) = Local_to_Global(localX, localY, 0);
-			if (t01 < 0.5f) {
-				// Crosshair
-				if (Game.GlobalFrame % 4 < 2) {
-					CellRenderer.Draw(
-						CROSSHAIR_CODE,
-						x, y,
-						SoupConst.ISO_SIZE, SoupConst.ISO_SIZE
-					);
-				}
-			} else {
-				// Falling Cannon Ball
-				t01 = (t01 - 0.5f) * 2f;
+			// Crosshair
+			if (Game.GlobalFrame % 4 < 2) {
 				CellRenderer.Draw(
-					CANNON_CODE,
-					x + SoupConst.ISO_SIZE / 2,
-					y + (int)Mathf.LerpUnclamped(SoupConst.ISO_SIZE * 6, SoupConst.ISO_SIZE, t01),
-					500, 500, 0,
-					SoupConst.ISO_SIZE - 128, SoupConst.ISO_SIZE - 128
+					CROSSHAIR_CODE,
+					x, y,
+					SoupConst.ISO_SIZE, SoupConst.ISO_SIZE
 				);
 			}
-
 		}
 
 

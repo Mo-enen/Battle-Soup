@@ -198,7 +198,7 @@ namespace BattleSoup {
 			for (int i = 0; i < Ships.Length; i++) {
 				var ship = Ships[i];
 				ship.CurrentCooldown = ship.DefaultCooldown - 1;
-				ship.Visible = false;
+				ship.Exposed = false;
 				ship.Alive = true;
 			}
 			RefreshCellShipCache();
@@ -337,7 +337,7 @@ namespace BattleSoup {
 			var cell = Cells[x, y];
 			if (cell.ShipIndex < 0) result = ActionResult.None;
 			if (cell.ShipIndex >= 0) {
-				Ships[cell.ShipIndex].Visible = true;
+				Ships[cell.ShipIndex].Exposed = true;
 			}
 			RefreshCellShipCache();
 			End:;
@@ -606,7 +606,7 @@ namespace BattleSoup {
 			}
 			for (int i = 0; i < Ships.Length; i++) {
 				var ship = Ships[i];
-				if (ship.Visible) {
+				if (ship.Exposed) {
 					for (int j = 0; j < ship.BodyNodes.Length; j++) {
 						var pos = ship.GetFieldNodePosition(j);
 						if (pos.InLength(MapSize)) Cells[pos.x, pos.y].HasExposedShip = true;

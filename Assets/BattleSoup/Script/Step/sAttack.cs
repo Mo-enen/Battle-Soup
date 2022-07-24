@@ -17,7 +17,7 @@ namespace BattleSoup {
 		public override StepResult FrameUpdate (Game game) {
 			base.FrameUpdate(game);
 			if (X < 0 || Y < 0 || X >= Field.MapSize || Y >= Field.MapSize) return StepResult.Over;
-			int FALL_DURATION = Fast ? 12 : 24;
+			int FALL_DURATION = Fast ? 6 : 12;
 			int EXP_DURATION = Fast ? 4 : 8;
 			int realFallDuration = ShowCrosshair ? FALL_DURATION : FALL_DURATION / 2;
 			int realExpDuration = Field.HasShip(X, Y) ? EXP_DURATION : 0;
@@ -38,7 +38,7 @@ namespace BattleSoup {
 			if (UseAnimation) {
 				if (LocalFrame < realFallDuration) {
 					// Falling
-					Field.DrawCannonBall(X, Y, (float)(LocalFrame + (ShowCrosshair ? 0f : 0.5f)) / FALL_DURATION);
+					Field.DrawCrosshair(X, Y);
 					return StepResult.Continue;
 				} else if (LocalFrame < realFallDuration + realExpDuration) {
 					// Explosion

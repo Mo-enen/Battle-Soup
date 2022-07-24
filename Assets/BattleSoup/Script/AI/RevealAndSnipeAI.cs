@@ -13,13 +13,12 @@ namespace BattleSoup {
 		public override string Fleet => "Coracle,Whale,KillerSquid,SeaTurtle";
 
 
-		protected override PerformResult FreeStart () {
-			return null;
+		protected override PerformResult PerformShip (int shipIndex) {
+			return default;
 		}
 
-
-		public override PerformResult Perform (int abilityIndex) {
-			return null;
+		protected override bool RequireShip (int shipIndex) {
+			return false;
 		}
 
 
