@@ -12,14 +12,14 @@ namespace BattleSoup {
 		public override string Description => "Reveal & Snipe AI created by Moenen.";
 		public override string Fleet => "Coracle,Whale,KillerSquid,SeaTurtle";
 
+		protected override int FreeStart () {
+			return -1;
+		}
 
 		protected override PerformResult PerformShip (int shipIndex) {
 			return default;
 		}
 
-		protected override bool RequireShip (int shipIndex) {
-			return false;
-		}
 
 
 	}

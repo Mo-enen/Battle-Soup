@@ -14,9 +14,18 @@ namespace BattleSoup {
 
 
 
+		public enum ShipHuntingMode {
+			ExposedThenHidden = 0,
+			HiddenThenExposed = 1,
+			HiddenOnly = 2,
+			ExposedOnly = 3,
+		}
+
+
 		public class AiCell : Cell {
 			public bool HasRevealedShip = false;
 			public bool HasHitShip = false;
+			public bool HasShip => HasRevealedShip || HasHitShip || ShipIndex >= 0;
 		}
 
 
@@ -58,14 +67,6 @@ namespace BattleSoup {
 				return (x, y);
 			}
 
-			public bool Contains (Ship ship, HashSet<Vector2Int> pool) {
-				for (int i = 0; i < ship.BodyNodes.Length; i++) {
-					var (_x, _y) = GetNodePosition(ship, i);
-					if (pool.Contains(new(_x, _y))) return true;
-				}
-				return false;
-			}
-
 		}
 
 
@@ -88,14 +89,16 @@ namespace BattleSoup {
 		public List<Ship> OpponentShips { get; } = new();
 		public List<Ship> SelfShips { get; } = new();
 		public List<ShipPosition>[] AllPositions { get; private set; } = new List<ShipPosition>[0];
-		public int[,,] ShipWeights { get; private set; } = new int[0, 0, 0];
-		public int[,,] HitShipWeights { get; private set; } = new int[0, 0, 0];
+		public List<(ShipPosition pos, int shipCount)>[] HitPositions { get; private set; } = new List<(ShipPosition, int)>[0];
+		public int[,,] Weights { get; private set; } = new int[0, 0, 0];
+		public int[,,] HitWeights { get; private set; } = new int[0, 0, 0];
+		public List<Vector2Int>[] BestWeights { get; private set; } = new List<Vector2Int>[0];
 		public int ValidCellCount { get; private set; } = 0;
 		public int HittableCellCount { get; private set; } = 0;
 		public int HitCellCount { get; private set; } = 0;
 		public int RevealedShipCellCount { get; private set; } = 0;
 		public Vector2Int? OneShotSunkPosition { get; private set; } = null;
-		public List<Vector2Int>[] BestWeights { get; private set; } = new List<Vector2Int>[0];
+		protected BattleSoup Soup { get; private set; } = null;
 
 		// Data
 		private int[,] c_MapInt = new int[0, 0];
@@ -111,23 +114,25 @@ namespace BattleSoup {
 
 		public void Analyze (in eField self, in eField opponent) {
 
-			if (c_MapInt.GetLength(0) != OpponentMapSize || c_MapInt.GetLength(1) != OpponentMapSize) {
-				c_MapInt = new int[OpponentMapSize, OpponentMapSize];
-			}
-
 			SyncShipsLogic(self.Ships, SelfShips);
 			SyncShipsLogic(opponent.Ships, OpponentShips);
 			SyncCellsLogic(opponent);
+
+			if (c_MapInt.GetLength(0) != OpponentMapSize || c_MapInt.GetLength(1) != OpponentMapSize) {
+				c_MapInt = new int[OpponentMapSize, OpponentMapSize];
+			}
 
 			Analyze_FieldInfo();
 
 			Analyze_CalculateAllPositions();
 			Analyze_CleanUpForSunkCheck();
 			Analyze_CleanUpForFullOccupyCell();
-
 			Analyze_SortPositions();
-			Analyze_CalculateShipWeights();
-			Analyze_CalculateHitShipWeights();
+			Analyze_FillHitPositions();
+
+			Analyze_CalculateRawWeights();
+			Analyze_CalculateBestRawWeights();
+			Analyze_CalculateHitWeights();
 
 			Analyze_OneShotSunk();
 		}
@@ -169,6 +174,7 @@ namespace BattleSoup {
 		}
 
 
+		// Strategy
 		protected Vector2Int GetFirstValidHittablePosition (bool ignoreSonar = true) {
 			for (int j = 0; j < OpponentMapSize; j++) {
 				for (int i = 0; i < OpponentMapSize; i++) {
@@ -182,21 +188,210 @@ namespace BattleSoup {
 		}
 
 
-		protected Vector2Int GetBestAttackPosition (bool ignoreSonar = true) {
-			var pos = new Vector2Int(0, 0);
+		protected int GetBestShipTarget (ShipHuntingMode mode = ShipHuntingMode.ExposedThenHidden) {
+			int targetShipIndex = -1;
+			switch (mode) {
+				case ShipHuntingMode.ExposedThenHidden:
+					targetShipIndex = GetBestShipTargetLogic(true);
+					if (targetShipIndex < 0) targetShipIndex = GetBestShipTargetLogic(false);
+					break;
+				case ShipHuntingMode.HiddenThenExposed:
+					targetShipIndex = GetBestShipTargetLogic(false);
+					if (targetShipIndex < 0) targetShipIndex = GetBestShipTargetLogic(true);
+					break;
+				case ShipHuntingMode.HiddenOnly:
+					targetShipIndex = GetBestShipTargetLogic(false);
+					break;
+				case ShipHuntingMode.ExposedOnly:
+					targetShipIndex = GetBestShipTargetLogic(true);
+					break;
+			}
+			if (targetShipIndex < 0 || !OpponentShips[targetShipIndex].Alive) {
+				int minCount = int.MaxValue;
+				for (int i = 0; i < OpponentShips.Count; i++) {
+					var ship = OpponentShips[i];
+					if (ship.Alive) {
+						int count = AllPositions[i].Count;
+						if (count < minCount) {
+							targetShipIndex = i;
+							minCount = count;
+						}
+					}
+				}
+			}
+			return targetShipIndex;
+		}
 
 
+		protected bool TryGetBestPosition_NormalAttack (out Vector2Int pos) {
+
+			pos = new Vector2Int(0, 0);
+			int size = OpponentMapSize;
+
+			// Try Get Ship Target
+			int targetShipIndex = GetBestShipTarget(ShipHuntingMode.HiddenThenExposed);
+			if (targetShipIndex < 0) return false;
+			
+			// Try Random Best Weight Positions
+			var bestWeights = BestWeights[targetShipIndex];
+			if (bestWeights.Count > 0) {
+				int offset = Random.Range(0, bestWeights.Count);
+				for (int i = 0; i < bestWeights.Count; i++) {
+					int index = (i + offset) % bestWeights.Count;
+					var _p = bestWeights[index];
+					var cell = OpponentCells[_p.x, _p.y];
+					if (cell.IsHittable) {
+						pos = _p;
+						return true;
+					}
+				}
+			}
+
+			// Try Max Weight
+			bool success = false;
+			int maxWeight = 0;
+			for (int j = 0; j < size; j++) {
+				for (int i = 0; i < size; i++) {
+					var cell = OpponentCells[i, j];
+					if (!cell.IsHittable) continue;
+					int w = Weights[targetShipIndex, i, j];
+					if (w > maxWeight) {
+						maxWeight = w;
+						pos.x = i;
+						pos.y = j;
+						success = true;
+					}
+				}
+			}
+
+			return success;
+		}
 
 
+		protected bool TryGetBestPosition_ComboAttack (out Vector2Int pos) {
+
+			pos = new Vector2Int(0, 0);
+			int size = OpponentMapSize;
+
+			// Try Get Ship Target
+			int targetShipIndex = GetBestShipTarget(ShipHuntingMode.HiddenThenExposed);
+
+			// Check for Ships With Only One Posible Position
+			if (targetShipIndex < 0 || AllPositions[targetShipIndex].Count > 1) {
+				for (int i = 0; i < AllPositions.Length; i++) {
+					if (OpponentShips[i].Alive && AllPositions[i].Count == 1) {
+						targetShipIndex = i;
+						break;
+					}
+				}
+			}
+
+			// Attack Target Ship if Only One Position
+			if (targetShipIndex >= 0) {
+				var ship = OpponentShips[targetShipIndex];
+				if (ship.Alive) {
+					var positions = AllPositions[targetShipIndex];
+					if (positions.Count == 1) {
+						var sPos = positions[0];
+						for (int i = 0; i < ship.BodyNodes.Length; i++) {
+							var (x, y) = sPos.GetNodePosition(ship, i);
+							if (x < 0 || y < 0 || x >= size || y >= size) continue;
+							var cell = OpponentCells[x, y];
+							if (cell.IsHittable) {
+								pos.x = x;
+								pos.y = y;
+								return true;
+							}
+						}
+					}
+				}
+			}
+
+			// Attack Near Hit Cell
+			if (HitCellCount > 0) {
+				for (int shipIndex = 0; shipIndex < HitPositions.Length; shipIndex++) {
+					if (!OpponentShips[shipIndex].Alive) continue;
+					var hPositions = HitPositions[shipIndex];
+					if (hPositions.Count > 0) {
+						var ship = OpponentShips[shipIndex];
+						var hPos = hPositions[0].pos;
+						for (int i = 0; i < ship.BodyNodes.Length; i++) {
+							var (x, y) = hPos.GetNodePosition(ship, i);
+							var cell = OpponentCells[x, y];
+							if (cell.IsHittable) {
+								pos.x = x;
+								pos.y = y;
+								return true;
+							}
+						}
+
+					}
+				}
+			}
+
+			return false;
+		}
 
 
+		protected bool TryGetBestPosition_PureAttackAbility (Ability ability, out Vector2Int pos, out Direction4 dir) {
 
-			return GetFirstValidHittablePosition(ignoreSonar);
+			pos = new Vector2Int(0, 0);
+			dir = default;
+			if (ability == null) return false;
+
+			// Try Get Ship Target
+			int targetShipIndex = GetBestShipTarget(ShipHuntingMode.HiddenThenExposed);
+
+			// Check for Ships With Only One Posible Position
+			if (targetShipIndex < 0 || AllPositions[targetShipIndex].Count > 1) {
+				for (int i = 0; i < AllPositions.Length; i++) {
+					if (AllPositions[i].Count == 1) {
+						targetShipIndex = i;
+						break;
+					}
+				}
+			}
+			if (targetShipIndex < 0) return false;
+
+			// Try Hit Positions
+			bool success = false;
+			var hPositions = HitPositions[targetShipIndex];
+			var ship = OpponentShips[targetShipIndex];
+			if (hPositions.Count > 0) {
+				int match = 0;
+				foreach (var (sPos, _) in hPositions) {
+					int mat = GetBestAttackMatching(ability, ship, sPos, out var aPos, out var aDir);
+					if (mat > match) {
+						pos = aPos;
+						dir = aDir;
+						success = true;
+					}
+				}
+			}
+			if (success) return true;
+
+			// Try Positions
+			var positions = AllPositions[targetShipIndex];
+			if (positions.Count > 0) {
+				int match = 0;
+				foreach (var sPos in positions) {
+					int mat = GetBestAttackMatching(ability, ship, sPos, out var aPos, out var aDir);
+					if (mat > match) {
+						pos = aPos;
+						dir = aDir;
+						success = true;
+					}
+				}
+			}
+
+			return success;
 		}
 
 
 		// Override
-		public virtual PerformResult Perform (int abilityIndex) {
+		public virtual PerformResult Perform (BattleSoup soup, int abilityIndex) {
+
+			Soup = soup;
 
 			// One Shot One Kill (if available)
 			if (OneShotSunkPosition.HasValue) return new PerformResult(-1) { Position = OneShotSunkPosition.Value, };
@@ -208,21 +403,17 @@ namespace BattleSoup {
 				result = PerformShip(abilityIndex);
 			} else {
 				// Free Start
-				for (int i = 0; i < SelfShips.Count; i++) {
-					if (RequireShip(i)) {
-						result.AbilityIndex = i;
-						break;
-					}
-				}
+				result.AbilityIndex = FreeStart();
 			}
 
 			// Attack
-			if (result.AbilityIndex == -1) result.Position = GetBestAttackPosition();
+			if (result.AbilityIndex == -1 && TryGetBestPosition_NormalAttack(out var pos)) result.Position = pos;
+
 			return result;
 		}
 
 
-		protected abstract bool RequireShip (int shipIndex);
+		protected abstract int FreeStart ();
 
 
 		protected abstract PerformResult PerformShip (int shipIndex);
@@ -306,6 +497,53 @@ namespace BattleSoup {
 		}
 
 
+		private int GetBestShipTargetLogic (bool forExposedShips) {
+			int targetIndex = -1;
+			int hitPosCountMin = int.MaxValue;
+			int targetPosCount = 0;
+			int targetBodySize = 0;
+			int targetMaxCooldown = 0;
+			for (int i = 0; i < OpponentShips.Count; i++) {
+				var ship = OpponentShips[i];
+				if (!ship.Alive) continue;
+				if (ship.Exposed != forExposedShips) continue;
+				int count = AllPositions[i].Count;
+				int hitCount = HitPositions[i].Count;
+				int bodySize = ship.BodyNodes.Length;
+				int maxCooldown = ship.MaxCooldown;
+				if (hitCount < hitPosCountMin) {
+					// 1. Compare Posible Hit Positions Count
+					SetTargetIndex(i);
+				} else if (hitCount == hitPosCountMin) {
+					// 2. Compare Posible Positions Count
+					if (count < targetPosCount) {
+						SetTargetIndex(i);
+					} else if (count == targetPosCount) {
+						// 3. Compare Ship Body Size
+						if (bodySize > targetBodySize) {
+							SetTargetIndex(i);
+						} else if (bodySize == targetBodySize) {
+							// 4. Compare Ability Cooldown
+							if (maxCooldown < targetMaxCooldown) {
+								SetTargetIndex(i);
+							}
+						}
+					}
+				}
+				// Func
+				void SetTargetIndex (int index) {
+					targetIndex = index;
+					hitPosCountMin = hitCount;
+					targetPosCount = count;
+					targetBodySize = bodySize;
+					targetMaxCooldown = maxCooldown;
+				}
+			}
+
+			return targetIndex;
+		}
+
+
 		// Info
 		private void Analyze_FieldInfo () {
 			ValidCellCount = 0;
@@ -319,7 +557,7 @@ namespace BattleSoup {
 					// Valid 
 					if (!cell.HasStone) ValidCellCount++;
 					// Hittable
-					if (cell.State == CellState.Normal || cell.HasRevealedShip) HittableCellCount++;
+					if (cell.IsHittable) HittableCellCount++;
 					// Hit
 					if (cell.State == CellState.Hit) HitCellCount++;
 					// Revealed Ship
@@ -463,44 +701,83 @@ namespace BattleSoup {
 		}
 
 
+		private void Analyze_FillHitPositions () {
+			if (HitPositions.Length != AllPositions.Length) {
+				HitPositions = new List<(ShipPosition, int)>[AllPositions.Length];
+				for (int i = 0; i < HitPositions.Length; i++) {
+					HitPositions[i] = new();
+				}
+			}
+			for (int i = 0; i < HitPositions.Length; i++) {
+				var positions = AllPositions[i];
+				var hPisitions = HitPositions[i];
+				var ship = OpponentShips[i];
+				if (hPisitions == null) hPisitions = HitPositions[i] = new();
+				foreach (var pos in positions) {
+					if (pos.HitCellCount > 0) {
+						int shipCount = 0;
+						for (int j = 0; j < ship.BodyNodes.Length; j++) {
+							var (x, y) = pos.GetNodePosition(ship, j);
+							var cell = OpponentCells[x, y];
+							if (cell.HasShip) shipCount++;
+						}
+						hPisitions.Add((pos, shipCount));
+					}
+				}
+				hPisitions.Sort((a, b) => b.shipCount.CompareTo(a.shipCount));
+			}
+		}
+
+
 		// Weight
-		private void Analyze_CalculateShipWeights () {
+		private void Analyze_CalculateRawWeights () {
 
 			// Init Array
 			int size = OpponentMapSize;
 			if (
-				ShipWeights.GetLength(0) != OpponentShips.Count ||
-				ShipWeights.GetLength(1) != size ||
-				ShipWeights.GetLength(2) != size
+				Weights.GetLength(0) != OpponentShips.Count ||
+				Weights.GetLength(1) != size ||
+				Weights.GetLength(2) != size
 			) {
-				ShipWeights = new int[OpponentShips.Count, size, size];
+				Weights = new int[OpponentShips.Count, size, size];
 			}
-			if (BestWeights.Length != OpponentShips.Count) {
-				BestWeights = new List<Vector2Int>[OpponentShips.Count];
-			}
-			System.Array.Clear(ShipWeights, 0, ShipWeights.Length);
+			System.Array.Clear(Weights, 0, Weights.Length);
 
 			// Calculate
 			for (int shipIndex = 0; shipIndex < OpponentShips.Count; shipIndex++) {
-				// Weights
-				int bestWeight = 0;
 				var ship = OpponentShips[shipIndex];
 				var positions = AllPositions[shipIndex];
 				foreach (var sPos in positions) {
 					for (int i = 0; i < ship.BodyNodes.Length; i++) {
 						var (x, y) = sPos.GetNodePosition(ship, i);
 						if (x < 0 || y < 0 || x >= size || y >= size) continue;
-						ShipWeights[shipIndex, x, y]++;
-						bestWeight = Mathf.Max(bestWeight, ShipWeights[shipIndex, x, y]);
+						Weights[shipIndex, x, y]++;
 					}
 				}
-				// Best Weights
+			}
+		}
+
+
+		private void Analyze_CalculateBestRawWeights () {
+			if (BestWeights.Length != OpponentShips.Count) {
+				BestWeights = new List<Vector2Int>[OpponentShips.Count];
+			}
+			int size = OpponentMapSize;
+			for (int shipIndex = 0; shipIndex < OpponentShips.Count; shipIndex++) {
+				// Get Best Value
+				int bestWeight = 0;
+				for (int j = 0; j < size; j++) {
+					for (int i = 0; i < size; i++) {
+						bestWeight = Mathf.Max(bestWeight, Weights[shipIndex, i, j]);
+					}
+				}
+				// Fill Value into List
 				var bWeights = BestWeights[shipIndex];
 				if (bWeights == null) bWeights = BestWeights[shipIndex] = new();
 				bWeights.Clear();
 				for (int j = 0; j < size; j++) {
 					for (int i = 0; i < size; i++) {
-						int w = ShipWeights[shipIndex, i, j];
+						int w = Weights[shipIndex, i, j];
 						if (w >= bestWeight) {
 							bWeights.Add(new(i, j));
 						}
@@ -510,16 +787,16 @@ namespace BattleSoup {
 		}
 
 
-		private void Analyze_CalculateHitShipWeights () {
+		private void Analyze_CalculateHitWeights () {
 			int size = OpponentMapSize;
 			if (
-				HitShipWeights.GetLength(0) != OpponentShips.Count ||
-				HitShipWeights.GetLength(1) != size ||
-				HitShipWeights.GetLength(2) != size
+				HitWeights.GetLength(0) != OpponentShips.Count ||
+				HitWeights.GetLength(1) != size ||
+				HitWeights.GetLength(2) != size
 			) {
-				HitShipWeights = new int[OpponentShips.Count, size, size];
+				HitWeights = new int[OpponentShips.Count, size, size];
 			}
-			System.Array.Clear(HitShipWeights, 0, HitShipWeights.Length);
+			System.Array.Clear(HitWeights, 0, HitWeights.Length);
 			for (int shipIndex = 0; shipIndex < OpponentShips.Count; shipIndex++) {
 				var ship = OpponentShips[shipIndex];
 				var positions = AllPositions[shipIndex];
@@ -528,7 +805,7 @@ namespace BattleSoup {
 					for (int i = 0; i < ship.BodyNodes.Length; i++) {
 						var (x, y) = sPos.GetNodePosition(ship, i);
 						if (x < 0 || y < 0 || x >= size || y >= size) continue;
-						HitShipWeights[shipIndex, x, y]++;
+						HitWeights[shipIndex, x, y]++;
 					}
 				}
 			}
@@ -549,7 +826,7 @@ namespace BattleSoup {
 					for (int i = 0; i < ship.BodyNodes.Length; i++) {
 						var (x, y) = pos.GetNodePosition(ship, i);
 						var cell = OpponentCells[x, y];
-						if (cell.State == CellState.Normal || cell.HasRevealedShip) {
+						if (cell.IsHittable) {
 							uPos = new Vector2Int(x, y);
 							break;
 						}
@@ -568,6 +845,69 @@ namespace BattleSoup {
 					}
 				}
 				NextShip:;
+			}
+		}
+
+
+		// Util
+		private int AttackMatch (Vector2Int pickingPos, Direction4 pickingDir, Ability ability, Ship ship, ShipPosition position) {
+			if (
+				!ability.EntrancePool.TryGetValue(EntranceType.OnAbilityUsed, out int start) &&
+				!ability.EntrancePool.TryGetValue(EntranceType.OnAbilityUsedOvercharged, out start)
+			) return 0;
+			int match = 0;
+			int size = OpponentMapSize;
+			for (int index = start + 1; index < ability.Units.Length; index++) {
+				var unit = ability.Units[index];
+				if (unit is not ActionUnit act) break;
+				if (act.Type != ActionType.Attack) continue;
+				for (int j = 0; j < act.Positions.Length; j++) {
+					var actPos = act.Positions[j];
+					act.TryGetKeyword(j, out var keyword);
+					var targetCellPos = SoupUtil.GetPickedPosition(pickingPos, pickingDir, actPos.x, actPos.y);
+					if (targetCellPos.x < 0 || targetCellPos.y < 0 || targetCellPos.x >= size || targetCellPos.y >= size) continue;
+					for (int i = 0; i < ship.BodyNodes.Length; i++) {
+						var (x, y) = position.GetNodePosition(ship, i);
+						if (targetCellPos.x != x || targetCellPos.y != y) continue;
+						var cell = OpponentCells[x, y];
+						if (!cell.IsHittable) continue;
+						if (!keyword.Check(cell)) continue;
+						match++;
+						break;
+					}
+				}
+			}
+			return match;
+		}
+
+
+		private int GetBestAttackMatching (Ability ability, Ship ship, ShipPosition position, out Vector2Int attackPos, out Direction4 attackDir) {
+			int match = 0;
+			var pos = new Vector2Int();
+			var dir = Direction4.Up;
+			int size = OpponentMapSize;
+			var p = new Vector2Int();
+			for (int j = 0; j < size; j++) {
+				for (int i = 0; i < size; i++) {
+					p.x = i;
+					p.y = j;
+					Try(p, Direction4.Up);
+					Try(p, Direction4.Down);
+					Try(p, Direction4.Left);
+					Try(p, Direction4.Right);
+				}
+			}
+			attackPos = pos;
+			attackDir = dir;
+			return match;
+			// Func
+			void Try (Vector2Int _pos, Direction4 _dir) {
+				int _mat = AttackMatch(_pos, _dir, ability, ship, position);
+				if (_mat > match) {
+					match = _mat;
+					pos = _pos;
+					dir = _dir;
+				}
 			}
 		}
 

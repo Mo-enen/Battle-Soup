@@ -21,52 +21,63 @@ namespace BattleSoup {
 
 
 		// API
-		protected override bool RequireShip (int shipIndex) =>
-			ShipIsReady(shipIndex) && shipIndex switch {
+		protected override int FreeStart () {
 
-				// Require If Any Alive Ship have Any Hit Cell
-				// Or Any Ship has Only One Posible Position
-				LONGBAOT => HitCellCount > 0 || AllPositions.Any(ps => ps.Count == 1),
 
-				// Always Require
-				SAILBOAT => true,
+			return -1;
 
-				// Require If Any Corner Don't Have Sonar
-				MINISUB => TrySonarInRandomCorner(out _),
 
-				// Require If Enough Cell is Hittable
-				SEAMONSTER => (float)HittableCellCount / CellCount > 0.618f,
 
-				_ => false,
-			};
+			if (
+				ShipIsReady(LONGBAOT) &&
+				(HitCellCount > 0 || AllPositions.Any(ps => ps.Count == 1))
+			) return LONGBAOT;
+
+
+			if (
+				ShipIsReady(SAILBOAT)
+			) return SAILBOAT;
+
+
+			if (
+				ShipIsReady(MINISUB) &&
+				TrySonarInRandomCorner(out _)
+			) return MINISUB;
+
+
+			if (
+				ShipIsReady(SEAMONSTER) &&
+				(float)HittableCellCount / CellCount > 0.618f
+			) return SEAMONSTER;
+
+
+			return -1;
+		}
 
 
 		protected override PerformResult PerformShip (int shipIndex) {
 			var pos = new Vector2Int();
 			var dir = Direction4.Up;
-			int size = OpponentMapSize;
-
+			Soup.TryGetAbility(SelfShips[shipIndex].GlobalCode, out var ability);
 			switch (shipIndex) {
 
 				case LONGBAOT: {
-
-
-
-
+					// Try Best Position for Ability
+					if (TryGetBestPosition_ComboAttack(out pos)) break;
 					// Try Attack Best Place as Normal Attack
-					pos = GetBestAttackPosition(false);
-
+					if (TryGetBestPosition_NormalAttack(out pos)) break;
+					// Failback
+					pos = GetFirstValidHittablePosition();
 					break;
 				}
 
 				case SAILBOAT: {
-
-
-
-
+					// Try Best Position for Ability
+					if (TryGetBestPosition_PureAttackAbility(ability, out pos, out dir)) break;
 					// Try Attack Best Place as Normal Attack
-					pos = GetBestAttackPosition(false);
-
+					if (TryGetBestPosition_NormalAttack(out pos)) break;
+					// Failback
+					pos = GetFirstValidHittablePosition();
 					break;
 				}
 
@@ -74,7 +85,9 @@ namespace BattleSoup {
 					// Try Attack Corner
 					if (TrySonarInRandomCorner(out pos)) break;
 					// Try Attack Best Place as Normal Attack
-					pos = GetBestAttackPosition(false);
+					if (TryGetBestPosition_NormalAttack(out pos)) break;
+					// Failback
+					pos = GetFirstValidHittablePosition(false);
 					break;
 				}
 

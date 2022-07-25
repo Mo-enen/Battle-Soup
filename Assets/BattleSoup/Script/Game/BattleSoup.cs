@@ -101,6 +101,8 @@ namespace BattleSoup {
 			public Button PauseAvA = null;
 			public Text RobotDescriptionA = null;
 			public Text RobotDescriptionB = null;
+			public BlinkImage AbilityHintA = null;
+			public BlinkImage AbilityHintB = null;
 			[Header("Asset")]
 			public Sprite DefaultShipIcon = null;
 			public Sprite PlusSprite = null;
@@ -182,6 +184,9 @@ namespace BattleSoup {
 			Init_AI();
 			SetUiScale(s_UiScale.Value);
 			SetUseScreenEffect(s_UseScreenEffect.Value);
+
+			m_Assets.AbilityHintA.StopBlinkDely(0);
+			m_Assets.AbilityHintB.StopBlinkDely(0);
 
 			ReloadShipDataFromDisk();
 			ReloadMapDataFromDisk();
@@ -429,10 +434,10 @@ namespace BattleSoup {
 			CellStep.Clear();
 			RobotA.Analyze(FieldA, FieldB);
 			RobotB.Analyze(FieldB, FieldA);
-			FieldA.Weights = RobotB.ShipWeights;
-			FieldB.Weights = RobotA.ShipWeights;
-			FieldA.HitWeights = RobotB.HitShipWeights;
-			FieldB.HitWeights = RobotA.HitShipWeights;
+			FieldA.Weights = RobotB.Weights;
+			FieldB.Weights = RobotA.Weights;
+			FieldA.HitWeights = RobotB.HitWeights;
+			FieldB.HitWeights = RobotA.HitWeights;
 			var field = CurrentTurn == Turn.A ? FieldA : FieldB;
 			foreach (var ship in field.Ships) ship.CurrentCooldown--;
 			CurrentTurn = CurrentTurn.Opposite();
@@ -449,6 +454,7 @@ namespace BattleSoup {
 			if (!ability.HasManuallyEntrance) return false;
 			bool result = UseAbility(ship.GlobalCode, ship, selfField);
 			CellStep.AddToLast(new sSwitchTurn());
+			BlinkAbilityUI(ship, selfField);
 			return result;
 		}
 
@@ -734,10 +740,10 @@ namespace BattleSoup {
 
 					RobotA.Analyze(FieldA, FieldB);
 					RobotB.Analyze(FieldB, FieldA);
-					FieldA.Weights = RobotB.ShipWeights;
-					FieldB.Weights = RobotA.ShipWeights;
-					FieldA.HitWeights = RobotB.HitShipWeights;
-					FieldB.HitWeights = RobotA.HitShipWeights;
+					FieldA.Weights = RobotB.Weights;
+					FieldB.Weights = RobotA.Weights;
+					FieldA.HitWeights = RobotB.HitWeights;
+					FieldB.HitWeights = RobotA.HitWeights;
 
 					break;
 
@@ -835,6 +841,13 @@ namespace BattleSoup {
 		}
 
 
+		private void BlinkAbilityUI (Ship ship, eField field) {
+			var img = field == FieldA ? m_Assets.AbilityHintA : m_Assets.AbilityHintB;
+			img.Image.sprite = ship.Icon;
+			img.StopBlinkDely(3f);
+		}
+
+
 		// Dev
 		private void SetDevMode (bool devMode) {
 			DevMode = devMode;
@@ -852,7 +865,7 @@ namespace BattleSoup {
 			robot.Analyze(selfField, opponentField);
 
 			// Perform
-			var result = robot.Perform(-1);
+			var result = robot.Perform(this, -1);
 			int abilityIndex = result.AbilityIndex;
 			var pos = result.Position;
 			// Add All Steps
@@ -900,7 +913,7 @@ namespace BattleSoup {
 				return;
 			}
 
-			var result = robot.Perform(usingAbilityIndex);
+			var result = robot.Perform(this, usingAbilityIndex);
 			if (result.AbilityIndex != usingAbilityIndex) {
 				SwitchTurn();
 				return;

@@ -395,6 +395,7 @@ namespace BattleSoup {
 	public class Cell {
 
 		public int ShipIndex => ShipIndexs.Count > 0 ? ShipIndexs[0] : -1;
+		public bool IsHittable => State == CellState.Normal || (State == CellState.Revealed && ShipIndex >= 0);
 
 		public CellState State = CellState.Normal;
 		public bool HasStone = false;
