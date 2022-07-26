@@ -33,6 +33,7 @@ namespace BattleSoup {
 		public bool ClickToAttack { get; set; } = false;
 		public bool DrawDevInfo { get; set; } = false;
 		public bool DrawHitInfo { get; set; } = false;
+		public bool DrawCookedInfo { get; set; } = false;
 		public ActionResult LastActionResult { get; private set; } = ActionResult.None;
 		public int LastActionFrame { get; private set; } = int.MinValue;
 		public int LastPerformedAbilityID { get; set; } = 0;

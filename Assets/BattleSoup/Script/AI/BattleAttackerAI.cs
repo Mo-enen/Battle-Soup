@@ -6,7 +6,7 @@ using UnityEngine;
 
 
 namespace BattleSoup {
-	public class BattleAttackerEasyAI : SoupAI {
+	public class BattleAttackerAI : SoupAI {
 
 
 		// VAR
@@ -23,34 +23,31 @@ namespace BattleSoup {
 		// API
 		protected override int FreeStart () {
 
-
-			return -1;
-
-
-
+			// Longboat
 			if (
 				ShipIsReady(LONGBAOT) &&
 				(HitCellCount > 0 || AllPositions.Any(ps => ps.Count == 1))
 			) return LONGBAOT;
 
-
+			// Sailboat
 			if (
 				ShipIsReady(SAILBOAT)
 			) return SAILBOAT;
 
-
+			// Mini Sub
 			if (
 				ShipIsReady(MINISUB) &&
+				LiveShipCount > 1 &&
 				TrySonarInRandomCorner(out _)
 			) return MINISUB;
 
-
+			// Sea Monster
 			if (
 				ShipIsReady(SEAMONSTER) &&
 				(float)HittableCellCount / CellCount > 0.618f
 			) return SEAMONSTER;
 
-
+			// Normal Attack
 			return -1;
 		}
 
@@ -62,8 +59,6 @@ namespace BattleSoup {
 			switch (shipIndex) {
 
 				case LONGBAOT: {
-					// Try Best Position for Ability
-					if (TryGetBestPosition_ComboAttack(out pos)) break;
 					// Try Attack Best Place as Normal Attack
 					if (TryGetBestPosition_NormalAttack(out pos)) break;
 					// Failback

@@ -735,6 +735,27 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Robot Angry
+      rect:
+        serializedVersion: 2
+        x: 511
+        y: 306
+        width: 118
+        height: 113
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4ec43637868aa00409db885cb3e2cd6d
+      internalID: -789995881
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -751,6 +772,7 @@ TextureImporter:
       Shape: -466322452
       Cheat: -254108267
       Soup: -476286866
+      Robot Angry: -789995881
       Mouse Left: 1570630487
       Pumpkin: 1557231514
       Setting: -2050515895
@@ -780,7 +802,6 @@ TextureImporter:
       Wood Panel: 1851841581
       Title Ship 0: -1270888692
       ESC: -1301258364
-  spritePackingTag: 
   pSDRemoveMatte: 0
   userData: 
   assetBundleName: 

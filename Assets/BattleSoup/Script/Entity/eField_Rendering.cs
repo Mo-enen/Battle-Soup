@@ -54,6 +54,10 @@ namespace BattleSoup {
 		// Api
 		public int[,,] Weights { get; set; } = null;
 		public int[,,] HitWeights { get; set; } = null;
+		public float[,] CookedWeights { get; set; } = null;
+		public float[,] CookedHitWeights { get; set; } = null;
+		public float MaxCookedWeight { get; set; } = 0f;
+		public float MaxCookedHitWeight { get; set; } = 0f;
 
 		// Data
 		private readonly List<PickingCell> PickingLocalPositions = new();
@@ -337,21 +341,45 @@ namespace BattleSoup {
 
 
 		private void DrawWeights () {
-			var weights = DrawHitInfo ? HitWeights : Weights;
-			if (weights == null || !DrawDevInfo) return;
-			if (DevShipIndex < 0 || DevShipIndex >= weights.GetLength(0) || DevShipIndex >= Ships.Length) return;
-			if (MapSize != weights.GetLength(1) || MapSize != weights.GetLength(2)) return;
-			if (!Ships[DevShipIndex].Alive) return;
-			var tint = DrawHitInfo ? new Color32(255, 194, 41, 255) : NUMBER_TINT;
-			foreach (var pos in IsoArray) {
-				if (!pos.InLength(MapSize)) continue;
-				int weight = weights[DevShipIndex, pos.x, pos.y];
-				if (weight <= 0) continue;
-				int code = NUMBER_CODES[weight.Clamp(1, NUMBER_CODES.Length - 1)];
-				var (x, y) = Local_to_Global(pos.x, pos.y, 0);
-				CellRenderer.Draw(
-					code, x, y + SoupConst.ISO_HEIGHT / 2, SoupConst.ISO_SIZE, SoupConst.ISO_SIZE, tint
-				);
+			if (!DrawDevInfo) return;
+			if (!DrawCookedInfo) {
+				// Raw
+				var weights = DrawHitInfo ? HitWeights : Weights;
+				if (weights == null) return;
+				if (DevShipIndex < 0 || DevShipIndex >= weights.GetLength(0) || DevShipIndex >= Ships.Length) return;
+				if (MapSize != weights.GetLength(1) || MapSize != weights.GetLength(2)) return;
+				if (!Ships[DevShipIndex].Alive) return;
+				var tint = DrawHitInfo ? new Color32(255, 194, 41, 255) : NUMBER_TINT;
+				foreach (var pos in IsoArray) {
+					if (!pos.InLength(MapSize)) continue;
+					int weight = weights[DevShipIndex, pos.x, pos.y];
+					if (weight <= 0) continue;
+					int code = NUMBER_CODES[weight.Clamp(1, NUMBER_CODES.Length - 1)];
+					var (x, y) = Local_to_Global(pos.x, pos.y, 0);
+					CellRenderer.Draw(
+						code, x, y + SoupConst.ISO_HEIGHT / 2, SoupConst.ISO_SIZE, SoupConst.ISO_SIZE, tint
+					);
+				}
+			} else {
+				// Cooked
+				float maxWeight = DrawHitInfo ? MaxCookedHitWeight : MaxCookedWeight;
+				if (maxWeight.AlmostZero()) return;
+				var weights = DrawHitInfo ? CookedHitWeights : CookedWeights;
+				if (weights == null) return;
+				if (MapSize != weights.GetLength(0) || MapSize != weights.GetLength(1)) return;
+				var tint = DrawHitInfo ? new Color32(255, 194, 41, 255) : NUMBER_TINT;
+				foreach (var pos in IsoArray) {
+					if (!pos.InLength(MapSize)) continue;
+					float weight = weights[pos.x, pos.y];
+					if (weight.LessOrAlmost(0f)) continue;
+					int code = NUMBER_CODES[
+						(int)Util.Remap(0f, maxWeight, 0f, 10f, weight).Clamp(1, NUMBER_CODES.Length - 1)
+					];
+					var (x, y) = Local_to_Global(pos.x, pos.y, 0);
+					CellRenderer.Draw(
+						code, x, y + SoupConst.ISO_HEIGHT / 2, SoupConst.ISO_SIZE, SoupConst.ISO_SIZE, tint
+					);
+				}
 			}
 		}
 

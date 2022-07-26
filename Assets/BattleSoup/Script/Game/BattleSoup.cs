@@ -90,15 +90,18 @@ namespace BattleSoup {
 			public Toggle CheatTG = null;
 			public Toggle DevTG = null;
 			public Toggle DevHitTG = null;
+			public Toggle DevCookTG = null;
 			public Grabber ShipAbilityItem = null;
 			public RectTransform AbilityContainerA = null;
 			public RectTransform AbilityContainerB = null;
 			public RectTransform PickingHint = null;
 			public Image AvatarIconA = null;
+			public Image AvatarIconB = null;
 			public Text AvatarLabelA = null;
 			public Text TurnLabel = null;
 			public Button PlayAvA = null;
 			public Button PauseAvA = null;
+			public Button RestartAvA = null;
 			public Text RobotDescriptionA = null;
 			public Text RobotDescriptionB = null;
 			public BlinkImage AbilityHintA = null;
@@ -108,6 +111,7 @@ namespace BattleSoup {
 			public Sprite PlusSprite = null;
 			public Sprite PlayerAvatarIcon = null;
 			public Sprite RobotAvatarIcon = null;
+			public Sprite AngryRobotAvatarIcon = null;
 			public Sprite EmptyMirrorShipIcon = null;
 		}
 
@@ -371,12 +375,18 @@ namespace BattleSoup {
 			}
 
 			// Cheat
-			if (Cheating) Cheated = true;
+			if (Cheating && !Cheated) {
+				Cheated = true;
+				if (PvA) m_Assets.AvatarIconB.sprite = m_Assets.AngryRobotAvatarIcon;
+			}
 			if (m_Assets.CheatTG.isOn != Cheating) m_Assets.CheatTG.SetIsOnWithoutNotify(Cheating);
 
 			// Dev Hit
 			if (m_Assets.DevHitTG.gameObject.activeSelf != DevMode) {
 				m_Assets.DevHitTG.gameObject.SetActive(DevMode);
+			}
+			if (m_Assets.DevCookTG.gameObject.activeSelf != DevMode) {
+				m_Assets.DevCookTG.gameObject.SetActive(DevMode);
 			}
 
 			// Gameover Check
@@ -392,8 +402,12 @@ namespace BattleSoup {
 							Cheated ? m_Assets.Dialog_WinCheat : m_Assets.Dialog_Win
 						).gameObject.SetActive(true);
 					}
+					m_Assets.PlayAvA.gameObject.SetActive(false);
+					m_Assets.PauseAvA.gameObject.SetActive(false);
+					m_Assets.RestartAvA.gameObject.SetActive(!PvA);
 				}
 			}
+
 
 		}
 
@@ -434,10 +448,7 @@ namespace BattleSoup {
 			CellStep.Clear();
 			RobotA.Analyze(FieldA, FieldB);
 			RobotB.Analyze(FieldB, FieldA);
-			FieldA.Weights = RobotB.Weights;
-			FieldB.Weights = RobotA.Weights;
-			FieldA.HitWeights = RobotB.HitWeights;
-			FieldB.HitWeights = RobotA.HitWeights;
+			RefreshRobotWeights();
 			var field = CurrentTurn == Turn.A ? FieldA : FieldB;
 			foreach (var ship in field.Ships) ship.CurrentCooldown--;
 			CurrentTurn = CurrentTurn.Opposite();
@@ -611,8 +622,9 @@ namespace BattleSoup {
 		public void UI_SetAvAPlay (bool play) {
 			bool PvA = Mode == GameMode.PvA;
 			AvAPlaying = play;
-			m_Assets.PlayAvA.gameObject.SetActive(!PvA && !play);
-			m_Assets.PauseAvA.gameObject.SetActive(!PvA && play);
+			m_Assets.PlayAvA.gameObject.SetActive(!GameOver && !PvA && !play);
+			m_Assets.PauseAvA.gameObject.SetActive(!GameOver && !PvA && play);
+			m_Assets.RestartAvA.gameObject.SetActive(GameOver && !PvA);
 		}
 
 
@@ -622,6 +634,14 @@ namespace BattleSoup {
 		public void UI_SetDrawHitInfo (bool hitInfo) {
 			FieldA.DrawHitInfo = hitInfo;
 			FieldB.DrawHitInfo = hitInfo;
+		}
+
+
+		public void UI_SetDrawCookInfo (bool cookInfo) {
+			FieldA.DrawCookedInfo = cookInfo;
+			FieldB.DrawCookedInfo = cookInfo;
+			RefreshShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
+			RefreshShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
 		}
 
 
@@ -658,15 +678,12 @@ namespace BattleSoup {
 			GameOver = false;
 			FieldA.ClickToAttack = false;
 			FieldB.ClickToAttack = false;
-			if (state != GameState.Playing) {
-				FieldA.Weights = null;
-				FieldB.Weights = null;
-				FieldA.HitWeights = null;
-				FieldB.HitWeights = null;
-			}
 			FieldA.DevShipIndex = 0;
 			FieldB.DevShipIndex = 0;
 			SetDevMode(false);
+			if (state != GameState.Playing) {
+				RefreshRobotWeights(true);
+			}
 
 			switch (state) {
 				case GameState.Title:
@@ -703,6 +720,8 @@ namespace BattleSoup {
 					AvAPlaying = s_AutoPlayForAvA.Value;
 					m_Assets.PlayAvA.gameObject.SetActive(!PvA && !AvAPlaying);
 					m_Assets.PauseAvA.gameObject.SetActive(!PvA && AvAPlaying);
+					m_Assets.RestartAvA.gameObject.SetActive(false);
+					m_Assets.AvatarIconB.sprite = m_Assets.RobotAvatarIcon;
 
 					// A
 					var shiftA = new Vector2Int(0, AllMaps[s_MapIndexB.Value].Size + 2);
@@ -740,10 +759,11 @@ namespace BattleSoup {
 
 					RobotA.Analyze(FieldA, FieldB);
 					RobotB.Analyze(FieldB, FieldA);
-					FieldA.Weights = RobotB.Weights;
-					FieldB.Weights = RobotA.Weights;
-					FieldA.HitWeights = RobotB.HitWeights;
-					FieldB.HitWeights = RobotA.HitWeights;
+					RefreshRobotWeights();
+					FieldA.DrawCookedInfo = false;
+					FieldB.DrawCookedInfo = false;
+					m_Assets.DevHitTG.SetIsOnWithoutNotify(false);
+					m_Assets.DevCookTG.SetIsOnWithoutNotify(false);
 
 					break;
 
@@ -768,6 +788,7 @@ namespace BattleSoup {
 					m_Assets.FleetSelectorPlayer.gameObject.SetActive(true);
 					m_Assets.FleetSelectorRobotA.gameObject.SetActive(false);
 					m_Assets.AvatarIconA.sprite = m_Assets.PlayerAvatarIcon;
+					m_Assets.AvatarIconB.sprite = m_Assets.RobotAvatarIcon;
 					m_Assets.AvatarLabelA.text = "Player";
 					ReloadFleetRendererUI();
 					OnFleetChanged();
@@ -780,6 +801,7 @@ namespace BattleSoup {
 					m_Assets.FleetSelectorPlayer.gameObject.SetActive(false);
 					m_Assets.FleetSelectorRobotA.gameObject.SetActive(true);
 					m_Assets.AvatarIconA.sprite = m_Assets.RobotAvatarIcon;
+					m_Assets.AvatarIconB.sprite = m_Assets.RobotAvatarIcon;
 					m_Assets.AvatarLabelA.text = "Robot A";
 					ReloadFleetRendererUI();
 					OnFleetChanged();
@@ -932,6 +954,35 @@ namespace BattleSoup {
 			RobotA = System.Activator.CreateInstance(typeA) as SoupAI;
 			var typeB = AllAi[s_SelectingAiB.Value.Clamp(0, AllAi.Count)].GetType();
 			RobotB = System.Activator.CreateInstance(typeB) as SoupAI;
+		}
+
+
+		private void RefreshRobotWeights (bool clear = false) {
+			if (!clear) {
+				FieldA.Weights = RobotB.Weights;
+				FieldB.Weights = RobotA.Weights;
+				FieldA.HitWeights = RobotB.HitWeights;
+				FieldB.HitWeights = RobotA.HitWeights;
+				FieldA.CookedWeights = RobotB.CookedWeights;
+				FieldB.CookedWeights = RobotA.CookedWeights;
+				FieldA.CookedHitWeights = RobotB.CookedHitWeights;
+				FieldB.CookedHitWeights = RobotA.CookedHitWeights;
+				FieldA.MaxCookedWeight = RobotB.MaxCookedWeight;
+				FieldB.MaxCookedWeight = RobotA.MaxCookedWeight;
+				FieldA.MaxCookedHitWeight = RobotB.MaxCookedHitWeight;
+				FieldB.MaxCookedHitWeight = RobotA.MaxCookedHitWeight;
+			} else {
+				FieldA.Weights = null;
+				FieldB.Weights = null;
+				FieldA.HitWeights = null;
+				FieldB.HitWeights = null;
+				FieldA.CookedWeights = null;
+				FieldB.CookedWeights = null;
+				FieldA.CookedHitWeights = null;
+				FieldB.CookedHitWeights = null;
+				FieldA.MaxCookedHitWeight = 0f;
+				FieldB.MaxCookedHitWeight = 0f;
+			}
 		}
 
 
@@ -1167,8 +1218,11 @@ namespace BattleSoup {
 					}
 				}
 
+				// Dev Highlight
 				var dev = grab.Grab<RectTransform>("Dev");
-				dev.gameObject.SetActive(DevMode && field.DevShipIndex == i && ship.Alive);
+				dev.gameObject.SetActive(
+					DevMode && !field.DrawCookedInfo && field.DevShipIndex == i && ship.Alive
+				);
 
 				// Mirror Interactable
 				if (btn.interactable && !ability.HasSolidAction) {
