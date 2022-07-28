@@ -44,7 +44,7 @@ namespace BattleSoup {
 		}
 
 
-		public void StopBlinkDely (float duration) => StopTime = Time.time + duration;
+		public void Blink (float duration) => StopTime = Time.time + duration;
 
 
 	}

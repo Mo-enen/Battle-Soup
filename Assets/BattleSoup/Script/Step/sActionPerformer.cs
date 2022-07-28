@@ -8,15 +8,13 @@ namespace BattleSoup {
 	public class sActionPerformer : Step {
 
 
-		// Short
-		private ActionResult LastActionResult => (SelfField.LastActionFrame > OpponentField.LastActionFrame ? SelfField : OpponentField).LastActionResult;
-
 		// Data
 		private readonly static HashSet<Vector2Int> c_RandomCache = new();
 		private ActionUnit Action { get; init; }
 		private eField SelfField { get; init; }
 		private eField OpponentField { get; init; }
 		private Ship CurrentShip { get; init; }
+		private ActionResult LastActionResult { get; set; } = ActionResult.None;
 
 
 		// MSG
@@ -31,7 +29,9 @@ namespace BattleSoup {
 		public override StepResult FrameUpdate (Game game) {
 			var type = Action.Type;
 			var soup = game as BattleSoup;
-
+			LastActionResult =
+				(SelfField.LastActionFrame > OpponentField.LastActionFrame ?
+				SelfField : OpponentField).LastActionResult;
 			switch (type) {
 
 				case ActionType.Pick:
@@ -143,7 +143,7 @@ namespace BattleSoup {
 		private void Perform_Unreveal (BattleSoup soup) {
 			Trigger(soup, Action.RandomCount, (field, pos, keyword) => {
 				CellStep.AddToFirst(new sBreakCheck(keyword, field, SelfField));
-				CellStep.AddToFirst(new sReveal() {
+				CellStep.AddToFirst(new sUnreveal() {
 					X = pos.x,
 					Y = pos.y,
 					Field = field,

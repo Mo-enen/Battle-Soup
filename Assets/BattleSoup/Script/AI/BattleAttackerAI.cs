@@ -59,29 +59,21 @@ namespace BattleSoup {
 			switch (shipIndex) {
 
 				case LONGBAOT: {
-					// Try Attack Best Place as Normal Attack
 					if (TryGetBestPosition_NormalAttack(out pos)) break;
-					// Failback
 					pos = GetFirstValidHittablePosition();
 					break;
 				}
 
 				case SAILBOAT: {
-					// Try Best Position for Ability
-					if (TryGetBestPosition_PureAttackAbility(ability, out pos, out dir)) break;
-					// Try Attack Best Place as Normal Attack
+					if (TryGetBestPerformForPureAbility(ability, out pos, out dir)) break;
 					if (TryGetBestPosition_NormalAttack(out pos)) break;
-					// Failback
 					pos = GetFirstValidHittablePosition();
 					break;
 				}
 
 				case MINISUB: {
-					// Try Attack Corner
 					if (TrySonarInRandomCorner(out pos)) break;
-					// Try Attack Best Place as Normal Attack
 					if (TryGetBestPosition_NormalAttack(out pos)) break;
-					// Failback
 					pos = GetFirstValidHittablePosition(false);
 					break;
 				}

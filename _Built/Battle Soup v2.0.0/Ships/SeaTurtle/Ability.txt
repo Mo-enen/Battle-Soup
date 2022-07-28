@@ -4,7 +4,5 @@
 pick [hittable, hitShip]
 attack
 reduceCooldown [triggerIfHit, triggerIfSunk, this]
-reveal (0,1)
-reveal (0,-1)
-reveal (1,0)
-reveal (-1,0)
+reveal (0,1) [triggerIfHit, triggerIfSunk] (0,-1) [triggerIfHit, triggerIfSunk] (1,0) [triggerIfHit, triggerIfSunk] (-1,0) [triggerIfHit, triggerIfSunk]
+

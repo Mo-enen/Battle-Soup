@@ -18,6 +18,15 @@ namespace BattleSoup {
 		#region --- VAR ---
 
 
+		// Const
+		private static readonly int AUDIO_HIT = "Hit".AngeHash();
+		private static readonly int AUDIO_SUNK = "Sunk".AngeHash();
+		private static readonly int AUDIO_MISS = "Miss".AngeHash();
+		private static readonly int AUDIO_REVEAL = "Reveal".AngeHash();
+		private static readonly int AUDIO_UNREVEAL = "Unreveal".AngeHash();
+		private static readonly int AUDIO_SONAR = "Sonar".AngeHash();
+		private static readonly int AUDIO_EXPOSE = "Expose".AngeHash();
+
 		// Api
 		public Cell this[int x, int y] => Cells[x, y];
 		public Ship[] Ships { get; private set; } = new Ship[0];
@@ -233,6 +242,7 @@ namespace BattleSoup {
 			End:;
 			LastActionResult = result;
 			LastActionFrame = Game.GlobalFrame;
+			PlaySound(result);
 			return result;
 		}
 
@@ -260,6 +270,7 @@ namespace BattleSoup {
 			End:;
 			LastActionResult = result;
 			LastActionFrame = Game.GlobalFrame;
+			PlaySound(result);
 			return result;
 		}
 
@@ -286,6 +297,7 @@ namespace BattleSoup {
 			End:;
 			LastActionResult = result;
 			LastActionFrame = Game.GlobalFrame;
+			PlaySound(result);
 			return result;
 		}
 
@@ -319,11 +331,13 @@ namespace BattleSoup {
 					cell.Sonar = minDis;
 				}
 				result = ActionResult.RevealWater;
+				AudioPlayer.PlaySound(AUDIO_SONAR);
 			} else {
 				// Hit Ship
 				cell.State = CellState.Hit;
 				RefreshAllShipsAliveState();
 				result = Ships[cell.ShipIndex].Alive ? ActionResult.Hit : ActionResult.Sunk;
+				PlaySound(result);
 			}
 			End:;
 			LastActionResult = result;
@@ -339,11 +353,13 @@ namespace BattleSoup {
 			if (cell.ShipIndex < 0) result = ActionResult.None;
 			if (cell.ShipIndex >= 0) {
 				Ships[cell.ShipIndex].Exposed = true;
+				result = ActionResult.ExposeShip;
 			}
 			RefreshCellShipCache();
 			End:;
 			LastActionResult = result;
 			LastActionFrame = Game.GlobalFrame;
+			PlaySound(result);
 			return result;
 		}
 
@@ -649,6 +665,21 @@ namespace BattleSoup {
 				}
 			}
 		}
+
+
+		// Audio
+		private void PlaySound (ActionResult result) => AudioPlayer.PlaySound(
+			result switch {
+				ActionResult.Hit => AUDIO_HIT,
+				ActionResult.Sunk => AUDIO_SUNK,
+				ActionResult.RevealWater => AUDIO_MISS,
+				ActionResult.UnrevealWater => AUDIO_UNREVEAL,
+				ActionResult.UnrevealShip => AUDIO_UNREVEAL,
+				ActionResult.RevealShip => AUDIO_REVEAL,
+				ActionResult.ExposeShip => AUDIO_EXPOSE,
+				_ => 0,
+			}
+		);
 
 
 		#endregion

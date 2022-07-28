@@ -126,9 +126,7 @@ namespace BattleSoup {
 		UnrevealWater = 1L << 3,
 		RevealShip = 1L << 4,
 		UnrevealShip = 1L << 5,
-		Sonar = 1L << 6,
-		ExposeShip = 1L << 7,
-		UnexposeShip = 1L << 8,
+		ExposeShip = 1L << 6,
 
 	}
 
@@ -222,7 +220,7 @@ namespace BattleSoup {
 				hasTrigger = true;
 			}
 			if (keyword.HasFlag(ActionKeyword.TriggerIfMiss)) {
-				if (result == ActionResult.RevealWater || result == ActionResult.Sonar) return true;
+				if (result == ActionResult.RevealWater) return true;
 				hasTrigger = true;
 			}
 			if (keyword.HasFlag(ActionKeyword.TriggerIfReveal)) {
@@ -250,7 +248,7 @@ namespace BattleSoup {
 				_break = _break || result == ActionResult.Hit;
 			}
 			if (keyword.HasFlag(ActionKeyword.BreakIfMiss)) {
-				_break = _break || result == ActionResult.RevealWater || result == ActionResult.Sonar;
+				_break = _break || result == ActionResult.RevealWater;
 			}
 			if (keyword.HasFlag(ActionKeyword.BreakIfReveal)) {
 				_break = _break || result == ActionResult.RevealShip;
@@ -395,12 +393,7 @@ namespace BattleSoup {
 	public class Cell {
 
 		public int ShipIndex => ShipIndexs.Count > 0 ? ShipIndexs[0] : -1;
-		public bool IsHittable =>
-			!HasStone && (
-				State == CellState.Normal ||
-				(State == CellState.Revealed && ShipIndex >= 0)
-			);
-
+		
 		public CellState State = CellState.Normal;
 		public bool HasStone = false;
 		public bool HasExposedShip = false;

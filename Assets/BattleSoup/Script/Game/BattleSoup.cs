@@ -189,8 +189,8 @@ namespace BattleSoup {
 			SetUiScale(s_UiScale.Value);
 			SetUseScreenEffect(s_UseScreenEffect.Value);
 
-			m_Assets.AbilityHintA.StopBlinkDely(0);
-			m_Assets.AbilityHintB.StopBlinkDely(0);
+			m_Assets.AbilityHintA.Blink(0);
+			m_Assets.AbilityHintB.Blink(0);
 
 			ReloadShipDataFromDisk();
 			ReloadMapDataFromDisk();
@@ -236,6 +236,7 @@ namespace BattleSoup {
 		// Update
 		protected override void FrameUpdate () {
 			base.FrameUpdate();
+			AudioPlayer.SetMute(!s_UseSound.Value);
 			Update_StateRedirect();
 			RefreshCameraView();
 			switch (State) {
@@ -465,7 +466,7 @@ namespace BattleSoup {
 			if (!ability.HasManuallyEntrance) return false;
 			bool result = UseAbility(ship.GlobalCode, ship, selfField);
 			CellStep.AddToLast(new sSwitchTurn());
-			BlinkAbilityUI(ship, selfField);
+			if (result) BlinkAbilityUI(ship, selfField);
 			return result;
 		}
 
@@ -866,7 +867,7 @@ namespace BattleSoup {
 		private void BlinkAbilityUI (Ship ship, eField field) {
 			var img = field == FieldA ? m_Assets.AbilityHintA : m_Assets.AbilityHintB;
 			img.Image.sprite = ship.Icon;
-			img.StopBlinkDely(3f);
+			img.Blink(2f);
 		}
 
 
@@ -885,7 +886,7 @@ namespace BattleSoup {
 		private void InvokeRobot (SoupAI robot, eField selfField, eField opponentField) {
 
 			robot.Analyze(selfField, opponentField);
-
+			
 			// Perform
 			var result = robot.Perform(this, -1);
 			int abilityIndex = result.AbilityIndex;

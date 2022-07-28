@@ -425,6 +425,7 @@ namespace BattleSoup {
 			PickingKeyword = keyword;
 			PickingLocalPositions.Clear();
 			if (ability == null) return;
+
 			for (int i = actionLineIndex + 1; i < ability.Units.Length; i++) {
 				var unit = ability.Units[i];
 				if (unit is not ActionUnit aUnit) break;
