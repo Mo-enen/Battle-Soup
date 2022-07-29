@@ -2,9 +2,8 @@
     "name": "BattleSoup",
     "rootNamespace": "BattleSoup",
     "references": [
-        "AngeliaFrameworkRuntime",
-        "Unity.InputSystem",
-        "Unity.Postprocessing.Runtime"
+        "Unity.Postprocessing.Runtime",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [
         "Editor",
@@ -12,8 +11,10 @@
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "AngeliaFrameworkRuntime.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],

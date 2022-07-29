@@ -10,13 +10,13 @@ namespace BattleSoup {
 
 
 		// VAR
-		private const int LONGBAOT = 2;
+		private const int LONGBOAT = 2;
 		private const int SAILBOAT = 0;
 		private const int MINISUB = 3;
 		private const int SEAMONSTER = 1;
 
 		public override string DisplayName => "Battle Attacker";
-		public override string Description => "Battle Attacker AI created by Moenen.";
+		public override string Description => "Created by Moenen";
 		public override string Fleet => "Sailboat,SeaMonster,Longboat,MiniSub";
 
 
@@ -25,9 +25,9 @@ namespace BattleSoup {
 
 			// Longboat
 			if (
-				ShipIsReady(LONGBAOT) &&
+				ShipIsReady(LONGBOAT) &&
 				(HitCellCount > 0 || AllPositions.Any(ps => ps.Count == 1))
-			) return LONGBAOT;
+			) return LONGBOAT;
 
 			// Sailboat
 			if (
@@ -58,7 +58,7 @@ namespace BattleSoup {
 			Soup.TryGetAbility(SelfShips[shipIndex].GlobalCode, out var ability);
 			switch (shipIndex) {
 
-				case LONGBAOT: {
+				case LONGBOAT: {
 					if (TryGetBestPosition_NormalAttack(out pos)) break;
 					pos = GetFirstValidHittablePosition();
 					break;

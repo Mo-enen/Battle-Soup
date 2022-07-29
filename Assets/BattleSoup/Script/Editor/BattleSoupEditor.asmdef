@@ -2,17 +2,18 @@
     "name": "BattleSoupEditor",
     "rootNamespace": "BattleSoup.Editor",
     "references": [
-        "BattleSoup",
-        "AngeliaFrameworkEditor",
-        "AngeliaFrameworkRuntime"
+        "BattleSoup"
     ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "AngeliaFrameworkEditor.dll",
+        "AngeliaFrameworkRuntime.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],

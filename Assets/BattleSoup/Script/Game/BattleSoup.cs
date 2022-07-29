@@ -108,7 +108,6 @@ namespace BattleSoup {
 			public BlinkImage AbilityHintB = null;
 			[Header("Asset")]
 			public Sprite DefaultShipIcon = null;
-			public Sprite PlusSprite = null;
 			public Sprite PlayerAvatarIcon = null;
 			public Sprite RobotAvatarIcon = null;
 			public Sprite AngryRobotAvatarIcon = null;
@@ -886,7 +885,7 @@ namespace BattleSoup {
 		private void InvokeRobot (SoupAI robot, eField selfField, eField opponentField) {
 
 			robot.Analyze(selfField, opponentField);
-			
+
 			// Perform
 			var result = robot.Perform(this, -1);
 			int abilityIndex = result.AbilityIndex;
@@ -1082,10 +1081,6 @@ namespace BattleSoup {
 			void ReloadFleet (SavingString fleet, string fleetStr, RectTransform container) {
 				container.DestroyAllChirldrenImmediate();
 				var ships = fleetStr.Split(',');
-				var hori = container.GetComponent<HorizontalLayoutGroup>();
-				float plusWidth = 24;
-				float itemWidth = (container.rect.width - hori.padding.horizontal) / ships.Length - hori.spacing - plusWidth;
-				itemWidth = itemWidth.Clamp(0, 64);
 				for (int i = 0; i < ships.Length; i++) {
 					int shipIndex = i;
 					string shipName = ships[shipIndex];
@@ -1098,7 +1093,6 @@ namespace BattleSoup {
 					rt.anchoredPosition3D = rt.anchoredPosition;
 					rt.localRotation = Quaternion.identity;
 					rt.localScale = Vector3.one;
-					rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, itemWidth);
 					var img = grab.Grab<Image>();
 					var btn = grab.Grab<Button>();
 					img.sprite = ship.Icon;
@@ -1109,19 +1103,6 @@ namespace BattleSoup {
 							ReloadFleetRendererUI();
 							OnFleetChanged();
 						});
-					}
-					// Spawn Plus
-					if (shipIndex < ships.Length - 1) {
-						var plusG = new GameObject("Plus", typeof(RectTransform), typeof(Image));
-						var pRt = plusG.transform as RectTransform;
-						pRt.SetParent(container);
-						pRt.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
-						pRt.localScale = Vector3.one;
-						pRt.SetAsLastSibling();
-						pRt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, plusWidth);
-						var pImg = plusG.GetComponent<Image>();
-						pImg.sprite = m_Assets.PlusSprite;
-						pImg.preserveAspect = true;
 					}
 				}
 			}
@@ -1238,7 +1219,10 @@ namespace BattleSoup {
 
 				// Overcooldown
 				var bImg = grab.Grab<BlinkImage>();
-				bImg.enabled = ability.EntrancePool.ContainsKey(EntranceType.OnAbilityUsedOvercharged) && ship.CurrentCooldown < 0;
+				bImg.enabled =
+					ship.Alive &&
+					ability.EntrancePool.ContainsKey(EntranceType.OnAbilityUsedOvercharged) &&
+					ship.CurrentCooldown < 0;
 			}
 		}
 

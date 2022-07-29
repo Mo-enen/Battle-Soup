@@ -15,7 +15,7 @@ namespace BattleSoup {
 		private const int TURTLE = 3;
 
 		public override string DisplayName => "Reveal & Snipe";
-		public override string Description => "Reveal & Snipe AI created by Moenen.";
+		public override string Description => "Created by Moenen";
 		public override string Fleet => "Coracle,Whale,KillerSquid,SeaTurtle";
 
 
