@@ -5,7 +5,7 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: 
-    guid: 00000000000000000000000000000000
+  - enabled: 1
+    path: Assets/BattleSoup/Main.unity
+    guid: b140e5e6543f5d64182934492d0fce6b
   m_configObjects: {}

@@ -235,9 +235,13 @@ namespace BattleSoup {
 				result = ActionResult.RevealWater;
 			} else {
 				// Hit Ship
-				cell.State = CellState.Hit;
-				RefreshAllShipsAliveState();
-				result = Ships[cell.ShipIndex].Alive ? ActionResult.Hit : ActionResult.Sunk;
+				if (cell.State != CellState.Hit && cell.State != CellState.Sunk) {
+					cell.State = CellState.Hit;
+					RefreshAllShipsAliveState();
+					result = Ships[cell.ShipIndex].Alive ? ActionResult.Hit : ActionResult.Sunk;
+				} else {
+					PlaySound(ActionResult.Hit);
+				}
 			}
 			End:;
 			LastActionResult = result;
@@ -334,10 +338,14 @@ namespace BattleSoup {
 				AudioPlayer.PlaySound(AUDIO_SONAR);
 			} else {
 				// Hit Ship
-				cell.State = CellState.Hit;
-				RefreshAllShipsAliveState();
-				result = Ships[cell.ShipIndex].Alive ? ActionResult.Hit : ActionResult.Sunk;
-				PlaySound(result);
+				if (cell.State != CellState.Hit && cell.State != CellState.Sunk) {
+					cell.State = CellState.Hit;
+					RefreshAllShipsAliveState();
+					result = Ships[cell.ShipIndex].Alive ? ActionResult.Hit : ActionResult.Sunk;
+					PlaySound(result);
+				} else {
+					PlaySound(ActionResult.Hit);
+				}
 			}
 			End:;
 			LastActionResult = result;
@@ -649,6 +657,7 @@ namespace BattleSoup {
 				int hitCount = 0;
 				for (int j = 0; j < ship.BodyNodes.Length; j++) {
 					var pos = ship.GetFieldNodePosition(j);
+					if (pos.NotInLength(MapSize)) continue;
 					var cell = Cells[pos.x, pos.y];
 					if (cell.State == CellState.Hit || cell.State == CellState.Sunk) {
 						hitCount++;
@@ -659,6 +668,7 @@ namespace BattleSoup {
 				if (!ship.Alive) {
 					for (int j = 0; j < ship.BodyNodes.Length; j++) {
 						var pos = ship.GetFieldNodePosition(j);
+						if (pos.NotInLength(MapSize)) continue;
 						var cell = Cells[pos.x, pos.y];
 						cell.State = CellState.Sunk;
 					}

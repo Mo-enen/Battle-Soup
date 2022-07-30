@@ -128,7 +128,8 @@ namespace BattleSoup {
 		public GameState State { get; private set; } = GameState.Title;
 		public GameMode Mode { get; private set; } = GameMode.PvA;
 		public Turn CurrentTurn { get; private set; } = Turn.A;
-		public string ShipRoot => Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Ships");
+		public string BuiltInShipRoot => Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Ships");
+		public string CustomShipRoot => Util.CombinePaths(Application.persistentDataPath, "Ships");
 		public string MapRoot => Util.CombinePaths(Util.GetRuntimeBuiltRootPath(), "Maps");
 		public eField FieldA { get; private set; } = null;
 		public eField FieldB { get; private set; } = null;
@@ -154,14 +155,14 @@ namespace BattleSoup {
 		private bool DevMode = false;
 		private bool AvAPlaying = true;
 		private bool PrevHasStep = false;
+		private int DialogFrame = int.MinValue;
 		private SoupAI RobotA = null;
 		private SoupAI RobotB = null;
-		private int DialogFrame = int.MinValue;
 
 		// Saving
 		private readonly SavingString s_PlayerFleet = new("BattleSoup.PlayerFleet", "Sailboat,SeaMonster,Longboat,MiniSub");
 		private readonly SavingBool s_UseSound = new("BattleSoup.UseSound", true);
-		private readonly SavingBool s_AutoPlayForAvA = new("BattleSoup.AutoPlayForAvA", false);
+		private readonly SavingBool s_AutoPlayForAvA = new("BattleSoup.AutoPlayForAvA", true);
 		private readonly SavingBool s_UseAnimation = new("BattleSoup.UseAnimation", true);
 		private readonly SavingBool s_UseScreenEffect = new("BattleSoup.UseScreenEffect", true);
 		private readonly SavingInt s_SelectingAiA = new("BattleSoup.SelectingAiA", 0);
@@ -660,9 +661,16 @@ namespace BattleSoup {
 
 			// Check Valid before Play
 			if (state == GameState.Playing) {
-				if (!FieldA.IsValidForPlay(out _)) {
-					m_Assets.FailPlacingShipsDialog.gameObject.SetActive(true);
-					return;
+				if (Mode == GameMode.PvA) {
+					if (!FieldA.IsValidForPlay(out _)) {
+						m_Assets.FailPlacingShipsDialog.gameObject.SetActive(true);
+						return;
+					}
+				} else {
+					if (!FieldA.IsValidForPlay(out _) || !FieldB.IsValidForPlay(out _)) {
+						m_Assets.RobotFailedToPlaceShipsDialog.gameObject.SetActive(true);
+						return;
+					}
 				}
 			}
 
@@ -1233,56 +1241,22 @@ namespace BattleSoup {
 		// Load Data
 		private void ReloadShipDataFromDisk () {
 
+			// Create Folder
+			try {
+				Util.CreateFolder(BuiltInShipRoot);
+				Util.CreateFolder(CustomShipRoot);
+			} catch (System.Exception ex) { Debug.LogException(ex); }
+
 			// Ship Pool
 			try {
 				ShipPool.Clear();
-				foreach (var folder in Util.GetFoldersIn(ShipRoot, true)) {
-					try {
-						int globalID = 0;
-						Ship ship = null;
-						// Info
-						string infoPath = Util.CombinePaths(folder.FullName, "Info.json");
-						if (Util.FileExists(infoPath)) {
-							ship = JsonUtility.FromJson<Ship>(Util.FileToText(infoPath));
-							if (ship == null) continue;
-							globalID = ship.GlobalCode;
-							ShipPool.TryAdd(ship.GlobalCode, ship);
-						} else continue;
-						// Icon
-						if (ship != null) {
-							string iconPath = Util.CombinePaths(folder.FullName, "Icon.png");
-							if (Util.FileExists(iconPath)) {
-								var texture = new Texture2D(1, 1, TextureFormat.ARGB32, false) {
-									filterMode = FilterMode.Bilinear,
-									anisoLevel = 0,
-									wrapMode = TextureWrapMode.Clamp,
-								};
-								texture.LoadImage(Util.FileToByte(iconPath));
-								ship.Icon = Sprite.Create(
-									texture,
-									new Rect(0, 0, texture.width, texture.height),
-									Vector2.one * 0.5f
-								);
-							}
-							if (ship.Icon == null) ship.Icon = m_Assets.DefaultShipIcon;
-						}
-						// Ability
-						string abPath = Util.CombinePaths(folder.FullName, "Ability.txt");
-						if (Util.FileExists(abPath)) {
-							string code = Util.FileToText(abPath);
-							var exe = AbilityCompiler.Compile(globalID, code, out string error);
-							if (exe != null) {
-								AbilityPool.TryAdd(globalID, exe);
-							} else {
-
-
-
-
-
-								Debug.LogError(folder.FullName + "\n" + error);
-							}
-						}
-					} catch (System.Exception ex) { Debug.LogWarning(folder.Name); Debug.LogException(ex); }
+				// Built In
+				foreach (var folder in Util.GetFoldersIn(BuiltInShipRoot, true)) {
+					LoadShip(folder.FullName);
+				}
+				// Custom
+				foreach (var folder in Util.GetFoldersIn(CustomShipRoot, true)) {
+					LoadShip(folder.FullName);
 				}
 			} catch (System.Exception ex) { Debug.LogException(ex); }
 
@@ -1311,6 +1285,52 @@ namespace BattleSoup {
 				shape.Ship = ship;
 				var cooldown = grab.Grab<Text>("Cooldown");
 				cooldown.text = ship.MaxCooldown.ToString();
+			}
+
+			// Func
+			void LoadShip (string folderName) {
+				try {
+					int globalID = 0;
+					Ship ship = null;
+					// Info
+					string infoPath = Util.CombinePaths(folderName, "Info.json");
+					if (Util.FileExists(infoPath)) {
+						ship = JsonUtility.FromJson<Ship>(Util.FileToText(infoPath));
+						if (ship == null) return;
+						globalID = ship.GlobalCode;
+						ShipPool.TryAdd(ship.GlobalCode, ship);
+					} else return;
+					// Icon
+					if (ship != null) {
+						string iconPath = Util.CombinePaths(folderName, "Icon.png");
+						if (Util.FileExists(iconPath)) {
+							var texture = new Texture2D(1, 1, TextureFormat.ARGB32, false) {
+								filterMode = FilterMode.Bilinear,
+								anisoLevel = 0,
+								wrapMode = TextureWrapMode.Clamp,
+							};
+							texture.LoadImage(Util.FileToByte(iconPath));
+							ship.Icon = Sprite.Create(
+								texture,
+								new Rect(0, 0, texture.width, texture.height),
+								Vector2.one * 0.5f
+							);
+						}
+						if (ship.Icon == null) ship.Icon = m_Assets.DefaultShipIcon;
+					}
+					// Ability
+					string abPath = Util.CombinePaths(folderName, "Ability.txt");
+					if (Util.FileExists(abPath)) {
+						string code = Util.FileToText(abPath);
+						var exe = AbilityCompiler.Compile(globalID, code, out string error);
+						if (exe != null) {
+							AbilityPool.TryAdd(globalID, exe);
+						} else {
+							Debug.LogError(folderName + "\n" + error);
+						}
+					}
+				} catch (System.Exception ex) { Debug.LogWarning(folderName); Debug.LogException(ex); }
+
 			}
 		}
 

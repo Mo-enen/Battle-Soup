@@ -393,7 +393,7 @@ namespace BattleSoup {
 	public class Cell {
 
 		public int ShipIndex => ShipIndexs.Count > 0 ? ShipIndexs[0] : -1;
-		
+
 		public CellState State = CellState.Normal;
 		public bool HasStone = false;
 		public bool HasExposedShip = false;
@@ -405,9 +405,18 @@ namespace BattleSoup {
 
 		public void AddShip (int shipIndex, Ship ship, int bodyX, int bodyY) {
 			ShipIndexs.Add(shipIndex);
-			ShipRenderIDs.Add($"{ship.GlobalName} {bodyX}.{bodyY}".AngeHash());
-			ShipRenderIDsAdd.Add($"{ship.GlobalName}_Add {bodyX}.{bodyY}".AngeHash());
-			ShipRenderIDsSunk.Add($"{ship.GlobalName}_Sunk {bodyX}.{bodyY}".AngeHash());
+
+			int rID = $"{ship.GlobalName} {bodyX}.{bodyY}".AngeHash();
+			if (!CellRenderer.TryGetSprite(rID, out _)) rID = $"DefaultShip".AngeHash();
+			ShipRenderIDs.Add(rID);
+
+			rID = $"{ship.GlobalName}_Add {bodyX}.{bodyY}".AngeHash();
+			if (!CellRenderer.TryGetSprite(rID, out _)) rID = $"DefaultShip_Add".AngeHash();
+			ShipRenderIDsAdd.Add(rID);
+
+			rID = $"{ship.GlobalName}_Sunk {bodyX}.{bodyY}".AngeHash();
+			if (!CellRenderer.TryGetSprite(rID, out _)) rID = $"DefaultShip_Sunk".AngeHash();
+			ShipRenderIDsSunk.Add(rID);
 		}
 
 		public void ClearShip () {

@@ -1,14 +1,18 @@
 # <img src="_Res/Logo Small.png" alt="Logo" style="zoom:100%;" />    Battle Soup
 
-> AI for [BattleTabs](https://battletabs.io)
+> Fan-made game for [BattleTabs](https://battletabs.io)
 
 Download latest version in [HERE](https://github.com/Mo-enen/Battle-Soup/releases)
 
+![0](_Res\0.jpg)
 
+![1](_Res\1.jpg)
 
-※※※ Remaking... ※※※
+![2](_Res\2.jpg)
 
+![3](_Res\3.jpg)
 
+![4](_Res\4.jpg)
 
 ##### Contact
 
@@ -21,14 +25,20 @@ Download latest version in [HERE](https://github.com/Mo-enen/Battle-Soup/release
 
 ##### Develop Requirement
 
-- Unity Editor 2022.1.0f1c1.
+- Unity Editor 2022.2.0b1
 - API Compatibility Level .NET 4.x.
 - Decompress the zip file before use.
 - Available on PC only.
 
 
+##### Change Log
 
-##### Update
+`v2.0.0`
+
+- Completely remake, new artwork, new UI, new AI.
+- Ship editor and card mode are not finished yet.
+- Custom code for ship ability, players can create their own ability by using the code.
+- Using AngeliA Framework (a 2D Unity-based framework made by Moenen).
 
 `v1.1.0`
 
