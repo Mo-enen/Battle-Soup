@@ -4,15 +4,15 @@
 
 Download latest version in [HERE](https://github.com/Mo-enen/Battle-Soup/releases)
 
-![0](_Res\0.jpg)
+<img src="_Res\0.jpg">
 
-![1](_Res\1.jpg)
+<img src="_Res\1.jpg">
 
-![2](_Res\2.jpg)
+<img src="_Res\2.jpg">
 
-![3](_Res\3.jpg)
+<img src="_Res\3.jpg">
 
-![4](_Res\4.jpg)
+<img src="_Res\4.jpg">
 
 ##### Contact
 
