@@ -1,9 +1,0 @@
-{
-    "GlobalName": "SeaMonster",
-    "DisplayName": "Sea Monster",
-    "Discription": "Attacks ANY 3 tiles at random. Obscures 1 random friendly tile.",
-    "DefaultCooldown": 2,
-    "MaxCooldown": 2,
-    "Body": "101,111"
-    
-}

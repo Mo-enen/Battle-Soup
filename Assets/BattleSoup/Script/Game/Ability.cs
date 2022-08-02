@@ -33,7 +33,7 @@ namespace BattleSoup {
 
 			// Perform all Units
 			bool result = false;
-			for (int i = endLine; i >= startLine + 1; i--) {
+			for (int i = endLine; i >= startLine + 1 && i >= 0 && i < Units.Length; i--) {
 				var unit = Units[i];
 				if (unit is ActionUnit aUnit) {
 					CellStep.AddToFirst(new sActionPerformer(

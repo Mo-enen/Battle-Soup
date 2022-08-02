@@ -1,0 +1,9 @@
+{
+    "GlobalName": "Crustacean",
+    "DisplayName": "Crustacean",
+    "Description": "Fires in a X pattern. Reveals hidden tiles, and attacks revealed tiles",
+    "DefaultCooldown": 4,
+    "MaxCooldown": 4,
+    "Body": "101,010,101" 
+    
+}

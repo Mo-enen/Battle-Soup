@@ -59,7 +59,7 @@ namespace BattleSoup {
 				if (targetShip != null && ship != targetShip) continue;
 				if (!soup.TryGetAbility(ship.GlobalCode, out var ability)) continue;
 				if (!ability.EntrancePool.ContainsKey(Entrance)) continue;
-				soup.PerformAbility(ability, ship, Entrance, selfField, opponentField);
+				soup.PerformAbility(ability, ship, Entrance, selfField, opponentField, false);
 			}
 		}
 

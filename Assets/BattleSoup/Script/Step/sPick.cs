@@ -56,8 +56,10 @@ namespace BattleSoup {
 
 			// Pick Info
 			var soup = game as BattleSoup;
-			if (soup.TryGetAbility(Action.AbilityID, out var ability)) {
+			if (Action != null && soup.TryGetAbility(Action.AbilityID, out var ability)) {
 				TargetField.SetPickingInfo(ability, Keyword, Action.LineIndex);
+			} else {
+				TargetField.SetPickingInfo(null, Keyword, 0);
 			}
 		}
 

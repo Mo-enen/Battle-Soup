@@ -77,7 +77,7 @@ namespace BattleSoup {
 		#region --- MSG ---
 
 
-		private void UpdateRenderCells () {
+		private void UpdateRenderCell () {
 
 			// Render Cells
 			if (
@@ -142,6 +142,7 @@ namespace BattleSoup {
 
 
 		private void DrawUnits () {
+
 			int count = MapSize * MapSize;
 			int hoveringShipIndex = -1;
 			int mouseX = FrameInput.MouseGlobalPosition.x;
@@ -189,9 +190,11 @@ namespace BattleSoup {
 								CellState.Hit => new Color32(255, 194, 41, 255),
 								_ => new Color32(255, 255, 255, 255),
 							} : new Color32(255, 16, 16, 255);
+
 							if (ship.Exposed && HideInvisibleShip && ship.Alive) {
 								tint.a = 128;
 							}
+
 							bool sunk = cell.State == CellState.Sunk;
 							int shipID =
 								HoveringShipIndex == shipIndex ? rID_add :
@@ -229,7 +232,7 @@ namespace BattleSoup {
 
 
 		private void DrawGizmos () {
-			if (DrawDevInfo) return;
+			if (DrawDevInfo || !Enable) return;
 			var (localMouseX, localMouseY) = Global_to_Local(FrameInput.MouseGlobalPosition.x, FrameInput.MouseGlobalPosition.y, 1);
 			bool mouseInMap = localMouseX >= 0 && localMouseX < MapSize && localMouseY >= 0 && localMouseY < MapSize;
 			int count = MapSize * MapSize;
@@ -309,7 +312,7 @@ namespace BattleSoup {
 
 
 		private void Update_AbilityPerformingArrow () {
-			if (DrawDevInfo) return;
+			if (DrawDevInfo || !DrawPickingArrow) return;
 			if (CellStep.CurrentStep is not sPick pick || pick.TargetField != this) return;
 			var (mX, mY) = Global_to_Local(FrameInput.MouseGlobalPosition.x, FrameInput.MouseGlobalPosition.y, 1);
 			if (!new Vector2Int(mX, mY).InLength(MapSize)) return;
@@ -393,6 +396,7 @@ namespace BattleSoup {
 
 
 		public void DrawCrosshair (int localX, int localY) {
+			if (!Enable) return;
 			var (x, y) = Local_to_Global(localX, localY, 0);
 			// Crosshair
 			if (Game.GlobalFrame % 4 < 2) {
@@ -406,6 +410,7 @@ namespace BattleSoup {
 
 
 		public void DrawExplosion (int localX, int localY, float t01) {
+			if (!Enable) return;
 			var (x, y) = Local_to_Global(localX, localY, 1);
 			t01 = t01 * 0.25f + 0.75f;
 			t01 = 1f - (1f - t01) * (1f - t01);
@@ -424,7 +429,14 @@ namespace BattleSoup {
 
 			PickingKeyword = keyword;
 			PickingLocalPositions.Clear();
-			if (ability == null) return;
+			if (ability == null) {
+				PickingLocalPositions.Add(new() {
+					LocalX = 0,
+					LocalY = 0,
+					Tint = Color.white,
+				});
+				return;
+			}
 
 			for (int i = actionLineIndex + 1; i < ability.Units.Length; i++) {
 				var unit = ability.Units[i];

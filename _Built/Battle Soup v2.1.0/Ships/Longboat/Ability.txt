@@ -1,0 +1,21 @@
+
+// Longboat
+
+pick [hittable]
+attack [breakIfMiss, breakIfSunk]
+
+pick [hittable]
+attack [breakIfMiss, breakIfSunk]
+
+pick [hittable]
+attack [breakIfMiss, breakIfSunk]
+
+pick [hittable]
+attack [breakIfMiss, breakIfSunk]
+
+pick [hittable]
+attack [breakIfMiss, breakIfSunk]
+
+pick [hittable]
+attack [breakIfMiss, breakIfSunk]
+

@@ -82,10 +82,10 @@ namespace BattleSoup {
 					break;
 
 				case ActionType.PerformSelfLastUsedAbility:
-					soup.UseAbility(SelfField.LastPerformedAbilityID, CurrentShip, SelfField);
+					soup.UseAbility(SelfField.LastPerformedAbilityID, CurrentShip, SelfField, true);
 					break;
 				case ActionType.PerformOpponentLastUsedAbility:
-					soup.UseAbility(OpponentField.LastPerformedAbilityID, CurrentShip, SelfField);
+					soup.UseAbility(OpponentField.LastPerformedAbilityID, CurrentShip, SelfField, true);
 					break;
 
 			}

@@ -11,11 +11,17 @@ namespace BattleSoup {
 
 		// Const
 		private static readonly int FRAME_CODE = "Water Reveal Frame".AngeHash();
+		public bool RevealOnPickedPosition { get; set; } = false;
 
 
 		// MSG
 		public override StepResult FrameUpdate (Game game) {
 			base.FrameUpdate(game);
+			if (RevealOnPickedPosition) {
+				var pos = (game as BattleSoup).PickingPosition;
+				X = pos.x;
+				Y = pos.y;
+			}
 			if (X < 0 || Y < 0 || X >= Field.MapSize || Y >= Field.MapSize) return StepResult.Over;
 			int DURATION = Fast ? 6 : 24;
 			var (_x, _y) = Field.Local_to_Global(X, Y, 1);

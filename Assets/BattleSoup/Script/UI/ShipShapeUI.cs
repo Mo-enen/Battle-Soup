@@ -50,8 +50,9 @@ namespace BattleSoup {
 			var nodeMin = new Vector2Int(int.MaxValue, int.MaxValue);
 			var nodeMax = new Vector2Int(int.MinValue, int.MinValue);
 			foreach (var node in Ship.BodyNodes) {
-				nodeMin = Vector2Int.Min(nodeMin, node);
-				nodeMax = Vector2Int.Max(nodeMax, node);
+				var node2 = (Vector2Int)node;
+				nodeMin = Vector2Int.Min(nodeMin, node2);
+				nodeMax = Vector2Int.Max(nodeMax, node2);
 			}
 			var rect = GetPixelAdjustedRect();
 			float size = Mathf.Min(rect.width / 3f, rect.height / 3f);

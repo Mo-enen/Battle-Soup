@@ -1,9 +1,0 @@
-{
-    "GlobalName": "Longboat",
-    "DisplayName": "Longboat",
-    "Discription": "Combo. Attack up to 5 times or until you miss or destroy a ship.",
-    "DefaultCooldown": 5,
-    "MaxCooldown": 5,
-    "Body": "1,1,1,1" 
-    
-}

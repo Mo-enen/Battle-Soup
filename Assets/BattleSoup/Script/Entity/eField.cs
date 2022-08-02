@@ -41,6 +41,7 @@ namespace BattleSoup {
 		public bool DragToMoveShips { get; set; } = false;
 		public bool ClickToAttack { get; set; } = false;
 		public bool DrawDevInfo { get; set; } = false;
+		public bool DrawPickingArrow { get; set; } = true;
 		public bool DrawHitInfo { get; set; } = false;
 		public bool DrawCookedInfo { get; set; } = false;
 		public ActionResult LastActionResult { get; private set; } = ActionResult.None;
@@ -79,7 +80,7 @@ namespace BattleSoup {
 		public override void FrameUpdate () {
 			base.FrameUpdate();
 			if (!Enable) return;
-			UpdateRenderCells();
+			UpdateRenderCell();
 			Update_DragToMoveShips();
 			Update_ClickToAttack();
 			Update_AbilityPerformingArrow();
@@ -226,6 +227,7 @@ namespace BattleSoup {
 
 		// Action
 		public ActionResult Attack (int x, int y) {
+			if (!Enable) return ActionResult.None;
 			var result = ActionResult.None;
 			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) goto End;
 			var cell = Cells[x, y];
@@ -252,6 +254,7 @@ namespace BattleSoup {
 
 
 		public ActionResult Reveal (int x, int y) {
+			if (!Enable) return ActionResult.None;
 			var result = ActionResult.None;
 			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) goto End;
 			var cell = Cells[x, y];
@@ -280,6 +283,7 @@ namespace BattleSoup {
 
 
 		public ActionResult Unreveal (int x, int y) {
+			if (!Enable) return ActionResult.None;
 			var result = ActionResult.None;
 			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) goto End;
 			var cell = Cells[x, y];
@@ -307,6 +311,7 @@ namespace BattleSoup {
 
 
 		public ActionResult Sonar (int x, int y) {
+			if (!Enable) return ActionResult.None;
 			var result = ActionResult.None;
 			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) goto End;
 			var cell = Cells[x, y];
@@ -355,6 +360,7 @@ namespace BattleSoup {
 
 
 		public ActionResult Expose (int x, int y) {
+			if (!Enable) return ActionResult.None;
 			var result = ActionResult.None;
 			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) goto End;
 			var cell = Cells[x, y];

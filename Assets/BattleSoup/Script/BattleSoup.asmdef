@@ -3,7 +3,8 @@
     "rootNamespace": "BattleSoup",
     "references": [
         "Unity.Postprocessing.Runtime",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "MonoFileBrowser"
     ],
     "includePlatforms": [
         "Editor",

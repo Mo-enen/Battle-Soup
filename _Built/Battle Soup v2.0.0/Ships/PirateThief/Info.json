@@ -1,9 +1,0 @@
-{
-    "GlobalName": "PirateThief",
-    "DisplayName": "Pirate Thief",
-    "Discription": "Attack. On hit: Increase cooldown of the target by 1, decrease cooldown of this ship by 1.",
-    "DefaultCooldown": 2,
-    "MaxCooldown": 2,
-    "Body": "1,1,1" 
-    
-}

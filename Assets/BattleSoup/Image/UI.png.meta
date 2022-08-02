@@ -744,7 +744,7 @@ TextureImporter:
         width: 118
         height: 113
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -752,6 +752,216 @@ TextureImporter:
       bones: []
       spriteID: 4ec43637868aa00409db885cb3e2cd6d
       internalID: -789995881
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Panel_Bottom
+      rect:
+        serializedVersion: 2
+        x: 193
+        y: 320
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 8, y: 8, z: 8, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: eeab03767d3e3aa40b622c32e6351f59
+      internalID: 1723589175
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Panel_Top
+      rect:
+        serializedVersion: 2
+        x: 193
+        y: 328
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 8, y: 0, z: 8, w: 8}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7eda6ee773e4ea54b872a5352ecae878
+      internalID: -694896823
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Trash
+      rect:
+        serializedVersion: 2
+        x: 744
+        y: 1
+        width: 157
+        height: 193
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a393d81211ea2f54fbc8e9a4bb805ed2
+      internalID: -240999965
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button_Left
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 320
+        width: 6
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 6, y: 6, z: 0, w: 6}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 79fd6299283327b4ea28ecabd74717c2
+      internalID: -591023230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warning
+      rect:
+        serializedVersion: 2
+        x: 678
+        y: 196
+        width: 216
+        height: 193
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f27d87f001e4b4d4ba3cc95d80146afa
+      internalID: 1168501572
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Folder
+      rect:
+        serializedVersion: 2
+        x: 903
+        y: 2
+        width: 120
+        height: 92
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 892b812ce9209554982872bbdab11149
+      internalID: -1701764842
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShipBodyItem
+      rect:
+        serializedVersion: 2
+        x: 1000
+        y: 95
+        width: 23
+        height: 23
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d81ef3b80d8e9a44abe1a03c5b693024
+      internalID: 2090411686
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Duplicate
+      rect:
+        serializedVersion: 2
+        x: 902
+        y: 119
+        width: 121
+        height: 121
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 24819a7020dacbe409ebf76dfb521b07
+      internalID: -912281225
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Reveal
+      rect:
+        serializedVersion: 2
+        x: 958
+        y: 241
+        width: 65
+        height: 41
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9c5a6bebe04fac544b26550973504c75
+      internalID: -1473093000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button_Top
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 330
+        width: 16
+        height: 6
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 6, y: 0, z: 6, w: 6}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 15295823fa0acdd49b73934957aaa9a7
+      internalID: 1410402402
       vertices: []
       indices: 
       edges: []
@@ -768,40 +978,50 @@ TextureImporter:
     secondaryTextures: []
     nameFileIdTable:
       Plus: -118985312
-      Title Ship 1: -190956466
       Shape: -466322452
-      Cheat: -254108267
-      Soup: -476286866
-      Robot Angry: -789995881
       Mouse Left: 1570630487
       Pumpkin: 1557231514
-      Setting: -2050515895
-      Construction: -1436908655
-      Poker: 1205203521
-      Wood Panel B: 1929336801
       CheatLose: 1920047204
+      Construction: -1436908655
       Spoon: -1698021046
+      Panel_Bottom: 1723589175
       CheatWin: 1893319958
-      Win: 1757180342
-      Lose: -1458830814
       Cucumber: -1186084701
       Dev: 390764257
-      Title Ship 3: 1629271374
       Icon Girl: 1566753909
-      Mark: 1325594848
       Mouse Right: 1978710756
+      Mark: 1325594848
       Turn Mark: 2122127840
-      Panel: -2113243177
+      Folder: -1701764842
       VS: -550570813
-      Button: 126692845
-      Icon Robot: 270312904
       Reload: 1544891859
+      ESC: -1301258364
       Title Ship 2: -1795022542
       Toggle: -750467815
       Wood Item: -954188774
       Wood Panel: 1851841581
+      Panel_Top: -694896823
+      Title Ship 1: -190956466
+      Wood Panel B: 1929336801
+      Cheat: -254108267
+      Soup: -476286866
+      Robot Angry: -789995881
+      Setting: -2050515895
+      Poker: 1205203521
+      Warning: 1168501572
+      Trash: -240999965
+      Button_Left: -591023230
+      Win: 1757180342
+      Lose: -1458830814
+      ShipBodyItem: 2090411686
+      Title Ship 3: 1629271374
+      Panel: -2113243177
+      Reveal: -1473093000
+      Button: 126692845
+      Icon Robot: 270312904
+      Button_Top: 1410402402
       Title Ship 0: -1270888692
-      ESC: -1301258364
+      Duplicate: -912281225
   pSDRemoveMatte: 0
   userData: 
   assetBundleName: 

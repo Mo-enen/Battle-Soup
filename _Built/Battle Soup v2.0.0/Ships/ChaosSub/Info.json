@@ -1,9 +1,0 @@
-{
-    "GlobalName": "ChaosSub",
-    "DisplayName": "Chaos Sub",
-    "Discription": "Sonar. Use increases max cooldown by 1.",
-    "DefaultCooldown": 1,
-    "MaxCooldown": 1,
-    "Body": "1,1,1,1,1" 
-    
-}

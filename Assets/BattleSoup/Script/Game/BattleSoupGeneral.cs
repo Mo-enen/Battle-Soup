@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using AngeliaFramework;
+
 namespace System.Runtime.CompilerServices { internal static class IsExternalInit { } }
 
 
@@ -279,7 +281,7 @@ namespace BattleSoup {
 		// Ser-Api
 		public string GlobalName = "";
 		public string DisplayName = "";
-		public string Discription = "";
+		public string Description = "";
 		public int DefaultCooldown = 1;
 		public int MaxCooldown = 1;
 		public string Body = "1";
@@ -288,13 +290,14 @@ namespace BattleSoup {
 		[System.NonSerialized] public int GlobalCode = 0;
 		[System.NonSerialized] public int FieldX = 0;
 		[System.NonSerialized] public int FieldY = 0;
-		[System.NonSerialized] public bool Flip = false;
 		[System.NonSerialized] public int CurrentCooldown = 1;
+		[System.NonSerialized] public bool BuiltIn = true;
+		[System.NonSerialized] public bool Flip = false;
 		[System.NonSerialized] public bool Exposed = false;
 		[System.NonSerialized] public bool Valid = true;
 		[System.NonSerialized] public bool Alive = true;
 		[System.NonSerialized] public bool IsSymmetric = false;
-		[System.NonSerialized] public Vector2Int[] BodyNodes = null;
+		[System.NonSerialized] public Vector3Int[] BodyNodes = null;
 		[System.NonSerialized] public Sprite Icon = null;
 
 		// Cache
@@ -303,7 +306,9 @@ namespace BattleSoup {
 
 
 		// MSG
-		public void OnBeforeSerialize () { }
+		public void OnBeforeSerialize () {
+			Body = Nodes_to_BodyString(BodyNodes);
+		}
 
 
 		public void OnAfterDeserialize () {
@@ -311,7 +316,7 @@ namespace BattleSoup {
 			FieldX = 0;
 			FieldY = 0;
 			Flip = false;
-			BodyNodes = GetBodyNode(Body);
+			BodyNodes = BodyString_to_Nodes(Body);
 			IsSymmetric = GetIsSymmetric();
 		}
 
@@ -334,8 +339,8 @@ namespace BattleSoup {
 
 
 		// LGC
-		private static Vector2Int[] GetBodyNode (string body) {
-			var result = new List<Vector2Int>();
+		private static Vector3Int[] BodyString_to_Nodes (string body) {
+			var result = new List<Vector3Int>();
 			int x = 0;
 			int y = 0;
 			for (int i = 0; i < body.Length; i++) {
@@ -344,8 +349,8 @@ namespace BattleSoup {
 					case '0':
 						x++;
 						break;
-					case '1':
-						result.Add(new(x, y));
+					default:
+						result.Add(new(x, y, Char2Int(c)));
 						x++;
 						break;
 					case ',':
@@ -358,11 +363,60 @@ namespace BattleSoup {
 		}
 
 
+		private static string Nodes_to_BodyString (Vector3Int[] nodes) {
+			if (nodes == null || nodes.Length == 0) return "";
+			var hash = new Dictionary<Vector2Int, int>();
+			var min = new Vector2Int(int.MaxValue, int.MaxValue);
+			var max = new Vector2Int(int.MinValue, int.MinValue);
+			foreach (var node in nodes) {
+				var node2 = new Vector2Int(node.x, node.y);
+				min = Vector2Int.Min(min, node2);
+				max = Vector2Int.Max(max, node2);
+				hash.TryAdd(node2, node.z);
+			}
+			var size = max - min + Vector2Int.one;
+			var builder = new StringBuilder();
+			for (int y = 0; y < size.y; y++) {
+				for (int x = 0; x < size.x; x++) {
+					builder.Append(
+						hash.TryGetValue(min + new Vector2Int(x, y), out int value) ? Int2Char(value) : '0'
+					);
+				}
+				if (y != size.y - 1) builder.Append(',');
+			}
+			return builder.ToString();
+		}
+
+
 		private bool GetIsSymmetric () {
 			c_Symmetric.Clear();
-			foreach (var node in BodyNodes) c_Symmetric.TryAdd(node);
+			foreach (var node in BodyNodes) c_Symmetric.TryAdd(new(node.x, node.y));
 			foreach (var node in BodyNodes) if (!c_Symmetric.Contains(new(node.y, node.x))) return false;
 			return true;
+		}
+
+
+		private static int Char2Int (char c) {
+			if (c >= '0' && c <= '9') {
+				return c - '0';
+			} else if (c >= 'a' && c <= 'z') {
+				return c - 'a' + 10;
+			} else if (c >= 'A' && c <= 'Z') {
+				return c - 'A' + 36;
+			}
+			return 0;
+		}
+
+
+		private static char Int2Char (int i) {
+			if (i >= 0 && i < 10) {
+				return (char)(i + '0');
+			} else if (i >= 10 && i < 36) {
+				return (char)(i + 'a');
+			} else if (i >= 36 && i < 36 + 26) {
+				return (char)(i + 'A');
+			}
+			return '0';
 		}
 
 

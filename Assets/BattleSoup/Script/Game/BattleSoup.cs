@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using AngeliaFramework;
@@ -8,121 +9,18 @@ using UnityEngine.Rendering.PostProcessing;
 
 // Start Remake at 2022/6/23
 namespace BattleSoup {
-	public class BattleSoup : Game {
-
-
-
-
-		#region --- SUB ---
-
-
-
-		public enum GameState {
-			Title = 0,
-			Prepare = 1,
-			Playing = 2,
-			CardGame = 3,
-			ShipEditor = 4,
-		}
-
-
-
-		public enum GameMode {
-			PvA = 0,
-			AvA = 1,
-		}
-
-
-
-		public enum Turn {
-			A = 0,
-			B = 1,
-		}
-
-
-
-		[System.Serializable]
-		private class GameAsset {
-			public RectTransform PanelRoot = null;
-			public RectTransform PreparePanel = null;
-			public RectTransform PlacePanel = null;
-			public Button MapShipSelectorNextButton = null;
-			public CanvasScaler CanvasScaler = null;
-			public RectTransform TopUI = null;
-			public RectTransform BottomUI = null;
-			public PostProcessVolume EffectVolume = null;
-			[Header("Dialog")]
-			public RectTransform DialogRoot = null;
-			public RectTransform QuitBattleDialog = null;
-			public RectTransform NoShipAlert = null;
-			public RectTransform NoMapAlert = null;
-			public RectTransform FailPlacingShipsDialog = null;
-			public RectTransform RobotFailedToPlaceShipsDialog = null;
-			public RectTransform Dialog_Win = null;
-			public RectTransform Dialog_WinCheat = null;
-			public RectTransform Dialog_Lose = null;
-			public RectTransform Dialog_LoseCheat = null;
-			[Header("Map")]
-			public RectTransform MapSelectorContentA = null;
-			public Text MapSelectorLabelA = null;
-			public RectTransform MapSelectorContentB = null;
-			public Text MapSelectorLabelB = null;
-			public Grabber MapSelectorItem = null;
-			[Header("Fleet")]
-			public RectTransform FleetSelectorPlayer = null;
-			public RectTransform FleetSelectorPlayerContent = null;
-			public RectTransform FleetSelectorRobotA = null;
-			public Grabber FleetSelectorShipItem = null;
-			public Text FleetSelectorLabelA = null;
-			public Text FleetSelectorLabelB = null;
-			public RectTransform FleetRendererA = null;
-			public RectTransform FleetRendererB = null;
-			public Grabber FleetRendererItem = null;
-			public Dropdown RobotAiA = null;
-			public Dropdown RobotAiB = null;
-			[Header("Setting")]
-			public Toggle SoundTG = null;
-			public Toggle AutoPlayAvATG = null;
-			public Toggle UseAnimationTG = null;
-			public Toggle UseEffectTG = null;
-			public Toggle[] UiScaleTGs = null;
-			[Header("Playing")]
-			public Toggle CheatTG = null;
-			public Toggle DevTG = null;
-			public Toggle DevHitTG = null;
-			public Toggle DevCookTG = null;
-			public Grabber ShipAbilityItem = null;
-			public RectTransform AbilityContainerA = null;
-			public RectTransform AbilityContainerB = null;
-			public RectTransform PickingHint = null;
-			public Image AvatarIconA = null;
-			public Image AvatarIconB = null;
-			public Text AvatarLabelA = null;
-			public Text TurnLabel = null;
-			public Button PlayAvA = null;
-			public Button PauseAvA = null;
-			public Button RestartAvA = null;
-			public Text RobotDescriptionA = null;
-			public Text RobotDescriptionB = null;
-			public BlinkImage AbilityHintA = null;
-			public BlinkImage AbilityHintB = null;
-			[Header("Asset")]
-			public Sprite DefaultShipIcon = null;
-			public Sprite PlayerAvatarIcon = null;
-			public Sprite RobotAvatarIcon = null;
-			public Sprite AngryRobotAvatarIcon = null;
-			public Sprite EmptyMirrorShipIcon = null;
-		}
-
-
-
-		#endregion
+	public partial class BattleSoup : Game {
 
 
 
 
 		#region --- VAR ---
 
+
+		// Const
+		private const string SHIP_EDITOR_FLEET = "Sailboat,SeaMonster,Longboat,MiniSub";
+		private readonly Map EMPTY_MAP = new() { Size = 8, Content = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, };
+		private readonly Map SHIP_EDITOR_MAP = new() { Size = 8, Content = new int[] { 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0 }, };
 
 		// Api
 		public GameState State { get; private set; } = GameState.Title;
@@ -148,6 +46,7 @@ namespace BattleSoup {
 
 		// Data
 		private readonly Dictionary<int, Ship> ShipPool = new();
+		private readonly List<ShipMeta> ShipMetas = new();
 		private readonly Dictionary<int, Ability> AbilityPool = new();
 		private readonly List<SoupAI> AllAi = new();
 		private readonly List<Map> AllMaps = new();
@@ -240,9 +139,6 @@ namespace BattleSoup {
 			Update_StateRedirect();
 			RefreshCameraView();
 			switch (State) {
-				case GameState.Title:
-					Update_Title();
-					break;
 				case GameState.Prepare:
 					Update_Prepare();
 					break;
@@ -254,7 +150,7 @@ namespace BattleSoup {
 
 					break;
 				case GameState.ShipEditor:
-
+					Update_ShipEditor();
 					break;
 			}
 		}
@@ -283,12 +179,6 @@ namespace BattleSoup {
 					}
 					break;
 			}
-		}
-
-
-		private void Update_Title () {
-			FieldA.Enable = false;
-			FieldB.Enable = false;
 		}
 
 
@@ -437,6 +327,15 @@ namespace BattleSoup {
 		}
 
 
+		private void OnApplicationFocus (bool focus) {
+			// Back to Ship Editor
+			if (focus && State == GameState.ShipEditor) {
+				ReloadShipDataFromDisk();
+				ReloadShipEditorUI();
+			}
+		}
+
+
 		#endregion
 
 
@@ -464,32 +363,33 @@ namespace BattleSoup {
 			if (ship.CurrentCooldown > 0) return false;
 			if (!AbilityPool.TryGetValue(ship.GlobalCode, out var ability)) return false;
 			if (!ability.HasManuallyEntrance) return false;
-			bool result = UseAbility(ship.GlobalCode, ship, selfField);
+			bool result = UseAbility(ship.GlobalCode, ship, selfField, false);
 			CellStep.AddToLast(new sSwitchTurn());
 			if (result) BlinkAbilityUI(ship, selfField);
 			return result;
 		}
 
 
-		public bool UseAbility (int id, Ship ship, eField selfField) {
-			if (ship.CurrentCooldown > 0) return false;
+		public bool UseAbility (int id, Ship ship, eField selfField, bool ignoreCooldown) {
+			if (!ignoreCooldown && ship.CurrentCooldown > 0) return false;
 			if (!AbilityPool.TryGetValue(id, out var ability)) return false;
 			var entrance = EntranceType.OnAbilityUsed;
-			if (ship.CurrentCooldown < 0 && ability.EntrancePool.ContainsKey(EntranceType.OnAbilityUsedOvercharged)) {
+			if (!ignoreCooldown && ship.CurrentCooldown < 0 && ability.EntrancePool.ContainsKey(EntranceType.OnAbilityUsedOvercharged)) {
 				entrance = EntranceType.OnAbilityUsedOvercharged;
 			}
 			bool performed = PerformAbility(
 				ability, ship, entrance,
 				selfField,
-				selfField == FieldA ? FieldB : FieldA
+				selfField == FieldA ? FieldB : FieldA,
+				ignoreCooldown
 			);
 			if (performed) selfField.LastPerformedAbilityID = id;
 			return true;
 		}
 
 
-		public bool PerformAbility (Ability ability, Ship ship, EntranceType entrance, eField selfField, eField opponentField) {
-			if (ship.CurrentCooldown > 0) return false;
+		public bool PerformAbility (Ability ability, Ship ship, EntranceType entrance, eField selfField, eField opponentField, bool ignoreCooldown) {
+			if (!ignoreCooldown && ship.CurrentCooldown > 0) return false;
 			FieldA.ClearLastActionResult();
 			FieldB.ClearLastActionResult();
 			bool performed = ability.Perform(ship, entrance, selfField, opponentField);
@@ -536,119 +436,6 @@ namespace BattleSoup {
 		);
 
 
-		// UI
-		public void UI_OpenURL (string url) => Application.OpenURL(url);
-
-
-		public void UI_SwitchState (string state) {
-			if (System.Enum.TryParse<GameState>(state, true, out var result)) {
-				SwitchState(result);
-			}
-		}
-
-
-		public void UI_SwitchMode (string mode) {
-			if (System.Enum.TryParse<GameMode>(mode, true, out var result)) {
-				SwitchMode(result);
-			}
-		}
-
-
-		public void UI_RefreshSettingUI () {
-			m_Assets.SoundTG.SetIsOnWithoutNotify(s_UseSound.Value);
-			m_Assets.AutoPlayAvATG.SetIsOnWithoutNotify(s_AutoPlayForAvA.Value);
-			m_Assets.UseAnimationTG.SetIsOnWithoutNotify(s_UseAnimation.Value);
-		}
-
-
-		public void UI_OpenReloadDialog () {
-			ReloadShipDataFromDisk();
-			ReloadMapDataFromDisk();
-		}
-
-
-		public void UI_SelectingMapChanged () {
-			s_MapIndexA.Value = GetMapIndexFromUI(m_Assets.MapSelectorContentA).Clamp(0, AllMaps.Count);
-			s_MapIndexB.Value = GetMapIndexFromUI(m_Assets.MapSelectorContentB).Clamp(0, AllMaps.Count);
-			OnMapChanged();
-			// Func
-			int GetMapIndexFromUI (RectTransform container) {
-				int childCount = container.childCount;
-				for (int i = 0; i < childCount; i++) {
-					var tg = container.GetChild(i).GetComponent<Toggle>();
-					if (tg != null && tg.isOn) return i;
-				}
-				return 0;
-			}
-		}
-
-
-		public void UI_SelectingFleetChanged () {
-			ReloadFleetRendererUI();
-			OnFleetChanged();
-		}
-
-
-		public void UI_ClearPlayerFleetSelector () {
-			s_PlayerFleet.Value = "";
-			ReloadFleetRendererUI();
-			OnFleetChanged();
-		}
-
-
-		public void UI_ResetPlayerShipPositions () => FieldA.RandomPlaceShips(256);
-
-
-		public void UI_AiSelectorChanged () {
-			s_SelectingAiA.Value = m_Assets.RobotAiA.value.Clamp(0, AllAi.Count - 1);
-			s_SelectingAiB.Value = m_Assets.RobotAiB.value.Clamp(0, AllAi.Count - 1);
-			OnFleetChanged();
-			ReloadFleetRendererUI();
-		}
-
-
-		public void UI_TryQuitBattle () {
-			if (State != GameState.Playing) return;
-			if (GameOver) {
-				SwitchState(GameState.Prepare);
-			} else {
-				m_Assets.QuitBattleDialog.gameObject.SetActive(true);
-			}
-		}
-
-
-		public void UI_SetUiScale (int id) => SetUiScale(id);
-
-
-		public void UI_SetAvAPlay (bool play) {
-			bool PvA = Mode == GameMode.PvA;
-			AvAPlaying = play;
-			m_Assets.PlayAvA.gameObject.SetActive(!GameOver && !PvA && !play);
-			m_Assets.PauseAvA.gameObject.SetActive(!GameOver && !PvA && play);
-			m_Assets.RestartAvA.gameObject.SetActive(GameOver && !PvA);
-		}
-
-
-		public void UI_ShowDevMode (bool devMode) => SetDevMode(devMode);
-
-
-		public void UI_SetDrawHitInfo (bool hitInfo) {
-			FieldA.DrawHitInfo = hitInfo;
-			FieldB.DrawHitInfo = hitInfo;
-		}
-
-
-		public void UI_SetDrawCookInfo (bool cookInfo) {
-			FieldA.DrawCookedInfo = cookInfo;
-			FieldB.DrawCookedInfo = cookInfo;
-			RefreshShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
-			RefreshShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
-		}
-
-
-		public void UI_UseScreenEffect (bool use) => SetUseScreenEffect(use);
-
-
 		#endregion
 
 
@@ -674,12 +461,14 @@ namespace BattleSoup {
 				}
 			}
 
+			// Panel
 			State = state;
 			int count = m_Assets.PanelRoot.childCount;
 			for (int i = 0; i < count; i++) {
 				m_Assets.PanelRoot.GetChild(i).gameObject.SetActive(i == (int)state);
 			}
 
+			// For All
 			CellStep.Clear();
 			Cheating = false;
 			Cheated = false;
@@ -693,95 +482,114 @@ namespace BattleSoup {
 				RefreshRobotWeights(true);
 			}
 
+			// For Each
 			switch (state) {
 				case GameState.Title:
+					FieldA.Enable = false;
+					FieldB.Enable = false;
 					break;
 				case GameState.Prepare:
-
-					m_Assets.PreparePanel.gameObject.SetActive(true);
-					m_Assets.PlacePanel.gameObject.SetActive(false);
-
-					FieldA.AllowHoveringOnShip = true;
-					FieldA.AllowHoveringOnWater = false;
-					FieldA.HideInvisibleShip = false;
-					FieldA.GameStart();
-
-					FieldB.Enable = false;
-					FieldB.AllowHoveringOnShip = false;
-					FieldB.AllowHoveringOnWater = false;
-					FieldB.HideInvisibleShip = false;
-					FieldB.ShowShips = false;
-					FieldB.DragToMoveShips = false;
-					FieldB.GameStart();
-
-					ReloadRobots();
-					ReloadFleetRendererUI();
+					SwitchState_Prepare();
 					break;
-
 				case GameState.Playing:
-
-					if (Random.value > 0.5f) CurrentTurn = CurrentTurn.Opposite();
-					s_MapIndexA.Value = s_MapIndexA.Value.Clamp(0, AllMaps.Count - 1);
-					s_MapIndexB.Value = s_MapIndexB.Value.Clamp(0, AllMaps.Count - 1);
-					bool PvA = Mode == GameMode.PvA;
-					RefreshTurnLabelUI();
-					AvAPlaying = s_AutoPlayForAvA.Value;
-					m_Assets.PlayAvA.gameObject.SetActive(!PvA && !AvAPlaying);
-					m_Assets.PauseAvA.gameObject.SetActive(!PvA && AvAPlaying);
-					m_Assets.RestartAvA.gameObject.SetActive(false);
-					m_Assets.AvatarIconB.sprite = m_Assets.RobotAvatarIcon;
-
-					// A
-					var shiftA = new Vector2Int(0, AllMaps[s_MapIndexB.Value].Size + 2);
-					FieldA.Enable = true;
-					FieldA.ShowShips = false;
-					FieldA.DragToMoveShips = false;
-
-					if (!PvA) {
-						bool successA = FieldA.RandomPlaceShips(256);
-						if (!successA) {
-							m_Assets.RobotFailedToPlaceShipsDialog.gameObject.SetActive(true);
-							SwitchState(GameState.Prepare);
-						}
-					}
-					FieldA.LocalShift = shiftA;
-
-					// B
-					FieldB.Enable = true;
-					FieldB.ShowShips = false;
-					FieldB.DragToMoveShips = false;
-					bool success = FieldB.RandomPlaceShips(256);
-					if (!success) {
-						m_Assets.RobotFailedToPlaceShipsDialog.gameObject.SetActive(true);
-						SwitchState(GameState.Prepare);
-					}
-
-					// Final
-					ReloadRobots();
-					PickingPosition = default;
-					PickingDirection = default;
-					FieldA.GameStart();
-					FieldB.GameStart();
-					ReloadShipAbilityUI(FieldA, m_Assets.AbilityContainerA, m_Assets.ShipAbilityItem, PvA);
-					ReloadShipAbilityUI(FieldB, m_Assets.AbilityContainerB, m_Assets.ShipAbilityItem, false);
-
-					RobotA.Analyze(FieldA, FieldB);
-					RobotB.Analyze(FieldB, FieldA);
-					RefreshRobotWeights();
-					FieldA.DrawCookedInfo = false;
-					FieldB.DrawCookedInfo = false;
-					m_Assets.DevHitTG.SetIsOnWithoutNotify(false);
-					m_Assets.DevCookTG.SetIsOnWithoutNotify(false);
-
+					SwitchState_Playing();
 					break;
-
 				case GameState.CardGame:
+					SwitchState_CardGame();
 					break;
-
 				case GameState.ShipEditor:
+					SwitchState_ShipEditor();
 					break;
-
 			}
+		}
+
+
+		private void SwitchState_Prepare () {
+			m_Assets.PreparePanel.gameObject.SetActive(true);
+			m_Assets.PlacePanel.gameObject.SetActive(false);
+
+			FieldA.AllowHoveringOnShip = true;
+			FieldA.AllowHoveringOnWater = false;
+			FieldA.HideInvisibleShip = false;
+			FieldA.GameStart();
+
+			FieldB.Enable = false;
+			FieldB.AllowHoveringOnShip = false;
+			FieldB.AllowHoveringOnWater = false;
+			FieldB.HideInvisibleShip = false;
+			FieldB.ShowShips = false;
+			FieldB.DragToMoveShips = false;
+			FieldB.GameStart();
+
+			ReloadRobots();
+			ReloadFleetRendererUI();
+		}
+
+
+		private void SwitchState_Playing () {
+
+			if (Random.value > 0.5f) CurrentTurn = CurrentTurn.Opposite();
+			s_MapIndexA.Value = s_MapIndexA.Value.Clamp(0, AllMaps.Count - 1);
+			s_MapIndexB.Value = s_MapIndexB.Value.Clamp(0, AllMaps.Count - 1);
+			bool PvA = Mode == GameMode.PvA;
+			RefreshTurnLabelUI();
+			AvAPlaying = s_AutoPlayForAvA.Value;
+			m_Assets.PlayAvA.gameObject.SetActive(!PvA && !AvAPlaying);
+			m_Assets.PauseAvA.gameObject.SetActive(!PvA && AvAPlaying);
+			m_Assets.RestartAvA.gameObject.SetActive(false);
+			m_Assets.AvatarIconB.sprite = m_Assets.RobotAvatarIcon;
+
+			// A
+			var shiftA = new Vector2Int(0, AllMaps[s_MapIndexB.Value].Size + 2);
+			FieldA.Enable = true;
+			FieldA.ShowShips = false;
+			FieldA.DragToMoveShips = false;
+
+			if (!PvA) {
+				bool successA = FieldA.RandomPlaceShips(256);
+				if (!successA) {
+					m_Assets.RobotFailedToPlaceShipsDialog.gameObject.SetActive(true);
+					SwitchState(GameState.Prepare);
+				}
+			}
+			FieldA.LocalShift = shiftA;
+			FieldA.DrawPickingArrow = true;
+
+			// B
+			FieldB.Enable = true;
+			FieldB.ShowShips = false;
+			FieldB.DragToMoveShips = false;
+			FieldB.DrawPickingArrow = true;
+			bool success = FieldB.RandomPlaceShips(256);
+			if (!success) {
+				m_Assets.RobotFailedToPlaceShipsDialog.gameObject.SetActive(true);
+				SwitchState(GameState.Prepare);
+			}
+
+			// Final
+			ReloadRobots();
+			PickingPosition = default;
+			PickingDirection = default;
+			FieldA.GameStart();
+			FieldB.GameStart();
+			ReloadShipAbilityUI(FieldA, m_Assets.AbilityContainerA, m_Assets.ShipAbilityItem, PvA);
+			ReloadShipAbilityUI(FieldB, m_Assets.AbilityContainerB, m_Assets.ShipAbilityItem, false);
+
+			RobotA.Analyze(FieldA, FieldB);
+			RobotB.Analyze(FieldB, FieldA);
+			RefreshRobotWeights();
+			FieldA.DrawCookedInfo = false;
+			FieldB.DrawCookedInfo = false;
+			m_Assets.DevHitTG.SetIsOnWithoutNotify(false);
+			m_Assets.DevCookTG.SetIsOnWithoutNotify(false);
+		}
+
+
+		private void SwitchState_CardGame () {
+
+
+
+
 		}
 
 
@@ -819,23 +627,27 @@ namespace BattleSoup {
 
 
 		private void OnMapChanged () {
-			FieldA.SetMap(AllMaps[s_MapIndexA.Value]);
-			FieldB.SetMap(AllMaps[s_MapIndexB.Value]);
+			FieldA.SetMap(State == GameState.ShipEditor ? EMPTY_MAP : AllMaps[s_MapIndexA.Value = s_MapIndexA.Value.Clamp(0, AllMaps.Count - 1)]);
+			FieldB.SetMap(State == GameState.ShipEditor ? SHIP_EDITOR_MAP : AllMaps[s_MapIndexB.Value = s_MapIndexB.Value.Clamp(0, AllMaps.Count - 1)]);
 		}
 
 
-		private void OnFleetChanged () {
-			FieldA.SetShips(
-				GetShipsFromFleetString(Mode == GameMode.PvA ? s_PlayerFleet.Value : GetBotFleetA())
-			);
-			FieldA.RandomPlaceShips(256);
-			FieldB.SetShips(
-				GetShipsFromFleetString(GetBotFleetB())
-			);
-			FieldB.RandomPlaceShips(256);
+		private void OnFleetChanged (bool ignoreA = false, bool ignoreB = false) {
+			if (!ignoreA) {
+				FieldA.SetShips(
+					GetShipsFromFleetString(Mode == GameMode.PvA ? s_PlayerFleet.Value : GetBotFleetA())
+				);
+				FieldA.RandomPlaceShips(256);
+				m_Assets.RobotDescriptionA.text = RobotA != null ? RobotA.Description : "";
+			}
+			if (!ignoreB) {
+				FieldB.SetShips(
+					GetShipsFromFleetString(GetBotFleetB())
+				);
+				FieldB.RandomPlaceShips(256);
+				m_Assets.RobotDescriptionB.text = RobotB != null ? RobotB.Description : "";
+			}
 			ReloadRobots();
-			m_Assets.RobotDescriptionA.text = RobotA != null ? RobotA.Description : "";
-			m_Assets.RobotDescriptionB.text = RobotB != null ? RobotB.Description : "";
 		}
 
 
@@ -1042,6 +854,9 @@ namespace BattleSoup {
 				uiTopSize = (int)(viewHeight * top01) + SoupConst.ISO_SIZE / 2;
 				float bottom01 = m_Assets.BottomUI.rect.height / (m_Assets.BottomUI.parent as RectTransform).rect.height;
 				uiBottomSize = (int)(viewHeight * bottom01);
+			} else if (State == GameState.ShipEditor) {
+				float bottom01 = m_Assets.ShipEditorBottomUI.rect.height / (m_Assets.ShipEditorBottomUI.parent as RectTransform).rect.height;
+				uiBottomSize = (int)(viewHeight * bottom01);
 			}
 			var rect = new RectInt(minX, minY, maxX - minX, maxY - minY);
 			rect = rect.Expand(SoupConst.ISO_SIZE / 2, SoupConst.ISO_SIZE / 2, uiBottomSize, uiTopSize);
@@ -1148,7 +963,7 @@ namespace BattleSoup {
 				var label = grab.Grab<Text>("Label");
 				label.text = ship.DisplayName;
 				var tooltip = grab.Grab<TooltipUI>();
-				tooltip.Tooltip = ship.Discription;
+				tooltip.Tooltip = ship.Description;
 				var cooldown = grab.Grab<Text>("Cooldown");
 				cooldown.text = ship.DefaultCooldown.ToString();
 				var shape = grab.Grab<ShipShapeUI>();
@@ -1157,15 +972,17 @@ namespace BattleSoup {
 				mIcon.sprite = m_Assets.EmptyMirrorShipIcon;
 				if (AbilityPool.TryGetValue(ship.GlobalCode, out var ability)) {
 					mIcon.gameObject.SetActive(ability.HasCopySelfAction || ability.HasCopyOpponentAction);
+					if (!ability.HasManuallyEntrance) {
+						var cursor = grab.Grab<CursorUI>();
+						cursor.enabled = false;
+					}
 				} else {
 					mIcon.gameObject.SetActive(false);
 				}
-				if (!ability.HasManuallyEntrance) {
-					var cursor = grab.Grab<CursorUI>();
-					cursor.enabled = false;
-				}
 				var bImg = grab.Grab<BlinkImage>();
 				bImg.enabled = false;
+				var error = grab.Grab<RectTransform>("Error");
+				error.gameObject.SetActive(!AbilityPool.ContainsKey(ship.GlobalCode));
 			}
 			RefreshShipAbilityUI(container, field, interactable);
 		}
@@ -1198,9 +1015,13 @@ namespace BattleSoup {
 				img.color = ship.Alive ? Color.white : new Color32(242, 76, 46, 255);
 
 				var mIcon = grab.Grab<Image>("Mirror Icon");
-				if (mIcon.gameObject.activeSelf) {
+				mIcon.gameObject.SetActive(ability.HasCopySelfAction || ability.HasCopyOpponentAction);
+				if (ability.HasCopySelfAction || ability.HasCopyOpponentAction) {
 					// Mirror Icon
-					int lastUsedAbility = field.LastPerformedAbilityID;
+					var opponentField = field == FieldA ? FieldB : FieldA;
+					int selfAbilityID = field.LastPerformedAbilityID;
+					int opponentAbilityID = opponentField.LastPerformedAbilityID;
+					int lastUsedAbility = ability.HasCopySelfAction ? selfAbilityID : opponentAbilityID;
 					if (ShipPool.TryGetValue(lastUsedAbility, out var targetShip)) {
 						mIcon.sprite = targetShip.Icon != null ? targetShip.Icon : m_Assets.EmptyMirrorShipIcon;
 					} else {
@@ -1250,14 +1071,22 @@ namespace BattleSoup {
 			// Ship Pool
 			try {
 				ShipPool.Clear();
+				ShipMetas.Clear();
+				AbilityPool.Clear();
 				// Built In
 				foreach (var folder in Util.GetFoldersIn(BuiltInShipRoot, true)) {
-					LoadShip(folder.FullName);
+					LoadShipIntoPool(folder.FullName, true);
 				}
 				// Custom
 				foreach (var folder in Util.GetFoldersIn(CustomShipRoot, true)) {
-					LoadShip(folder.FullName);
+					LoadShipIntoPool(folder.FullName, false);
 				}
+				// Meta
+				ShipMetas.Sort(
+					(a, b) => a.IsBuiltIn != b.IsBuiltIn ?
+					a.IsBuiltIn ? 1 : -1 :
+					a.DisplayName.CompareTo(b.DisplayName)
+				);
 			} catch (System.Exception ex) { Debug.LogException(ex); }
 
 			// Ship UI
@@ -1280,58 +1109,76 @@ namespace BattleSoup {
 					OnFleetChanged();
 				});
 				var tooltip = grab.Grab<TooltipUI>();
-				tooltip.Tooltip = ship.Discription;
+				tooltip.Tooltip = ship.Description;
 				var shape = grab.Grab<ShipShapeUI>();
 				shape.Ship = ship;
 				var cooldown = grab.Grab<Text>("Cooldown");
 				cooldown.text = ship.MaxCooldown.ToString();
+				var error = grab.Grab<RectTransform>("Error");
+				error.gameObject.SetActive(!AbilityPool.ContainsKey(ship.GlobalCode));
 			}
 
-			// Func
-			void LoadShip (string folderName) {
-				try {
-					int globalID = 0;
-					Ship ship = null;
-					// Info
-					string infoPath = Util.CombinePaths(folderName, "Info.json");
-					if (Util.FileExists(infoPath)) {
-						ship = JsonUtility.FromJson<Ship>(Util.FileToText(infoPath));
-						if (ship == null) return;
-						globalID = ship.GlobalCode;
-						ShipPool.TryAdd(ship.GlobalCode, ship);
-					} else return;
-					// Icon
-					if (ship != null) {
-						string iconPath = Util.CombinePaths(folderName, "Icon.png");
-						if (Util.FileExists(iconPath)) {
-							var texture = new Texture2D(1, 1, TextureFormat.ARGB32, false) {
-								filterMode = FilterMode.Bilinear,
-								anisoLevel = 0,
-								wrapMode = TextureWrapMode.Clamp,
-							};
-							texture.LoadImage(Util.FileToByte(iconPath));
-							ship.Icon = Sprite.Create(
-								texture,
-								new Rect(0, 0, texture.width, texture.height),
-								Vector2.one * 0.5f
-							);
-						}
-						if (ship.Icon == null) ship.Icon = m_Assets.DefaultShipIcon;
-					}
-					// Ability
-					string abPath = Util.CombinePaths(folderName, "Ability.txt");
-					if (Util.FileExists(abPath)) {
-						string code = Util.FileToText(abPath);
-						var exe = AbilityCompiler.Compile(globalID, code, out string error);
-						if (exe != null) {
-							AbilityPool.TryAdd(globalID, exe);
-						} else {
-							Debug.LogError(folderName + "\n" + error);
-						}
-					}
-				} catch (System.Exception ex) { Debug.LogWarning(folderName); Debug.LogException(ex); }
+		}
 
-			}
+
+		private void LoadShipIntoPool (string folderName, bool builtIn) {
+			try {
+				int globalID = 0;
+				Ship ship = null;
+				var meta = new ShipMeta();
+				// Info
+				string infoPath = Util.CombinePaths(folderName, "Info.json");
+				if (Util.FileExists(infoPath)) {
+					ship = JsonUtility.FromJson<Ship>(Util.FileToText(infoPath));
+					if (ship == null) return;
+					globalID = ship.GlobalCode;
+					ship.BuiltIn = builtIn;
+					if (ShipPool.TryAdd(ship.GlobalCode, ship)) {
+						meta.ID = ship.GlobalCode;
+						meta.DisplayName = ship.DisplayName;
+						meta.IsBuiltIn = builtIn;
+					}
+				} else return;
+				// Icon
+				if (ship != null) {
+					string iconPath = Util.CombinePaths(folderName, "Icon.png");
+					if (Util.FileExists(iconPath)) {
+						var texture = new Texture2D(1, 1, TextureFormat.ARGB32, false) {
+							filterMode = FilterMode.Bilinear,
+							anisoLevel = 0,
+							wrapMode = TextureWrapMode.Clamp,
+						};
+						texture.LoadImage(Util.FileToByte(iconPath));
+						ship.Icon = Sprite.Create(
+							texture,
+							new Rect(0, 0, texture.width, texture.height),
+							Vector2.one * 0.5f
+						);
+					}
+					if (ship.Icon == null) ship.Icon = m_Assets.DefaultShipIcon;
+					meta.Icon = ship.Icon;
+				}
+				ShipMetas.Add(meta);
+				// Ability
+				string abPath = Util.CombinePaths(folderName, "Ability.txt");
+				if (Util.FileExists(abPath)) {
+					string code = Util.FileToText(abPath);
+					var exe = AbilityCompiler.Compile(globalID, code, out string error);
+					if (exe != null) {
+						AbilityPool.TryAdd(globalID, exe);
+					} else {
+						Debug.LogError(folderName + "\n" + error);
+					}
+				}
+			} catch (System.Exception ex) { Debug.LogWarning(folderName); Debug.LogException(ex); }
+
+		}
+
+
+		private void RemoveShipFromPool (int id) {
+			ShipMetas.RemoveAll(meta => meta.ID == id);
+			ShipPool.Remove(id);
+			AbilityPool.Remove(id);
 		}
 
 
@@ -1395,10 +1242,14 @@ namespace BattleSoup {
 		}
 
 
-		private string GetBotFleetA () => AllAi[s_SelectingAiA.Value.Clamp(0, AllAi.Count - 1)].Fleet;
+		private string GetBotFleetA () => State == GameState.ShipEditor ?
+			(ShipPool.TryGetValue(EditingID, out var ship) ? ship.GlobalName : "") :
+			AllAi[s_SelectingAiA.Value.Clamp(0, AllAi.Count - 1)].Fleet;
 
 
-		private string GetBotFleetB () => AllAi[s_SelectingAiB.Value.Clamp(0, AllAi.Count - 1)].Fleet;
+		private string GetBotFleetB () => State == GameState.ShipEditor ?
+			SHIP_EDITOR_FLEET :
+			AllAi[s_SelectingAiB.Value.Clamp(0, AllAi.Count - 1)].Fleet;
 
 
 		#endregion
