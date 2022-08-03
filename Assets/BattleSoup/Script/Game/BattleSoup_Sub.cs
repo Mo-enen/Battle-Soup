@@ -110,13 +110,15 @@ namespace BattleSoup {
 			public RectTransform ShipEditorWorkbenchRoot = null;
 			public RectTransform ShipEditorBottomUI = null;
 			public RectTransform ShipEditorFileContainer = null;
-			public RectTransform ShipEditorArtworkContainer = null;
 			public Grabber Workbench = null;
 			public Grabber ShipEditorFileItem = null;
 			public Grabber ShipEditorArtworkItem = null;
+			public Grabber ShipEditorArtworkPopupItem = null;
 			public Button DeleteShipButton = null;
 			public Button ShipEditorUseAbilityButton = null;
 			public Button ShipEditorRevealButton = null;
+			public RectTransform ShipEditorArtworkContainer = null;
+			public RectTransform ShipEditorArtworkPopupContainer = null;
 			public Button[] ShipEditorTabs = null;
 			public RectTransform[] ShipEditorPanels = null;
 

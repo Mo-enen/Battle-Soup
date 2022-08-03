@@ -1,10 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 using AngeliaFramework;
-using UnityEngine.Rendering.PostProcessing;
 
 
 // Start Remake at 2022/6/23
@@ -50,6 +49,9 @@ namespace BattleSoup {
 		private readonly Dictionary<int, Ability> AbilityPool = new();
 		private readonly List<SoupAI> AllAi = new();
 		private readonly List<Map> AllMaps = new();
+		private readonly List<Sprite> CustomShipSprites = new();
+		private readonly List<Sprite> CustomShipSprites_Add = new();
+		private readonly List<Sprite> CustomShipSprites_Sunk = new();
 		private bool GameOver = false;
 		private bool DevMode = false;
 		private bool AvAPlaying = true;
@@ -85,6 +87,7 @@ namespace BattleSoup {
 			base.Initialize();
 
 			Init_AI();
+			Init_Asset();
 			SetUiScale(s_UiScale.Value);
 			SetUseScreenEffect(s_UseScreenEffect.Value);
 
@@ -129,6 +132,31 @@ namespace BattleSoup {
 			m_Assets.RobotAiB.AddOptions(options);
 			m_Assets.RobotAiA.SetValueWithoutNotify(s_SelectingAiA.Value);
 			m_Assets.RobotAiB.SetValueWithoutNotify(s_SelectingAiB.Value);
+		}
+
+
+		private void Init_Asset () {
+
+			CustomShipSprites.Clear();
+			CustomShipSprites_Add.Clear();
+			CustomShipSprites_Sunk.Clear();
+			int id;
+
+			id = "Custom Ship".AngeHash();
+			for (int index = 0; CellRenderer.TryGetSpriteFromGroup(id, index, out var sprite, false, false); index++) {
+				CustomShipSprites.Add(CellRenderer.CreateUnitySprite(sprite.GlobalID));
+			}
+
+			id = "Custom Ship_Add".AngeHash();
+			for (int index = 0; CellRenderer.TryGetSpriteFromGroup(id, index, out var sprite, false, false); index++) {
+				CustomShipSprites_Add.Add(CellRenderer.CreateUnitySprite(sprite.GlobalID));
+			}
+
+			id = "Custom Ship_Sunk".AngeHash();
+			for (int index = 0; CellRenderer.TryGetSpriteFromGroup(id, index, out var sprite, false, false); index++) {
+				CustomShipSprites_Sunk.Add(CellRenderer.CreateUnitySprite(sprite.GlobalID));
+			}
+
 		}
 
 
@@ -637,7 +665,15 @@ namespace BattleSoup {
 				FieldA.SetShips(
 					GetShipsFromFleetString(Mode == GameMode.PvA ? s_PlayerFleet.Value : GetBotFleetA())
 				);
-				FieldA.RandomPlaceShips(256);
+				if (State != GameState.ShipEditor) {
+					FieldA.RandomPlaceShips(256);
+				} else if (FieldA.Ships.Length > 0) {
+					var ship = FieldA.Ships[0];
+					ship.FieldX = 3;
+					ship.FieldY = 3;
+					ship.Flip = false;
+					FieldA.RefreshCellShipCache();
+				}
 				m_Assets.RobotDescriptionA.text = RobotA != null ? RobotA.Description : "";
 			}
 			if (!ignoreB) {

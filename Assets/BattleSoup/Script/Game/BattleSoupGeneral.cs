@@ -269,7 +269,6 @@ namespace BattleSoup {
 
 		public static bool IsManualEntrance (this EntranceType entrance) => entrance == EntranceType.OnAbilityUsed || entrance == EntranceType.OnAbilityUsedOvercharged;
 
-
 	}
 
 
@@ -334,6 +333,7 @@ namespace BattleSoup {
 		public Ship CreateDataCopy () {
 			var newShip = JsonUtility.FromJson<Ship>(JsonUtility.ToJson(this, false));
 			newShip.Icon = Icon;
+			newShip.BuiltIn = BuiltIn;
 			return newShip;
 		}
 
@@ -457,18 +457,21 @@ namespace BattleSoup {
 		public readonly List<int> ShipRenderIDsAdd = new(16);
 		public readonly List<int> ShipRenderIDsSunk = new(16);
 
-		public void AddShip (int shipIndex, Ship ship, int bodyX, int bodyY) {
+		public void AddShip (int shipIndex, Ship ship, int bodyX, int bodyY, int bodyZ) {
 			ShipIndexs.Add(shipIndex);
 
-			int rID = $"{ship.GlobalName} {bodyX}.{bodyY}".AngeHash();
+			string baseName = ship.BuiltIn ? ship.GlobalName : "Custom Ship";
+			string subName = ship.BuiltIn ? $"{bodyX}.{bodyY}" : $"{bodyZ}";
+
+			int rID = $"{baseName} {subName}".AngeHash();
 			if (!CellRenderer.TryGetSprite(rID, out _)) rID = $"DefaultShip".AngeHash();
 			ShipRenderIDs.Add(rID);
 
-			rID = $"{ship.GlobalName}_Add {bodyX}.{bodyY}".AngeHash();
+			rID = $"{baseName}_Add {subName}".AngeHash();
 			if (!CellRenderer.TryGetSprite(rID, out _)) rID = $"DefaultShip_Add".AngeHash();
 			ShipRenderIDsAdd.Add(rID);
 
-			rID = $"{ship.GlobalName}_Sunk {bodyX}.{bodyY}".AngeHash();
+			rID = $"{baseName}_Sunk {subName}".AngeHash();
 			if (!CellRenderer.TryGetSprite(rID, out _)) rID = $"DefaultShip_Sunk".AngeHash();
 			ShipRenderIDsSunk.Add(rID);
 		}

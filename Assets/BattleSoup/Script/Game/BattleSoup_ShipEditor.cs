@@ -400,7 +400,25 @@ namespace BattleSoup {
 
 
 		private void ReloadWorkBenchArtworkEditorUI () {
-			
+			var container = m_Assets.ShipEditorArtworkContainer;
+			container.DestroyAllChirldrenImmediate();
+			if (!ShipPool.TryGetValue(EditingID, out var ship)) goto End;
+			foreach (var node in ship.BodyNodes) {
+				
+
+
+			}
+			End:;
+			RefreshWorkBenchArtworkEditorUI();
+		}
+
+
+		private void RefreshWorkBenchArtworkEditorUI () {
+
+
+
+
+
 
 
 		}

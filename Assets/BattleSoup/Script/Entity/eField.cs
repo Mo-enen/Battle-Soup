@@ -514,6 +514,65 @@ namespace BattleSoup {
 		}
 
 
+		public void RefreshCellShipCache () {
+			// Clear
+			for (int j = 0; j < MapSize; j++) {
+				for (int i = 0; i < MapSize; i++) {
+					Cells[i, j].ClearShip();
+				}
+			}
+			// Index, Render ID
+			for (int i = 0; i < Ships.Length; i++) {
+				var ship = Ships[i];
+				for (int j = 0; j < ship.BodyNodes.Length; j++) {
+					var body = ship.BodyNodes[j];
+					var pos = ship.GetFieldNodePosition(j);
+					if (pos.InLength(MapSize)) {
+						Cells[pos.x, pos.y].AddShip(i, ship, body.x, body.y, body.z);
+					}
+				}
+			}
+			// Valid
+			for (int i = 0; i < Ships.Length; i++) {
+				var ship = Ships[i];
+				ship.Valid = true;
+				for (int j = 0; j < ship.BodyNodes.Length; j++) {
+					var pos = ship.GetFieldNodePosition(j);
+					// Outside Map
+					if (!pos.InLength(MapSize)) {
+						ship.Valid = false;
+						break;
+					}
+					// Overlaping Each Other
+					if (Cells[pos.x, pos.y].ShipIndexs.Count > 1) {
+						ship.Valid = false;
+						break;
+					}
+					// Overlaping Stone
+					if (Cells[pos.x, pos.y].HasStone) {
+						ship.Valid = false;
+						break;
+					}
+				}
+			}
+			// Expose
+			for (int i = 0; i < MapSize; i++) {
+				for (int j = 0; j < MapSize; j++) {
+					Cells[i, j].HasExposedShip = false;
+				}
+			}
+			for (int i = 0; i < Ships.Length; i++) {
+				var ship = Ships[i];
+				if (ship.Exposed) {
+					for (int j = 0; j < ship.BodyNodes.Length; j++) {
+						var pos = ship.GetFieldNodePosition(j);
+						if (pos.InLength(MapSize)) Cells[pos.x, pos.y].HasExposedShip = true;
+					}
+				}
+			}
+		}
+
+
 		#endregion
 
 
@@ -578,72 +637,13 @@ namespace BattleSoup {
 					var pos = ship.GetFieldNodePosition(i);
 					if (pos.InLength(MapSize)) {
 						var body = ship.BodyNodes[i];
-						Cells[pos.x, pos.y].AddShip(shipIndex, ship, body.x, body.y);
+						Cells[pos.x, pos.y].AddShip(shipIndex, ship, body.x, body.y, body.z);
 					}
 				}
 			}
 			// Final
 			ClampInvalidShipsInside();
 			return true;
-		}
-
-
-		private void RefreshCellShipCache () {
-			// Clear
-			for (int j = 0; j < MapSize; j++) {
-				for (int i = 0; i < MapSize; i++) {
-					Cells[i, j].ClearShip();
-				}
-			}
-			// Index, Render ID
-			for (int i = 0; i < Ships.Length; i++) {
-				var ship = Ships[i];
-				for (int j = 0; j < ship.BodyNodes.Length; j++) {
-					var body = ship.BodyNodes[j];
-					var pos = ship.GetFieldNodePosition(j);
-					if (pos.InLength(MapSize)) {
-						Cells[pos.x, pos.y].AddShip(i, ship, body.x, body.y);
-					}
-				}
-			}
-			// Valid
-			for (int i = 0; i < Ships.Length; i++) {
-				var ship = Ships[i];
-				ship.Valid = true;
-				for (int j = 0; j < ship.BodyNodes.Length; j++) {
-					var pos = ship.GetFieldNodePosition(j);
-					// Outside Map
-					if (!pos.InLength(MapSize)) {
-						ship.Valid = false;
-						break;
-					}
-					// Overlaping Each Other
-					if (Cells[pos.x, pos.y].ShipIndexs.Count > 1) {
-						ship.Valid = false;
-						break;
-					}
-					// Overlaping Stone
-					if (Cells[pos.x, pos.y].HasStone) {
-						ship.Valid = false;
-						break;
-					}
-				}
-			}
-			// Expose
-			for (int i = 0; i < MapSize; i++) {
-				for (int j = 0; j < MapSize; j++) {
-					Cells[i, j].HasExposedShip = false;
-				}
-			}
-			for (int i = 0; i < Ships.Length; i++) {
-				var ship = Ships[i];
-				if (ship.Exposed) {
-					for (int j = 0; j < ship.BodyNodes.Length; j++) {
-						var pos = ship.GetFieldNodePosition(j);
-						if (pos.InLength(MapSize)) Cells[pos.x, pos.y].HasExposedShip = true;
-					}
-				}
-			}
 		}
 
 
