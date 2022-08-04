@@ -298,6 +298,7 @@ namespace BattleSoup {
 		[System.NonSerialized] public bool IsSymmetric = false;
 		[System.NonSerialized] public Vector3Int[] BodyNodes = null;
 		[System.NonSerialized] public Sprite Icon = null;
+		[System.NonSerialized] public Vector2Int BodySize = new(1, 1);
 
 		// Cache
 		private static readonly HashSet<Vector2Int> c_Symmetric = new();
@@ -317,6 +318,11 @@ namespace BattleSoup {
 			Flip = false;
 			BodyNodes = BodyString_to_Nodes(Body);
 			IsSymmetric = GetIsSymmetric();
+			BodySize = new(1, 1);
+			foreach (var node in BodyNodes) {
+				BodySize.x = Mathf.Max(BodySize.x, node.x + 1);
+				BodySize.y = Mathf.Max(BodySize.y, node.y + 1);
+			}
 		}
 
 
@@ -412,9 +418,9 @@ namespace BattleSoup {
 			if (i >= 0 && i < 10) {
 				return (char)(i + '0');
 			} else if (i >= 10 && i < 36) {
-				return (char)(i + 'a');
+				return (char)((i - 10) + 'a');
 			} else if (i >= 36 && i < 36 + 26) {
-				return (char)(i + 'A');
+				return (char)((i - 36) + 'A');
 			}
 			return '0';
 		}

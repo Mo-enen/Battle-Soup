@@ -32,6 +32,16 @@
 		}
 
 
+		public void ReadyForInstantiate () {
+			gameObject.SetActive(true);
+			var rt = transform as RectTransform;
+			rt.SetAsLastSibling();
+			rt.anchoredPosition3D = rt.anchoredPosition;
+			rt.localRotation = Quaternion.identity;
+			rt.localScale = Vector3.one;
+		}
+
+
 	}
 }
 

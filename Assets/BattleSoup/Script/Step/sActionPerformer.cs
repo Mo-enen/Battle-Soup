@@ -107,7 +107,7 @@ namespace BattleSoup {
 			}
 			CellStep.AddToFirst(new sPick(
 				field, SelfField, Action, CurrentShip, keyword,
-				soup.Mode == BattleSoup.GameMode.PvA && SelfField == soup.FieldA
+				soup.State == BattleSoup.GameState.ShipEditor || (soup.Mode == BattleSoup.GameMode.PvA && SelfField == soup.FieldA)
 			));
 		}
 

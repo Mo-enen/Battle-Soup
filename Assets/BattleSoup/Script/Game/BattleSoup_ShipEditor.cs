@@ -19,6 +19,7 @@ namespace BattleSoup {
 		// Data
 		private int EditingID = 0;
 		private int AllowTestingFrame = int.MinValue;
+		private int EditingBodyNodeIndex = -1;
 
 
 		#endregion
@@ -81,19 +82,19 @@ namespace BattleSoup {
 			info.AppendLine(@"""Description"": """",");
 			info.AppendLine(@"""DefaultCooldown"": 1,");
 			info.AppendLine(@"""MaxCooldown"": 1,");
-			info.AppendLine(@"""Body"": ""11,11""");
+			info.AppendLine(@"""Body"": ""44,44""");
 			info.AppendLine(@"}");
 			Util.TextToFile(info.ToString(), Util.CombinePaths(path, "Info.json"));
 
 			// Create Ability
 			var ability = new StringBuilder();
-			info.AppendLine("");
-			info.AppendLine("pick");
-			info.AppendLine("attack (0,0)");
-			info.AppendLine("attack (0,1)");
-			info.AppendLine("attack (1,0)");
-			info.AppendLine("attack (1,1)");
-			info.AppendLine("");
+			ability.AppendLine("");
+			ability.AppendLine("pick");
+			ability.AppendLine("attack (0,0)");
+			ability.AppendLine("attack (0,1)");
+			ability.AppendLine("attack (1,0)");
+			ability.AppendLine("attack (1,1)");
+			ability.AppendLine("");
 			Util.TextToFile(ability.ToString(), Util.CombinePaths(path, "Ability.txt"));
 
 			// Create Icon
@@ -104,9 +105,9 @@ namespace BattleSoup {
 
 			// Final
 			ReloadShipDataFromDisk();
-			ReloadShipEditorUI();
-			SetEditingShip(globalName.AngeHash());
 			OnFleetChanged();
+			SetEditingShip(globalName.AngeHash());
+			ReloadShipEditorUI();
 		}
 
 
@@ -153,11 +154,13 @@ namespace BattleSoup {
 			if (!Util.FolderExists(folder)) return;
 
 			AllowTestingFrame = GlobalFrame + 30;
-			string path = FileBrowserUtil.PickFileDialog("Pick a image as icon", "PNG", "png");
+			string path = FileBrowserUtil.PickFileDialog("Pick a image as icon", "images", "png", "jpg", "jpeg");
 			if (string.IsNullOrEmpty(path) || !Util.FileExists(path)) return;
 
-			string iconPath = Util.CombinePaths(folder, "Icon.png");
-			Util.DeleteFile(iconPath);
+			string iconPath = Util.CombinePaths(folder, "Icon" + Util.GetExtension(path));
+			Util.DeleteFile(Util.CombinePaths(folder, "Icon.png"));
+			Util.DeleteFile(Util.CombinePaths(folder, "Icon.jpg"));
+			Util.DeleteFile(Util.CombinePaths(folder, "Icon.jpeg"));
 			Util.CopyFile(path, iconPath);
 
 			ReloadShipDataFromDisk();
@@ -251,6 +254,12 @@ namespace BattleSoup {
 		public void UI_ShipEditor_SwitchPanel (int index) => SwitchShipEditorPanel(index);
 
 
+		public void UI_ShipEditor_OpenCurrentShipFolder () {
+			if (!ShipPool.TryGetValue(EditingID, out var ship)) return;
+			Application.OpenURL(Util.GetUrl(Util.CombinePaths(CustomShipRoot, ship.GlobalName)));
+		}
+
+
 		#endregion
 
 
@@ -267,6 +276,7 @@ namespace BattleSoup {
 			FieldA.Enable = false;
 			FieldA.HideInvisibleShip = false;
 			FieldA.DragToMoveShips = true;
+			FieldA.RightClickToFlipShips = true;
 			FieldA.DrawDevInfo = false;
 			FieldA.ClickToAttack = false;
 			FieldA.AllowHoveringOnWater = false;
@@ -277,6 +287,7 @@ namespace BattleSoup {
 			FieldB.Enable = true;
 			FieldB.HideInvisibleShip = false;
 			FieldB.DragToMoveShips = false;
+			FieldB.RightClickToFlipShips = false;
 			FieldB.DrawDevInfo = false;
 			FieldB.ClickToAttack = true;
 			FieldB.AllowHoveringOnWater = true;
@@ -325,12 +336,7 @@ namespace BattleSoup {
 			for (int i = 0; i < ShipMetas.Count; i++) {
 				var meta = ShipMetas[i];
 				var grab = Instantiate(m_Assets.ShipEditorFileItem, container);
-				grab.gameObject.SetActive(true);
-				var rt = grab.transform as RectTransform;
-				rt.SetAsLastSibling();
-				rt.anchoredPosition3D = rt.anchoredPosition;
-				rt.localRotation = Quaternion.identity;
-				rt.localScale = Vector3.one;
+				grab.ReadyForInstantiate();
 
 				var label = grab.Grab<Text>();
 				label.text = meta.DisplayName;
@@ -357,6 +363,7 @@ namespace BattleSoup {
 				// Valid
 				m_Assets.DeleteShipButton.interactable = !ship.BuiltIn;
 				m_Assets.ShipEditorWorkbenchRoot.gameObject.SetActive(true);
+				m_Assets.ShipEditorBuiltInMark.gameObject.SetActive(ship.BuiltIn);
 
 				// Fill Data into UI
 				var grab = m_Assets.Workbench;
@@ -372,6 +379,7 @@ namespace BattleSoup {
 				var aCopyBtn = grab.Grab<Button>("Ability Copy");
 				var aReloadBtn = grab.Grab<Button>("Ability Reload");
 				var aTestIcon = grab.Grab<Image>("Ability Test Icon");
+				var editingBtn = grab.Grab<Button>("Editing Folder Button");
 
 				icon.sprite = ship.Icon;
 				aTestIcon.sprite = ship.Icon;
@@ -390,6 +398,7 @@ namespace BattleSoup {
 				aEditBtn.gameObject.SetActive(!ship.BuiltIn);
 				aCopyBtn.gameObject.SetActive(ship.BuiltIn);
 				aReloadBtn.gameObject.SetActive(!ship.BuiltIn);
+				editingBtn.gameObject.SetActive(!ship.BuiltIn);
 
 			} else {
 				// Fail
@@ -399,28 +408,87 @@ namespace BattleSoup {
 		}
 
 
+		// Artwork
+		private void ReloadShipEditorArtworkPopupUI () {
+			var container = m_Assets.ShipEditorArtworkPopupContainer;
+			container.DestroyAllChirldrenImmediate();
+			for (int i = 1; i < CustomShipSprites.Count; i++) {
+
+				int index = i;
+				var grab = Instantiate(m_Assets.ShipEditorArtworkPopupItem, container);
+				grab.ReadyForInstantiate();
+
+				var icon = grab.Grab<Image>("Icon");
+				icon.sprite = CustomShipSprites[index];
+
+				var btn = grab.Grab<Button>();
+				btn.onClick.AddListener(() => SetNode(index));
+
+			}
+			// Func
+			void SetNode (int artIndex) {
+				if (!ShipPool.TryGetValue(EditingID, out var ship)) return;
+				if (EditingBodyNodeIndex < 0 || EditingBodyNodeIndex >= ship.BodyNodes.Length) return;
+
+				// Change Body
+				ref var node = ref ship.BodyNodes[EditingBodyNodeIndex];
+				node.z = artIndex;
+
+				// Ship >> File
+				string infoPath = Util.CombinePaths(CustomShipRoot, ship.GlobalName, "Info.json");
+				if (Util.FileExists(infoPath)) {
+					Util.TextToFile(JsonUtility.ToJson(ship, true), infoPath);
+				}
+
+				// Final
+				m_Assets.ShipEditorArtworkPopupRoot.gameObject.SetActive(false);
+				RefreshWorkBenchArtworkEditorUI();
+				OnFleetChanged();
+				RefreshWorkBenchUI();
+			}
+		}
+
+
 		private void ReloadWorkBenchArtworkEditorUI () {
 			var container = m_Assets.ShipEditorArtworkContainer;
 			container.DestroyAllChirldrenImmediate();
-			if (!ShipPool.TryGetValue(EditingID, out var ship)) goto End;
-			foreach (var node in ship.BodyNodes) {
-				
+			if (!ShipPool.TryGetValue(EditingID, out var ship)) return;
+			float size = Mathf.Max(ship.BodySize.x, ship.BodySize.y);
+			for (int i = 0; i < ship.BodyNodes.Length; i++) {
 
+				int nodeIndex = i;
+				var node = ship.BodyNodes[nodeIndex];
+				var grab = Instantiate(m_Assets.ShipEditorArtworkItem, container);
+				grab.ReadyForInstantiate();
+
+				var rt = grab.transform as RectTransform;
+				rt.anchorMin = new(node.x / size, node.y / size);
+				rt.anchorMax = new((node.x + 1f) / size, (node.y + 1f) / size);
+				rt.offsetMin = rt.offsetMax = Vector2.zero;
+				rt.localScale = new Vector3(0.96f, 0.96f, 1f);
+
+				var icon = grab.Grab<Image>("Icon");
+				icon.sprite = node.z >= 0 && node.z < CustomShipSprites.Count ? CustomShipSprites[node.z] : null;
+
+				var btn = grab.Grab<Button>();
+				btn.onClick.AddListener(() => {
+					EditingBodyNodeIndex = nodeIndex;
+					m_Assets.ShipEditorArtworkPopupRoot.gameObject.SetActive(true);
+				});
 
 			}
-			End:;
-			RefreshWorkBenchArtworkEditorUI();
 		}
 
 
 		private void RefreshWorkBenchArtworkEditorUI () {
-
-
-
-
-
-
-
+			if (!ShipPool.TryGetValue(EditingID, out var ship)) return;
+			var container = m_Assets.ShipEditorArtworkContainer;
+			for (int i = 0; i < ship.BodyNodes.Length; i++) {
+				var node = ship.BodyNodes[i];
+				var grab = container.GetChild(i).GetComponent<Grabber>();
+				var icon = grab.Grab<Image>("Icon");
+				icon.sprite = node.z >= 0 && node.z < CustomShipSprites.Count ? CustomShipSprites[node.z] : null;
+			}
 		}
 
 
@@ -434,6 +502,8 @@ namespace BattleSoup {
 			bool artworkMode = m_Assets.ShipEditorPanels[1].gameObject.activeSelf;
 			m_Assets.ShipEditorUseAbilityButton.gameObject.SetActive(!artworkMode);
 			m_Assets.ShipEditorRevealButton.gameObject.SetActive(!artworkMode);
+			m_Assets.ShipEditorArtworkPopupRoot.gameObject.SetActive(false);
+			EditingBodyNodeIndex = -1;
 			FieldA.Enable = artworkMode;
 			FieldB.Enable = !artworkMode;
 		}

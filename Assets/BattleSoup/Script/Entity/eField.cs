@@ -39,6 +39,7 @@ namespace BattleSoup {
 		public bool HideInvisibleShip { get; set; } = true;
 		public bool ShowShips { get; set; } = true;
 		public bool DragToMoveShips { get; set; } = false;
+		public bool RightClickToFlipShips { get; set; } = false;
 		public bool ClickToAttack { get; set; } = false;
 		public bool DrawDevInfo { get; set; } = false;
 		public bool DrawPickingArrow { get; set; } = true;
@@ -92,38 +93,39 @@ namespace BattleSoup {
 
 
 		private void Update_DragToMoveShips () {
-			if (!DragToMoveShips) return;
-			if (FrameInput.MouseLeft) {
-				// Mouse Left Holding
-				var (localX, localY) = Global_to_Local(
-					FrameInput.MouseGlobalPosition.x, FrameInput.MouseGlobalPosition.y, 1
-				);
-				if (FrameInput.MouseLeftDown) {
-					// Mouse Left Down
-					DraggingShipIndex = HoveringShipIndex;
-					if (DraggingShipIndex >= 0) {
-						var ship = Ships[DraggingShipIndex];
-						DraggingShipLocalOffset.x = localX - ship.FieldX;
-						DraggingShipLocalOffset.y = localY - ship.FieldY;
-					}
-				}
-				if (DraggingShipIndex >= 0) {
-					// Dragging Ship
-					MoveShip(
-						DraggingShipIndex,
-						localX - DraggingShipLocalOffset.x,
-						localY - DraggingShipLocalOffset.y
+			if (DragToMoveShips) {
+				if (FrameInput.MouseLeft) {
+					// Mouse Left Holding
+					var (localX, localY) = Global_to_Local(
+						FrameInput.MouseGlobalPosition.x, FrameInput.MouseGlobalPosition.y, 1
 					);
-				}
-			} else {
-				// Mosue Left Not Holding
-				if (DraggingShipIndex >= 0) {
-					DraggingShipIndex = -1;
-					ClampInvalidShipsInside(true);
+					if (FrameInput.MouseLeftDown) {
+						// Mouse Left Down
+						DraggingShipIndex = HoveringShipIndex;
+						if (DraggingShipIndex >= 0) {
+							var ship = Ships[DraggingShipIndex];
+							DraggingShipLocalOffset.x = localX - ship.FieldX;
+							DraggingShipLocalOffset.y = localY - ship.FieldY;
+						}
+					}
+					if (DraggingShipIndex >= 0) {
+						// Dragging Ship
+						MoveShip(
+							DraggingShipIndex,
+							localX - DraggingShipLocalOffset.x,
+							localY - DraggingShipLocalOffset.y
+						);
+					}
+				} else {
+					// Mosue Left Not Holding
+					if (DraggingShipIndex >= 0) {
+						DraggingShipIndex = -1;
+						ClampInvalidShipsInside(true);
+					}
 				}
 			}
 			// Mouse Right to Flip
-			if (FrameInput.MouseRightDown && HoveringShipIndex >= 0) {
+			if (RightClickToFlipShips && FrameInput.MouseRightDown && HoveringShipIndex >= 0) {
 				FlipShip(HoveringShipIndex);
 				ClampInvalidShipsInside(true);
 			}

@@ -118,7 +118,9 @@ namespace BattleSoup {
 			public Button ShipEditorUseAbilityButton = null;
 			public Button ShipEditorRevealButton = null;
 			public RectTransform ShipEditorArtworkContainer = null;
+			public RectTransform ShipEditorArtworkPopupRoot = null;
 			public RectTransform ShipEditorArtworkPopupContainer = null;
+			public RectTransform ShipEditorBuiltInMark = null;
 			public Button[] ShipEditorTabs = null;
 			public RectTransform[] ShipEditorPanels = null;
 

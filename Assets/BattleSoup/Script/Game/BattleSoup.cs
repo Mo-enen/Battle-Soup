@@ -18,7 +18,7 @@ namespace BattleSoup {
 
 		// Const
 		private const string SHIP_EDITOR_FLEET = "Sailboat,SeaMonster,Longboat,MiniSub";
-		private readonly Map EMPTY_MAP = new() { Size = 8, Content = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, };
+		private readonly Map EMPTY_MAP = new() { Size = 8, Content = new int[8 * 8] };
 		private readonly Map SHIP_EDITOR_MAP = new() { Size = 8, Content = new int[] { 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0 }, };
 
 		// Api
@@ -50,8 +50,6 @@ namespace BattleSoup {
 		private readonly List<SoupAI> AllAi = new();
 		private readonly List<Map> AllMaps = new();
 		private readonly List<Sprite> CustomShipSprites = new();
-		private readonly List<Sprite> CustomShipSprites_Add = new();
-		private readonly List<Sprite> CustomShipSprites_Sunk = new();
 		private bool GameOver = false;
 		private bool DevMode = false;
 		private bool AvAPlaying = true;
@@ -86,8 +84,14 @@ namespace BattleSoup {
 
 			base.Initialize();
 
+			CustomShipSprites.Clear();
+			int id = "Custom Ship".AngeHash();
+			for (int index = 0; CellRenderer.TryGetSpriteFromGroup(id, index, out var sprite, false, false); index++) {
+				CustomShipSprites.Add(CellRenderer.CreateUnitySprite(sprite.GlobalID));
+			}
+			ReloadShipEditorArtworkPopupUI();
+
 			Init_AI();
-			Init_Asset();
 			SetUiScale(s_UiScale.Value);
 			SetUseScreenEffect(s_UseScreenEffect.Value);
 
@@ -135,31 +139,6 @@ namespace BattleSoup {
 		}
 
 
-		private void Init_Asset () {
-
-			CustomShipSprites.Clear();
-			CustomShipSprites_Add.Clear();
-			CustomShipSprites_Sunk.Clear();
-			int id;
-
-			id = "Custom Ship".AngeHash();
-			for (int index = 0; CellRenderer.TryGetSpriteFromGroup(id, index, out var sprite, false, false); index++) {
-				CustomShipSprites.Add(CellRenderer.CreateUnitySprite(sprite.GlobalID));
-			}
-
-			id = "Custom Ship_Add".AngeHash();
-			for (int index = 0; CellRenderer.TryGetSpriteFromGroup(id, index, out var sprite, false, false); index++) {
-				CustomShipSprites_Add.Add(CellRenderer.CreateUnitySprite(sprite.GlobalID));
-			}
-
-			id = "Custom Ship_Sunk".AngeHash();
-			for (int index = 0; CellRenderer.TryGetSpriteFromGroup(id, index, out var sprite, false, false); index++) {
-				CustomShipSprites_Sunk.Add(CellRenderer.CreateUnitySprite(sprite.GlobalID));
-			}
-
-		}
-
-
 		// Update
 		protected override void FrameUpdate () {
 			base.FrameUpdate();
@@ -175,7 +154,7 @@ namespace BattleSoup {
 					Update_Robots();
 					break;
 				case GameState.CardGame:
-
+					Update_Card();
 					break;
 				case GameState.ShipEditor:
 					Update_ShipEditor();
@@ -223,6 +202,7 @@ namespace BattleSoup {
 			FieldA.Enable = !preparing;
 			FieldA.ShowShips = !preparing;
 			FieldA.DragToMoveShips = !preparing;
+			FieldA.RightClickToFlipShips = !preparing;
 
 			// UI
 			m_Assets.MapShipSelectorNextButton.interactable = FieldA.Ships.Length > 0;
@@ -276,22 +256,7 @@ namespace BattleSoup {
 				m_Assets.PickingHint.gameObject.SetActive(picking);
 			}
 
-			// Stop Ability on Ship Sunk
-			var step = CellStep.CurrentStep;
-			if (step != null) {
-				Ship ship = null;
-				switch (step) {
-					case sSoupStep sStep:
-						ship = sStep.Ship;
-						break;
-					case sPick pick:
-						ship = pick.Ship;
-						break;
-				}
-				if (ship != null && !ship.Alive) {
-					AbandonAbility();
-				}
-			}
+			StopAbilityOnShipSunk();
 
 			// Cheat
 			if (Cheating && !Cheated) {
@@ -547,6 +512,7 @@ namespace BattleSoup {
 			FieldB.HideInvisibleShip = false;
 			FieldB.ShowShips = false;
 			FieldB.DragToMoveShips = false;
+			FieldB.RightClickToFlipShips = false;
 			FieldB.GameStart();
 
 			ReloadRobots();
@@ -572,6 +538,7 @@ namespace BattleSoup {
 			FieldA.Enable = true;
 			FieldA.ShowShips = false;
 			FieldA.DragToMoveShips = false;
+			FieldA.RightClickToFlipShips = false;
 
 			if (!PvA) {
 				bool successA = FieldA.RandomPlaceShips(256);
@@ -587,6 +554,7 @@ namespace BattleSoup {
 			FieldB.Enable = true;
 			FieldB.ShowShips = false;
 			FieldB.DragToMoveShips = false;
+			FieldB.RightClickToFlipShips = false;
 			FieldB.DrawPickingArrow = true;
 			bool success = FieldB.RandomPlaceShips(256);
 			if (!success) {
@@ -610,14 +578,6 @@ namespace BattleSoup {
 			FieldB.DrawCookedInfo = false;
 			m_Assets.DevHitTG.SetIsOnWithoutNotify(false);
 			m_Assets.DevCookTG.SetIsOnWithoutNotify(false);
-		}
-
-
-		private void SwitchState_CardGame () {
-
-
-
-
 		}
 
 
@@ -673,6 +633,7 @@ namespace BattleSoup {
 					ship.FieldY = 3;
 					ship.Flip = false;
 					FieldA.RefreshCellShipCache();
+					FieldA.ClampInvalidShipsInside();
 				}
 				m_Assets.RobotDescriptionA.text = RobotA != null ? RobotA.Description : "";
 			}
@@ -723,6 +684,25 @@ namespace BattleSoup {
 			var img = field == FieldA ? m_Assets.AbilityHintA : m_Assets.AbilityHintB;
 			img.Image.sprite = ship.Icon;
 			img.Blink(2f);
+		}
+
+
+		private void StopAbilityOnShipSunk () {
+			var step = CellStep.CurrentStep;
+			if (step != null) {
+				Ship ship = null;
+				switch (step) {
+					case sSoupStep sStep:
+						ship = sStep.Ship;
+						break;
+					case sPick pick:
+						ship = pick.Ship;
+						break;
+				}
+				if (ship != null && !ship.Alive) {
+					AbandonAbility();
+				}
+			}
 		}
 
 
@@ -946,12 +926,7 @@ namespace BattleSoup {
 					if (!ShipPool.TryGetValue(shipName.AngeHash(), out var ship) || ship.Icon == null) continue;
 					// Spawn Item
 					var grab = Instantiate(m_Assets.FleetRendererItem, container);
-					grab.gameObject.SetActive(true);
-					var rt = grab.transform as RectTransform;
-					rt.SetAsLastSibling();
-					rt.anchoredPosition3D = rt.anchoredPosition;
-					rt.localRotation = Quaternion.identity;
-					rt.localScale = Vector3.one;
+					grab.ReadyForInstantiate();
 					var img = grab.Grab<Image>();
 					var btn = grab.Grab<Button>();
 					img.sprite = ship.Icon;
@@ -974,13 +949,8 @@ namespace BattleSoup {
 				int shipIndex = i;
 				var ship = field.Ships[shipIndex];
 				var grab = Instantiate(shipItem, container);
-				grab.gameObject.SetActive(true);
 				grab.gameObject.name = "Ship";
-				var rt = grab.transform as RectTransform;
-				rt.SetAsLastSibling();
-				rt.anchoredPosition3D = rt.anchoredPosition;
-				rt.localRotation = Quaternion.identity;
-				rt.localScale = Vector3.one;
+				grab.ReadyForInstantiate();
 				var btn = grab.Grab<Button>();
 				btn.interactable = interactable;
 				btn.onClick.AddListener(() => {
@@ -1127,7 +1097,8 @@ namespace BattleSoup {
 
 			// Ship UI
 			m_Assets.FleetSelectorPlayerContent.DestroyAllChirldrenImmediate();
-			foreach (var (_, ship) in ShipPool) {
+			foreach (var meta in ShipMetas) {
+				if (!ShipPool.TryGetValue(meta.ID, out var ship)) continue;
 				var grab = Instantiate(m_Assets.FleetSelectorShipItem, m_Assets.FleetSelectorPlayerContent);
 				var rt = grab.transform as RectTransform;
 				var img = grab.Grab<Image>("Icon");
@@ -1153,7 +1124,6 @@ namespace BattleSoup {
 				var error = grab.Grab<RectTransform>("Error");
 				error.gameObject.SetActive(!AbilityPool.ContainsKey(ship.GlobalCode));
 			}
-
 		}
 
 
@@ -1178,6 +1148,8 @@ namespace BattleSoup {
 				// Icon
 				if (ship != null) {
 					string iconPath = Util.CombinePaths(folderName, "Icon.png");
+					if (!Util.FileExists(iconPath)) iconPath = Util.CombinePaths(folderName, "Icon.jpg");
+					if (!Util.FileExists(iconPath)) iconPath = Util.CombinePaths(folderName, "Icon.jpeg");
 					if (Util.FileExists(iconPath)) {
 						var texture = new Texture2D(1, 1, TextureFormat.ARGB32, false) {
 							filterMode = FilterMode.Bilinear,
