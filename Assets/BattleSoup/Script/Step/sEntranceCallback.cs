@@ -54,12 +54,14 @@ namespace BattleSoup {
 		}
 
 
-		private void TryInvokeForEntrance (BattleSoup soup, eField selfField, eField opponentField, Ship targetShip = null) {
+		private void TryInvokeForEntrance (
+			BattleSoup soup, eField selfField, eField opponentField, Ship targetShip = null
+		) {
 			foreach (var ship in selfField.Ships) {
 				if (targetShip != null && ship != targetShip) continue;
 				if (!soup.TryGetAbility(ship.GlobalCode, out var ability)) continue;
 				if (!ability.EntrancePool.ContainsKey(Entrance)) continue;
-				soup.PerformAbility(ability, ship, Entrance, selfField, opponentField, false);
+				soup.PerformAbility(ability, ship, Entrance, selfField, opponentField, true);
 			}
 		}
 

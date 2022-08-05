@@ -382,6 +382,7 @@ namespace BattleSoup {
 
 
 		public bool PerformAbility (Ability ability, Ship ship, EntranceType entrance, eField selfField, eField opponentField, bool ignoreCooldown) {
+			if (!entrance.IsManualEntrance()) ignoreCooldown = true;
 			if (!ignoreCooldown && ship.CurrentCooldown > 0) return false;
 			FieldA.ClearLastActionResult();
 			FieldB.ClearLastActionResult();
@@ -977,6 +978,7 @@ namespace BattleSoup {
 				var mIcon = grab.Grab<Image>("Mirror Icon");
 				mIcon.sprite = m_Assets.EmptyMirrorShipIcon;
 				if (AbilityPool.TryGetValue(ship.GlobalCode, out var ability)) {
+					cooldown.gameObject.SetActive(ability.HasManuallyEntrance);
 					mIcon.gameObject.SetActive(ability.HasCopySelfAction || ability.HasCopyOpponentAction);
 					if (!ability.HasManuallyEntrance) {
 						var cursor = grab.Grab<CursorUI>();
@@ -1007,7 +1009,7 @@ namespace BattleSoup {
 				if (DevMode) {
 					btn.interactable = ship.Alive;
 				} else {
-					btn.interactable = ship.Alive && interactable && !GameOver && ship.CurrentCooldown <= 0 && CellStep.CurrentStep == null;
+					btn.interactable = ship.Alive && interactable && !GameOver && (!ability.HasManuallyEntrance || ship.CurrentCooldown <= 0) && CellStep.CurrentStep == null;
 				}
 
 				var block = btn.colors;

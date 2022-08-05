@@ -5,3 +5,6 @@ pick
 attack (0, 0) 
 attack (0, 1) 
 
+OnCurrentShipGetHit
+exposeShip [this]
+revealShip [this]

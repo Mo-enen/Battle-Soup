@@ -274,6 +274,7 @@ namespace BattleSoup {
 			EditingID = 0;
 
 			FieldA.Enable = false;
+			FieldA.ShowShips = true;
 			FieldA.HideInvisibleShip = false;
 			FieldA.DragToMoveShips = true;
 			FieldA.RightClickToFlipShips = true;
@@ -285,6 +286,7 @@ namespace BattleSoup {
 			FieldA.GameStart();
 
 			FieldB.Enable = true;
+			FieldB.ShowShips = true;
 			FieldB.HideInvisibleShip = false;
 			FieldB.DragToMoveShips = false;
 			FieldB.RightClickToFlipShips = false;
@@ -324,6 +326,7 @@ namespace BattleSoup {
 			OnFleetChanged();
 			RefreshWorkBenchUI();
 			ReloadWorkBenchArtworkEditorUI();
+			SwitchShipEditorPanel(0);
 		}
 
 
@@ -360,10 +363,12 @@ namespace BattleSoup {
 
 		private void RefreshWorkBenchUI () {
 			if (ShipPool.TryGetValue(EditingID, out var ship)) {
+
 				// Valid
 				m_Assets.DeleteShipButton.interactable = !ship.BuiltIn;
 				m_Assets.ShipEditorWorkbenchRoot.gameObject.SetActive(true);
 				m_Assets.ShipEditorBuiltInMark.gameObject.SetActive(ship.BuiltIn);
+				m_Assets.ShipEditorTabs[1].gameObject.SetActive(!ship.BuiltIn);
 
 				// Fill Data into UI
 				var grab = m_Assets.Workbench;

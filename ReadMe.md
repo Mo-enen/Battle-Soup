@@ -2,7 +2,7 @@
 
 > Fan-made game for [BattleTabs](https://battletabs.io)
 
-Download latest version in [HERE](https://github.com/Mo-enen/Battle-Soup/releases)
+Download latest  version at [Itch](https://m-oenen.itch.io/battlesoup) or [Github](https://github.com/Mo-enen/Battle-Soup/releases)
 
 <img src="_Res\0.jpg">
 
@@ -14,12 +14,17 @@ Download latest version in [HERE](https://github.com/Mo-enen/Battle-Soup/release
 
 <img src="_Res\4.jpg">
 
+<img src="_Res\5.jpg">
+
+
+
 ##### Contact
 
 - BattleTabs 🎃+🥒=🥘  id:LclSU0kfN
-
 - Twitter [@_Moenen](https://twitter.com/_Moenen)
 - Email moenen6@gmail.com
+
+
 
 
 
@@ -31,12 +36,17 @@ Download latest version in [HERE](https://github.com/Mo-enen/Battle-Soup/release
 - Available on PC only.
 
 
+
+
 ##### Change Log
+
+`v2.1.0`
+
+- New feature: Ship Editor. Create custom ships with your own shape and ability.
 
 `v2.0.0`
 
 - Completely remake, new artwork, new UI, new AI.
-- Ship editor and card mode are not finished yet.
 - Custom code for ship ability, players can create their own ability by using the code.
 - Using AngeliA Framework (a 2D Unity-based framework made by Moenen).
 
