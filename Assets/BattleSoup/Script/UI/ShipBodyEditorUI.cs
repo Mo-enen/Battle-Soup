@@ -27,6 +27,7 @@ namespace BattleSoup {
 			new UIVertex(){ color = Color.white },
 		};
 		private int Size = 1;
+		[SerializeField] int m_DefaultValue = 4;
 
 
 		// MSG
@@ -37,8 +38,8 @@ namespace BattleSoup {
 			if (!pos01.Inside01()) return;
 			var pos = new Vector2Int((int)(pos01.x * Size), (int)(pos01.y * Size));
 			int removeCount = Nodes.RemoveAll(n => n.x == pos.x && n.y == pos.y);
-			if (removeCount == 0) Nodes.Add(new(pos.x, pos.y, 1));
-			if (Nodes.Count == 0) Nodes.Add(new(0, 0));
+			if (removeCount == 0) Nodes.Add(new(pos.x, pos.y, m_DefaultValue));
+			if (Nodes.Count == 0) Nodes.Add(new(0, 0, m_DefaultValue));
 			m_OnValueChanged.Invoke();
 		}
 
@@ -131,7 +132,7 @@ namespace BattleSoup {
 
 		public void ResetNodes () {
 			Nodes.Clear();
-			Nodes.Add(new(0, 0, 1));
+			Nodes.Add(new(0, 0, m_DefaultValue));
 			m_OnValueChanged.Invoke();
 		}
 

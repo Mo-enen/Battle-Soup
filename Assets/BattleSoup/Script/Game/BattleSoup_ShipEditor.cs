@@ -41,8 +41,10 @@ namespace BattleSoup {
 
 
 		public void UI_OnBodyChanged () {
+			OnWorkbenchChanged();
 			ReloadShipDataFromDisk();
 			ReloadShipEditorUI();
+			ResetMap(false, true);
 			OnFleetChanged(false, true);
 			ReloadWorkBenchArtworkEditorUI();
 		}
@@ -170,34 +172,7 @@ namespace BattleSoup {
 		}
 
 
-		public void UI_ShipEditor_WorkBranchChanged () {
-
-			if (!ShipPool.TryGetValue(EditingID, out var ship)) return;
-			if (ship.BuiltIn) return;
-
-			// UI >> Ship in Pool
-			var grab = m_Assets.Workbench;
-			var dName = grab.Grab<InputField>("DisplayName");
-			var dCooldown = grab.Grab<InputField>("DefaultCooldown");
-			var mCooldown = grab.Grab<InputField>("MaxCooldown");
-			var description = grab.Grab<InputField>("Description");
-			var body = grab.Grab<ShipBodyEditorUI>("Body");
-
-			ship.DisplayName = dName.text;
-			ship.Description = description.text;
-			ship.DefaultCooldown = int.TryParse(dCooldown.text, out int _dCooldown) ? _dCooldown : ship.DefaultCooldown;
-			ship.MaxCooldown = int.TryParse(mCooldown.text, out int _mCooldown) ? _mCooldown : ship.MaxCooldown;
-			ship.BodyNodes = body.Nodes.ToArray();
-
-			// Ship >> File
-			string infoPath = Util.CombinePaths(CustomShipRoot, ship.GlobalName, "Info.json");
-			if (Util.FileExists(infoPath)) {
-				Util.TextToFile(JsonUtility.ToJson(ship, true), infoPath);
-			}
-
-			// Final
-			RefreshWorkBenchUI();
-		}
+		public void UI_ShipEditor_WorkBranchChanged () => OnWorkbenchChanged();
 
 
 		public void UI_ShipEditor_ResetField () {
@@ -276,7 +251,7 @@ namespace BattleSoup {
 			FieldA.Enable = false;
 			FieldA.ShowShips = true;
 			FieldA.HideInvisibleShip = false;
-			FieldA.DragToMoveShips = true;
+			FieldA.DragToMoveShips = false;
 			FieldA.RightClickToFlipShips = true;
 			FieldA.DrawDevInfo = false;
 			FieldA.ClickToAttack = false;
@@ -300,7 +275,7 @@ namespace BattleSoup {
 			SwitchShipEditorPanel(0);
 			SetEditingShip(0);
 			ReloadShipEditorUI();
-			OnMapChanged();
+			ResetMap();
 			OnFleetChanged();
 		}
 
@@ -323,6 +298,7 @@ namespace BattleSoup {
 		private void SetEditingShip (int id) {
 			EditingID = id;
 			FieldB.GameStart();
+			ResetMap(false, true);
 			OnFleetChanged();
 			RefreshWorkBenchUI();
 			ReloadWorkBenchArtworkEditorUI();
@@ -410,6 +386,50 @@ namespace BattleSoup {
 				EditingID = 0;
 				m_Assets.ShipEditorWorkbenchRoot.gameObject.SetActive(false);
 			}
+		}
+
+
+		private void OnWorkbenchChanged () {
+			if (!ShipPool.TryGetValue(EditingID, out var ship)) return;
+			if (ship.BuiltIn) return;
+
+			// UI >> Ship in Pool
+			var grab = m_Assets.Workbench;
+			var dName = grab.Grab<InputField>("DisplayName");
+			var dCooldown = grab.Grab<InputField>("DefaultCooldown");
+			var mCooldown = grab.Grab<InputField>("MaxCooldown");
+			var description = grab.Grab<InputField>("Description");
+			var body = grab.Grab<ShipBodyEditorUI>("Body");
+
+			ship.DisplayName = dName.text;
+			ship.Description = description.text;
+			ship.DefaultCooldown = int.TryParse(dCooldown.text, out int _dCooldown) ? _dCooldown : ship.DefaultCooldown;
+			ship.MaxCooldown = int.TryParse(mCooldown.text, out int _mCooldown) ? _mCooldown : ship.MaxCooldown;
+			ship.BodyNodes = body.Nodes.ToArray();
+
+			// Ship >> File
+			string infoPath = Util.CombinePaths(CustomShipRoot, ship.GlobalName, "Info.json");
+			if (Util.FileExists(infoPath)) {
+				Util.TextToFile(JsonUtility.ToJson(ship, true), infoPath);
+			}
+
+			// Final
+			RefreshWorkBenchUI();
+		}
+
+
+		private void ResetMap (bool ignoreA = false, bool ignoreB = false) {
+			if (!ignoreA) {
+				int size = 8;
+				if (ShipPool.TryGetValue(EditingID, out var ship)) {
+					size = Mathf.Max(ship.BodySize.x, ship.BodySize.y) + 2;
+				}
+				FieldA.SetMap(new Map() {
+					Size = size,
+					Content = new int[size * size],
+				});
+			}
+			if (!ignoreB) FieldB.SetMap(SHIP_EDITOR_MAP);
 		}
 
 

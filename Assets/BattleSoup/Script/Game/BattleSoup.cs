@@ -630,8 +630,8 @@ namespace BattleSoup {
 					FieldA.RandomPlaceShips(256);
 				} else if (FieldA.Ships.Length > 0) {
 					var ship = FieldA.Ships[0];
-					ship.FieldX = 3;
-					ship.FieldY = 3;
+					ship.FieldX = 1;
+					ship.FieldY = 1;
 					ship.Flip = false;
 					FieldA.RefreshCellShipCache();
 					FieldA.ClampInvalidShipsInside();

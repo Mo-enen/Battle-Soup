@@ -415,7 +415,7 @@ namespace BattleSoup {
 
 
 		// Map
-		public void SetMap (in Map map) {
+		public void SetMap (in Map map, bool placeShip = true) {
 			MapSize = map.Size;
 			Cells = new Cell[MapSize, MapSize];
 			IsoArray = GetIsoDistanceArray(MapSize);
@@ -427,7 +427,7 @@ namespace BattleSoup {
 				}
 			}
 			RefreshCellShipCache();
-			RandomPlaceShips(128);
+			if (placeShip) RandomPlaceShips(128);
 		}
 
 
