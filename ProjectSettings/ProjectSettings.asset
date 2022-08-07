@@ -15,7 +15,7 @@ PlayerSettings:
   companyName: MoenenGames
   productName: Battle Soup
   defaultCursor: {fileID: 0}
-  cursorHotspot: {x: 15, y: 10}
+  cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.12156863, g: 0.1307563, b: 0.13725491, a: 1}
   m_ShowUnitySplashScreen: 1
   m_ShowUnitySplashLogo: 1
@@ -132,7 +132,7 @@ PlayerSettings:
   vulkanEnableLateAcquireNextImage: 0
   vulkanEnableCommandBufferRecycling: 1
   loadStoreDebugModeEnabled: 0
-  bundleVersion: 2.1.0
+  bundleVersion: 2.2.0
   preloadedAssets:
   - {fileID: 0}
   - {fileID: 0}

@@ -1,7 +1,0 @@
-
-// Chao Sub
-
-pick
-sonar
-addMaxCooldown [this]
-

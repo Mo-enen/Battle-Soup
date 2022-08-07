@@ -1,7 +1,0 @@
-{
-    "MaxParallax": 2000,
-    "SkyTintTop": "#14151f, #20394c, #3E87AB, #20394c, #14151f",
-    "SkyTintBottom": "#1f1f23, #324252, #4392B9, #324252, #1f1f23",
-    "PointTextureFilter": true,
-    "FrameRate": 60
-}

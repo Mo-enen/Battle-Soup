@@ -133,6 +133,13 @@ namespace BattleSoup {
 	}
 
 
+	public enum CardType {
+		Attack = 0,
+		Reveal = 1,
+		Sonar = 2,
+	}
+
+
 	public static class SoupConst {
 
 		public const int ISO_WIDTH = 32 * 7;
@@ -439,6 +446,15 @@ namespace BattleSoup {
 
 	}
 
+
+
+	[System.Serializable]
+	public class CardInfo {
+		public string GlobalName;
+		public CardType Type;
+		public bool IsShip = true;
+
+	}
 
 
 	public enum CellState {

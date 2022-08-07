@@ -1,7 +1,0 @@
-
-// Eels
-
-pick
-reveal
-revealShip
-exposeShip

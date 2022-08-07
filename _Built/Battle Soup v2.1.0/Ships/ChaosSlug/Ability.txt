@@ -1,6 +1,0 @@
-
-// Chao Slug
-
-reveal ??? [normalWater, noStone]
-reveal ? [self, normalWater, noStone]
-

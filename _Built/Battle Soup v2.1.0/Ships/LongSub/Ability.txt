@@ -1,7 +1,0 @@
-
-// Long Sub
-
-pick
-sonar
-revealShip [this, unexposedShip]
-exposeShip [this]

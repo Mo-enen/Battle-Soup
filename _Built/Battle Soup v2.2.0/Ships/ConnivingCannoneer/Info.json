@@ -1,0 +1,9 @@
+{
+    "GlobalName": "ConnivingCannoneer",
+    "DisplayName": "Conniving Cannoneer",
+    "Description": "Attack in a + shape. Attacks a random undamaged tile on one of your ships.",
+    "DefaultCooldown": 3,
+    "MaxCooldown": 3,
+    "Body": "010,111,010" 
+    
+}

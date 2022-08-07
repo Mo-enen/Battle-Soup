@@ -1,0 +1,5 @@
+
+// Crafty Crab
+
+OnOpponentGetAttack
+reveal ? [normalWater, noStone]

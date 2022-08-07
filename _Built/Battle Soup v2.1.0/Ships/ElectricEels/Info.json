@@ -1,9 +1,0 @@
-{
-    "GlobalName": "ElectricEels",
-    "DisplayName": "Electric Eels",
-    "Description": "Fully reveal the target ship (does not count as an attack)",
-    "DefaultCooldown": 3,
-    "MaxCooldown": 3,
-    "Body": "010,101,010" 
-    
-}

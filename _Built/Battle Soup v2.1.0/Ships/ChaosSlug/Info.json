@@ -1,9 +1,0 @@
-{
-    "GlobalName": "ChaosSlug",
-    "DisplayName": "Chaos Slug",
-    "Description": "Randomly reveals 3 tiles on your opponent's grid, and reveals one on your own.",
-    "DefaultCooldown": 1,
-    "MaxCooldown": 1,
-    "Body": "01,01,11" 
-    
-}

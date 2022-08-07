@@ -257,7 +257,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 176
-        y: 320
+        y: 325
         width: 16
         height: 16
       alignment: 0
@@ -320,7 +320,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 193
-        y: 320
+        y: 325
         width: 16
         height: 16
       alignment: 0
@@ -362,7 +362,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 210
-        y: 325
+        y: 330
         width: 14
         height: 11
       alignment: 0
@@ -383,7 +383,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 225
-        y: 320
+        y: 325
         width: 16
         height: 16
       alignment: 0
@@ -425,7 +425,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 242
-        y: 318
+        y: 323
         width: 19
         height: 18
       alignment: 0
@@ -484,7 +484,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Cheat
+      name: Cheat 0
       rect:
         serializedVersion: 2
         x: 231
@@ -614,7 +614,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 245
-        y: 301
+        y: 306
         width: 16
         height: 16
       alignment: 0
@@ -635,7 +635,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 245
-        y: 283
+        y: 288
         width: 16
         height: 16
       alignment: 0
@@ -761,7 +761,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 193
-        y: 320
+        y: 325
         width: 16
         height: 8
       alignment: 0
@@ -782,7 +782,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 193
-        y: 328
+        y: 333
         width: 16
         height: 8
       alignment: 0
@@ -824,7 +824,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 176
-        y: 320
+        y: 325
         width: 6
         height: 16
       alignment: 0
@@ -950,7 +950,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 176
-        y: 330
+        y: 335
         width: 16
         height: 6
       alignment: 0
@@ -962,6 +962,174 @@ TextureImporter:
       bones: []
       spriteID: 15295823fa0acdd49b73934957aaa9a7
       internalID: 1410402402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Trident
+      rect:
+        serializedVersion: 2
+        x: 920
+        y: 283
+        width: 103
+        height: 231
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ded5f77f49a07914ea993d3cfe82fadf
+      internalID: 781701380
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Hand 0
+      rect:
+        serializedVersion: 2
+        x: 854
+        y: 389
+        width: 66
+        height: 74
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f3a4e005382ac004b97f7be7509c75f8
+      internalID: -1666693782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Hand 1
+      rect:
+        serializedVersion: 2
+        x: 787
+        y: 389
+        width: 66
+        height: 72
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9e9a96a5ac0c6cf4b84abea68a90e9cd
+      internalID: 56554640
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button_Down
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 325
+        width: 16
+        height: 6
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 6, y: 6, z: 6, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ebc50b887863bd8498f52966b2a32d9a
+      internalID: 649432191
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cheat 1
+      rect:
+        serializedVersion: 2
+        x: 671
+        y: 390
+        width: 115
+        height: 115
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 10a642c0f6d9c0643978b205fb64a7ee
+      internalID: 64591594
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Sonar
+      rect:
+        serializedVersion: 2
+        x: 759
+        y: 508
+        width: 137
+        height: 137
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e2a4796e5539a0848a1b9cced656582d
+      internalID: 639350574
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Type Reveal
+      rect:
+        serializedVersion: 2
+        x: 614
+        y: 506
+        width: 144
+        height: 144
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 396b21db6e4eeae41ab042679426b7c0
+      internalID: -1573931899
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Attack
+      rect:
+        serializedVersion: 2
+        x: 483
+        y: 513
+        width: 130
+        height: 148
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 386c45d1af991a24a907a8ecf9c3064b
+      internalID: 2012010712
       vertices: []
       indices: 
       edges: []
@@ -983,27 +1151,38 @@ TextureImporter:
       Pumpkin: 1557231514
       CheatLose: 1920047204
       Construction: -1436908655
+      Card Back 3: -1209194024
+      Card Back 1: -1640658473
+      Attack: 2012010712
+      Card Dock: -727580675
       Spoon: -1698021046
       Panel_Bottom: 1723589175
       CheatWin: 1893319958
+      Card Back 2: 1966888473
+      Trident: 781701380
       Cucumber: -1186084701
       Dev: 390764257
       Icon Girl: 1566753909
       Mouse Right: 1978710756
+      Type Attack: 316171434
       Mark: 1325594848
       Turn Mark: 2122127840
       Folder: -1701764842
       VS: -550570813
       Reload: 1544891859
       ESC: -1301258364
+      Sonar: 639350574
       Title Ship 2: -1795022542
       Toggle: -750467815
+      Cheat 0: -254108267
       Wood Item: -954188774
       Wood Panel: 1851841581
+      Type Reveal: -1573931899
+      Cheat 1: 1271489718
+      Demon Hand 0: -1666693782
       Panel_Top: -694896823
       Title Ship 1: -190956466
       Wood Panel B: 1929336801
-      Cheat: -254108267
       Soup: -476286866
       Robot Angry: -789995881
       Setting: -2050515895
@@ -1015,6 +1194,7 @@ TextureImporter:
       Lose: -1458830814
       ShipBodyItem: 2090411686
       Title Ship 3: 1629271374
+      Card Back 0: -689853508
       Panel: -2113243177
       Reveal: -1473093000
       Button: 126692845
@@ -1022,6 +1202,8 @@ TextureImporter:
       Button_Top: 1410402402
       Title Ship 0: -1270888692
       Duplicate: -912281225
+      Button_Down: 649432191
+      Demon Hand 1: 56554640
   pSDRemoveMatte: 0
   userData: 
   assetBundleName: 

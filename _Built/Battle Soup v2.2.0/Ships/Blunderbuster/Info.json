@@ -1,0 +1,8 @@
+{
+    "GlobalName": "Blunderbuster",
+    "DisplayName": "Blunderbuster",
+    "Description": "Randomly attacks 4 tiles in a 9 block square. When the cooldown is less than 0 becomes \"Overcharged\" and attacks 5 tiles",
+    "DefaultCooldown": 3,
+    "MaxCooldown": 3,
+    "Body": "11,11"
+}

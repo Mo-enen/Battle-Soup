@@ -1,0 +1,18 @@
+
+// See Slug
+
+pick [normalWater, noStone]
+reveal [breakIfReveal]
+
+pick [normalWater, noStone]
+reveal [breakIfReveal]
+
+pick [normalWater, noStone]
+reveal [breakIfReveal]
+
+pick [normalWater, noStone]
+reveal [breakIfReveal]
+
+pick [normalWater, noStone]
+reveal [breakIfReveal]
+

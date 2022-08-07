@@ -1,9 +1,0 @@
-
-// Sailboat
-
-pick
-
-attack (0,0)
-attack (0,1)
-attack (0,2)
-

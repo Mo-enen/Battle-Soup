@@ -1,7 +1,0 @@
-
-// Sea Monster
-
-attack ???
-unreveal ? [self, revealedWater, revealedShip]
-
-

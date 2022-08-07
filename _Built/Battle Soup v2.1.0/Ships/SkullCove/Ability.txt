@@ -1,6 +1,0 @@
-
-// Skull Cove
-
-OnCurrentShipGetHit
-attack ??? [triggerIfIsNotLastShip, normalWater, revealedShip]
-

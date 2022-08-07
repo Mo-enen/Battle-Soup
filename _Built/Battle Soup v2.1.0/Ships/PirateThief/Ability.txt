@@ -1,7 +1,0 @@
-
-// Pirate Thief
-
-pick [hittable]
-attack
-reduceCooldown [triggerIfHit, this]
-addCooldown

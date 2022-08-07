@@ -1,9 +1,0 @@
-{
-    "GlobalName": "MiniSub",
-    "DisplayName": "Mini Sub",
-    "Description": "Sonar. If you miss, a number shows the distance to the closest enemy unit(s)",
-    "DefaultCooldown": 2,
-    "MaxCooldown": 2,
-    "Body": "1,1" 
-    
-}

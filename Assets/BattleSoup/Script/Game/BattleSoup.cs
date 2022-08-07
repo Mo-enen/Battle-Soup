@@ -145,6 +145,7 @@ namespace BattleSoup {
 			AudioPlayer.SetMute(!s_UseSound.Value);
 			Update_StateRedirect();
 			RefreshCameraView();
+			RefreshCanvasSize();
 			switch (State) {
 				case GameState.Prepare:
 					Update_Prepare();
@@ -349,6 +350,9 @@ namespace BattleSoup {
 			RefreshShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
 			RefreshTurnLabelUI();
 		}
+
+
+		public bool TryGetShip (int id, out Ship ship) => ShipPool.TryGetValue(id, out ship);
 
 
 		// Ability 
@@ -704,6 +708,21 @@ namespace BattleSoup {
 					AbandonAbility();
 				}
 			}
+		}
+
+
+		private void RefreshCanvasSize () {
+			var canvas = m_Assets.Canvas;
+			if (canvas.renderMode != RenderMode.WorldSpace) return;
+			var camera = CellRenderer.MainCamera;
+			var rt = canvas.transform as RectTransform;
+			float cameraHeight = 2f * camera.orthographicSize;
+			rt.localScale = new Vector3(
+				cameraHeight / rt.rect.height,
+				cameraHeight / rt.rect.height,
+				cameraHeight / rt.rect.height
+			);
+			rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rt.rect.height * camera.aspect);
 		}
 
 

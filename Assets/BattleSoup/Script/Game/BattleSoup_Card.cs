@@ -15,6 +15,8 @@ namespace BattleSoup {
 		#region --- VAR ---
 
 
+		// Ser
+		[SerializeField] CardInfo[] m_CardInfos = null;
 
 
 		#endregion
@@ -34,11 +36,9 @@ namespace BattleSoup {
 			FieldB.ShowShips = true;
 			FieldB.AllowHoveringOnWater = noDialog && waitingForPlayer;
 			FieldB.HideInvisibleShip = true;
-			FieldB.ClickToAttack = noDialog && waitingForPlayer;
 			FieldB.SetPickingDirection(PickingDirection);
 
 			StopAbilityOnShipSunk();
-
 
 		}
 
@@ -56,6 +56,7 @@ namespace BattleSoup {
 			FieldB.HideInvisibleShip = true;
 			FieldB.DrawCookedInfo = false;
 			FieldB.DrawDevInfo = false;
+			FieldB.ClickToAttack = false;
 			FieldB.GameStart();
 
 			Cheating = false;

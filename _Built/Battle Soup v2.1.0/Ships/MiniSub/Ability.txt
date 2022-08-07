@@ -1,6 +1,0 @@
-
-// Mini Sub
-
-pick
-sonar (0, 0)
-

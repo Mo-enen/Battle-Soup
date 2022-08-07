@@ -1,0 +1,5 @@
+
+// Cartographer
+
+pick [revealedWater, revealedShip, hitShip, sunkShip]
+expand

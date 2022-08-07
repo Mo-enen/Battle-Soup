@@ -1,9 +1,0 @@
-{
-    "GlobalName": "Kayak",
-    "DisplayName": "Kayak",
-    "Description": "Attacks in a 1x2 pattern. Becomes fully revealed when hit.",
-    "DefaultCooldown": 2,
-    "MaxCooldown": 2,
-    "Body": "1,1" 
-    
-}

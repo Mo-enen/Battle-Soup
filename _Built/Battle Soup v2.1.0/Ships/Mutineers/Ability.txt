@@ -1,9 +1,0 @@
-
-// Multineer
-
-pick [revealedShip, revealedWater, hitShip, sunkShip]
-attack
-
-pick [revealedShip, revealedWater, hitShip, sunkShip]
-attack
-

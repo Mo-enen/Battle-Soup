@@ -40,6 +40,7 @@ namespace BattleSoup {
 			public RectTransform PreparePanel = null;
 			public RectTransform PlacePanel = null;
 			public Button MapShipSelectorNextButton = null;
+			public Canvas Canvas = null;
 			public CanvasScaler CanvasScaler = null;
 			public RectTransform TopUI = null;
 			public RectTransform BottomUI = null;

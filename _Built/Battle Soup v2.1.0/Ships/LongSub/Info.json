@@ -1,9 +1,0 @@
-{
-    "GlobalName": "LongSub",
-    "DisplayName": "Long Sub",
-    "Description": "Sonar. Is revealed to the other player when the ability is used.",
-    "DefaultCooldown": 1,
-    "MaxCooldown": 1,
-    "Body": "1,1,1,1" 
-    
-}

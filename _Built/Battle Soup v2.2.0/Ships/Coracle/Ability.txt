@@ -1,0 +1,8 @@
+
+// Coracle
+
+pick [revealedShip]		
+sunkShip		
+
+OnOpponentGetAttack
+reveal ? [self, noShip, normalWater, noStone]

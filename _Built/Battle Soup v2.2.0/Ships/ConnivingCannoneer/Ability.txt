@@ -1,0 +1,11 @@
+
+// Conniving Cannoneer
+
+pick
+attack (0, 0)
+attack (-1, 0)
+attack (1, 0)
+attack (0, -1)
+attack (0, 1)
+
+attack ? [self, ship, normalWater, revealedShip]

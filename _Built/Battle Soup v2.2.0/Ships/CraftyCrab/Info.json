@@ -1,0 +1,9 @@
+{
+    "GlobalName": "CraftyCrab",
+    "DisplayName": "Crafty Crab",
+    "Description": "While not destroyed, your cannon attack also reveals a random unknown tile.",
+    "DefaultCooldown": 1,
+    "MaxCooldown": 1,
+    "Body": "011,110" 
+    
+}

@@ -1,8 +1,0 @@
-
-// Mid Galleon
-
-pick [hittable]
-attack (0,0)
-
-pick [hittable]
-attack (0,0)
