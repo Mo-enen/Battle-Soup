@@ -25,7 +25,7 @@ TextureImporter:
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
-  ignoreMasterTextureLimit: 0
+  ignoreMipmapLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -925,7 +925,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Reveal
+      name: Block Reveal
       rect:
         serializedVersion: 2
         x: 958
@@ -1093,7 +1093,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Type Reveal
+      name: Reveal
       rect:
         serializedVersion: 2
         x: 614
@@ -1134,6 +1134,153 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Heart
+      rect:
+        serializedVersion: 2
+        x: 319
+        y: 513
+        width: 164
+        height: 139
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 68cd8bfabeb3048418f481e1b223e33e
+      internalID: 1686350667
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Shield
+      rect:
+        serializedVersion: 2
+        x: 897
+        y: 515
+        width: 126
+        height: 149
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e5259894c2b654346b3a75b1f52ba484
+      internalID: 687813915
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Card
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 512
+        width: 31
+        height: 44
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5b5323625253e8b43ace4fad3af87d1f
+      internalID: -1197114664
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Card Back 3
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 512
+        width: 31
+        height: 44
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6ab70c6b37145774d86d55a3cf1d696b
+      internalID: -1209194024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Card Back 2
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 557
+        width: 31
+        height: 44
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3b74f1cb0d879794c95dcd0b7a41aa4a
+      internalID: 1966888473
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Card Back 1
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 602
+        width: 31
+        height: 44
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 70d971cf066d04f4896f681fb1e18bc8
+      internalID: -1640658473
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Card Back 0
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 647
+        width: 31
+        height: 44
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 117c734894543b34c8dd7e77f821c46c
+      internalID: -689853508
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -1157,12 +1304,14 @@ TextureImporter:
       Card Dock: -727580675
       Spoon: -1698021046
       Panel_Bottom: 1723589175
+      Heart: 1686350667
       CheatWin: 1893319958
       Card Back 2: 1966888473
       Trident: 781701380
       Cucumber: -1186084701
       Dev: 390764257
       Icon Girl: 1566753909
+      Card: -1197114664
       Mouse Right: 1978710756
       Type Attack: 316171434
       Mark: 1325594848
@@ -1177,10 +1326,9 @@ TextureImporter:
       Cheat 0: -254108267
       Wood Item: -954188774
       Wood Panel: 1851841581
-      Type Reveal: -1573931899
       Cheat 1: 1271489718
-      Demon Hand 0: -1666693782
       Panel_Top: -694896823
+      Demon Hand 0: -1666693782
       Title Ship 1: -190956466
       Wood Panel B: 1929336801
       Soup: -476286866
@@ -1196,14 +1344,17 @@ TextureImporter:
       Title Ship 3: 1629271374
       Card Back 0: -689853508
       Panel: -2113243177
-      Reveal: -1473093000
+      Reveal: -1573931899
       Button: 126692845
       Icon Robot: 270312904
+      Shield: 687813915
+      Block Reveal: -1473093000
       Button_Top: 1410402402
       Title Ship 0: -1270888692
       Duplicate: -912281225
       Button_Down: 649432191
       Demon Hand 1: 56554640
+  mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
   assetBundleName: 

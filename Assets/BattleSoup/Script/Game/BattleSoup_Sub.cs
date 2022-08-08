@@ -34,103 +34,135 @@ namespace BattleSoup {
 
 
 		[System.Serializable]
-		private class GameAsset {
+		public class GameAsset {
 
-			public RectTransform PanelRoot = null;
-			public RectTransform PreparePanel = null;
-			public RectTransform PlacePanel = null;
-			public Button MapShipSelectorNextButton = null;
-			public Canvas Canvas = null;
-			public CanvasScaler CanvasScaler = null;
-			public RectTransform TopUI = null;
-			public RectTransform BottomUI = null;
-			public PostProcessVolume EffectVolume = null;
+			public RectTransform PanelRoot;
+			public RectTransform PreparePanel;
+			public RectTransform PlacePanel;
+			public Button MapShipSelectorNextButton;
+			public Canvas Canvas;
+			public CanvasScaler CanvasScaler;
+			public RectTransform TopUI;
+			public RectTransform BottomUI;
+			public PostProcessVolume EffectVolume;
 
 			[Header("Dialog")]
-			public RectTransform DialogRoot = null;
-			public RectTransform QuitBattleDialog = null;
-			public RectTransform NoShipAlert = null;
-			public RectTransform NoMapAlert = null;
-			public RectTransform FailPlacingShipsDialog = null;
-			public RectTransform RobotFailedToPlaceShipsDialog = null;
-			public RectTransform Dialog_Win = null;
-			public RectTransform Dialog_WinCheat = null;
-			public RectTransform Dialog_Lose = null;
-			public RectTransform Dialog_LoseCheat = null;
-			public RectTransform Dialog_AbilityCopy = null;
+			public RectTransform DialogRoot;
+			public RectTransform QuitBattleDialog;
+			public RectTransform NoShipAlert;
+			public RectTransform NoMapAlert;
+			public RectTransform FailPlacingShipsDialog;
+			public RectTransform RobotFailedToPlaceShipsDialog;
+			public RectTransform Dialog_Win;
+			public RectTransform Dialog_WinCheat;
+			public RectTransform Dialog_Lose;
+			public RectTransform Dialog_LoseCheat;
+			public RectTransform Dialog_AbilityCopy;
 
 			[Header("Map")]
-			public RectTransform MapSelectorContentA = null;
-			public Text MapSelectorLabelA = null;
-			public RectTransform MapSelectorContentB = null;
-			public Text MapSelectorLabelB = null;
-			public Grabber MapSelectorItem = null;
+			public RectTransform MapSelectorContentA;
+			public Text MapSelectorLabelA;
+			public RectTransform MapSelectorContentB;
+			public Text MapSelectorLabelB;
+			public Grabber MapSelectorItem;
 
 			[Header("Fleet")]
-			public RectTransform FleetSelectorPlayer = null;
-			public RectTransform FleetSelectorPlayerContent = null;
-			public RectTransform FleetSelectorRobotA = null;
-			public Grabber FleetSelectorShipItem = null;
-			public Text FleetSelectorLabelA = null;
-			public Text FleetSelectorLabelB = null;
-			public RectTransform FleetRendererA = null;
-			public RectTransform FleetRendererB = null;
-			public Grabber FleetRendererItem = null;
-			public Dropdown RobotAiA = null;
-			public Dropdown RobotAiB = null;
+			public RectTransform FleetSelectorPlayer;
+			public RectTransform FleetSelectorPlayerContent;
+			public RectTransform FleetSelectorRobotA;
+			public Grabber FleetSelectorShipItem;
+			public Text FleetSelectorLabelA;
+			public Text FleetSelectorLabelB;
+			public RectTransform FleetRendererA;
+			public RectTransform FleetRendererB;
+			public Grabber FleetRendererItem;
+			public Dropdown RobotAiA;
+			public Dropdown RobotAiB;
 
 			[Header("Setting")]
-			public Toggle SoundTG = null;
-			public Toggle AutoPlayAvATG = null;
-			public Toggle UseAnimationTG = null;
-			public Toggle UseEffectTG = null;
-			public Toggle[] UiScaleTGs = null;
+			public Toggle SoundTG;
+			public Toggle AutoPlayAvATG;
+			public Toggle UseAnimationTG;
+			public Toggle UseEffectTG;
+			public Toggle[] UiScaleTGs;
 
 			[Header("Playing")]
-			public Toggle CheatTG = null;
-			public Toggle DevTG = null;
-			public Toggle DevHitTG = null;
-			public Toggle DevCookTG = null;
-			public Grabber ShipAbilityItem = null;
-			public RectTransform AbilityContainerA = null;
-			public RectTransform AbilityContainerB = null;
-			public RectTransform PickingHint = null;
-			public Image AvatarIconA = null;
-			public Image AvatarIconB = null;
-			public Text AvatarLabelA = null;
-			public Text TurnLabel = null;
-			public Button PlayAvA = null;
-			public Button PauseAvA = null;
-			public Button RestartAvA = null;
-			public Text RobotDescriptionA = null;
-			public Text RobotDescriptionB = null;
-			public BlinkImage AbilityHintA = null;
-			public BlinkImage AbilityHintB = null;
+			public Toggle CheatTG;
+			public Toggle DevTG;
+			public Toggle DevHitTG;
+			public Toggle DevCookTG;
+			public Grabber ShipAbilityItem;
+			public RectTransform AbilityContainerA;
+			public RectTransform AbilityContainerB;
+			public RectTransform PickingHint;
+			public Image AvatarIconA;
+			public Image AvatarIconB;
+			public Text AvatarLabelA;
+			public Text TurnLabel;
+			public Button PlayAvA;
+			public Button PauseAvA;
+			public Button RestartAvA;
+			public Text RobotDescriptionA;
+			public Text RobotDescriptionB;
+			public BlinkImage AbilityHintA;
+			public BlinkImage AbilityHintB;
 
 			[Header("Ship Editor")]
-			public RectTransform ShipEditorWorkbenchRoot = null;
-			public RectTransform ShipEditorBottomUI = null;
-			public RectTransform ShipEditorFileContainer = null;
-			public Grabber Workbench = null;
-			public Grabber ShipEditorFileItem = null;
-			public Grabber ShipEditorArtworkItem = null;
-			public Grabber ShipEditorArtworkPopupItem = null;
-			public Button DeleteShipButton = null;
-			public Button ShipEditorUseAbilityButton = null;
-			public Button ShipEditorRevealButton = null;
-			public RectTransform ShipEditorArtworkContainer = null;
-			public RectTransform ShipEditorArtworkPopupRoot = null;
-			public RectTransform ShipEditorArtworkPopupContainer = null;
-			public RectTransform ShipEditorBuiltInMark = null;
-			public Button[] ShipEditorTabs = null;
-			public RectTransform[] ShipEditorPanels = null;
+			public RectTransform ShipEditorWorkbenchRoot;
+			public RectTransform ShipEditorBottomUI;
+			public RectTransform ShipEditorFileContainer;
+			public Grabber Workbench;
+			public Grabber ShipEditorFileItem;
+			public Grabber ShipEditorArtworkItem;
+			public Grabber ShipEditorArtworkPopupItem;
+			public Button DeleteShipButton;
+			public Button ShipEditorUseAbilityButton;
+			public Button ShipEditorRevealButton;
+			public RectTransform ShipEditorArtworkContainer;
+			public RectTransform ShipEditorArtworkPopupRoot;
+			public RectTransform ShipEditorArtworkPopupContainer;
+			public RectTransform ShipEditorBuiltInMark;
+			public Button[] ShipEditorTabs;
+			public RectTransform[] ShipEditorPanels;
 
 			[Header("Asset")]
-			public Sprite DefaultShipIcon = null;
-			public Sprite PlayerAvatarIcon = null;
-			public Sprite RobotAvatarIcon = null;
-			public Sprite AngryRobotAvatarIcon = null;
-			public Sprite EmptyMirrorShipIcon = null;
+			public Sprite DefaultShipIcon;
+			public Sprite PlayerAvatarIcon;
+			public Sprite RobotAvatarIcon;
+			public Sprite AngryRobotAvatarIcon;
+			public Sprite EmptyMirrorShipIcon;
+		}
+
+
+
+		[System.Serializable]
+		public class GameAsset_Card {
+
+			public Text LevelNumber;
+			public RectTransform EnemyShipContainer;
+			[Header("Item")]
+			public PlayerCard PlayerCard;
+			public EnemyCard EnemyCard;
+			public Grabber ShipItem;
+			[Header("Slot")]
+			public RectTransform PlayerSlot_From;
+			public RectTransform PlayerSlot_Out;
+			public RectTransform PlayerSlot_Dock;
+			public RectTransform PlayerSlot_Performing;
+			public RectTransform PlayerSlotBackground_From;
+			public RectTransform PlayerSlotBackground_Out;
+			public RectTransform EnemySlot_From;
+			public RectTransform EnemySlot_Out;
+			public RectTransform EnemySlot_Dock;
+			public RectTransform EnemySlot_Performing;
+			public RectTransform EnemySlotBackground_From;
+			public RectTransform EnemySlotBackground_Out;
+			[Header("Data")]
+			public AnimationCurve FlipCurve;
+			public Sprite[] TypeIcons;
+			public CardInfo[] CardInfos;
+			public Texture2D[] Maps;
+
 		}
 
 

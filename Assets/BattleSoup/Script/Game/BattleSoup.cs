@@ -34,6 +34,8 @@ namespace BattleSoup {
 		public bool Cheated { get; private set; } = false;
 		public Vector2Int PickingPosition { get; private set; } = default;
 		public Direction4 PickingDirection { get; private set; } = default;
+		public GameAsset Assets => m_Assets;
+		public GameAsset_Card CardAssets => m_CardAssets;
 
 		// Setting
 		public bool UseSound { get => s_UseSound.Value; set => s_UseSound.Value = value; }
@@ -42,6 +44,7 @@ namespace BattleSoup {
 
 		// Ser
 		[SerializeField] GameAsset m_Assets = null;
+		[SerializeField] GameAsset_Card m_CardAssets = null;
 
 		// Data
 		private readonly Dictionary<int, Ship> ShipPool = new();
@@ -90,6 +93,9 @@ namespace BattleSoup {
 				CustomShipSprites.Add(CellRenderer.CreateUnitySprite(sprite.GlobalID));
 			}
 			ReloadShipEditorArtworkPopupUI();
+
+			CardMaps.Clear();
+			foreach (var mTexture in m_CardAssets.Maps) CardMaps.Add(new Map(mTexture));
 
 			Init_AI();
 			SetUiScale(s_UiScale.Value);
@@ -217,13 +223,7 @@ namespace BattleSoup {
 
 
 		private void Update_Playing () {
-			int dialogCount = m_Assets.DialogRoot.childCount;
-			for (int i = 0; i < dialogCount; i++) {
-				if (m_Assets.DialogRoot.GetChild(i).gameObject.activeSelf) {
-					DialogFrame = GlobalFrame;
-					break;
-				}
-			}
+			RefreshDialogFrame();
 			bool noDialog = GlobalFrame > DialogFrame + 4;
 			var currentStep = CellStep.CurrentStep;
 			bool PvA = Mode == GameMode.PvA;
@@ -339,6 +339,7 @@ namespace BattleSoup {
 
 
 		public void SwitchTurn () {
+			if (State != GameState.Playing) return;
 			CellStep.Clear();
 			RobotA.Analyze(FieldA, FieldB);
 			RobotB.Analyze(FieldB, FieldA);
@@ -723,6 +724,17 @@ namespace BattleSoup {
 				cameraHeight / rt.rect.height
 			);
 			rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rt.rect.height * camera.aspect);
+		}
+
+
+		private void RefreshDialogFrame () {
+			int dialogCount = m_Assets.DialogRoot.childCount;
+			for (int i = 0; i < dialogCount; i++) {
+				if (m_Assets.DialogRoot.GetChild(i).gameObject.activeSelf) {
+					DialogFrame = GlobalFrame;
+					break;
+				}
+			}
 		}
 
 
@@ -1229,15 +1241,7 @@ namespace BattleSoup {
 							continue;
 						}
 						if (texture.width == 0 || texture.height == 0) continue;
-						var pixels = texture.GetPixels32();
-						var map = new Map() {
-							Size = texture.width,
-							Content = new int[pixels.Length],
-						};
-						for (int i = 0; i < pixels.Length; i++) {
-							map.Content[i] = pixels[i].r < 128 ? 1 : 0;
-						}
-						AllMaps.Add(map);
+						AllMaps.Add(new Map(texture));
 					} catch (System.Exception ex) { Debug.LogException(ex); }
 				}
 				AllMaps.Sort((a, b) => a.Size.CompareTo(b.Size));

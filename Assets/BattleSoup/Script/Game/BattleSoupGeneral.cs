@@ -137,6 +137,8 @@ namespace BattleSoup {
 		Attack = 0,
 		Reveal = 1,
 		Sonar = 2,
+		Shield = 3,
+		Heart = 4,
 	}
 
 
@@ -443,6 +445,16 @@ namespace BattleSoup {
 		public int this[int x, int y] => Content[y * Size + x];
 		public int Size = 8;
 		public int[] Content = new int[64]; // 0:Water 1:Stone
+
+		public Map () { }
+		public Map (Texture2D texture) {
+			Size = texture.width;
+			Content = new int[texture.width * texture.height];
+			var pixels = texture.GetPixels32();
+			for (int i = 0; i < pixels.Length; i++) {
+				Content[i] = pixels[i].r < 128 ? 1 : 0;
+			}
+		}
 
 	}
 
