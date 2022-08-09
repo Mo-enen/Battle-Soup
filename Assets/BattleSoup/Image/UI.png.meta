@@ -1162,7 +1162,7 @@ TextureImporter:
         x: 897
         y: 515
         width: 126
-        height: 149
+        height: 153
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1327,8 +1327,8 @@ TextureImporter:
       Wood Item: -954188774
       Wood Panel: 1851841581
       Cheat 1: 1271489718
-      Panel_Top: -694896823
       Demon Hand 0: -1666693782
+      Panel_Top: -694896823
       Title Ship 1: -190956466
       Wood Panel B: 1929336801
       Soup: -476286866

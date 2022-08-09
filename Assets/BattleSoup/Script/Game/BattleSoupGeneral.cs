@@ -278,6 +278,10 @@ namespace BattleSoup {
 
 		public static bool IsManualEntrance (this EntranceType entrance) => entrance == EntranceType.OnAbilityUsed || entrance == EntranceType.OnAbilityUsedOvercharged;
 
+		public static bool StopLerp (this Vector3 v, Vector3 target, float gap) => Mathf.Abs(v.x - target.x) < gap && Mathf.Abs(v.y - target.y) < gap && Mathf.Abs(v.z - target.z) < gap;
+
+		public static bool StopLerp (this Color v, Color target, float gap) => Mathf.Abs(v.r - target.r) < gap && Mathf.Abs(v.g - target.g) < gap && Mathf.Abs(v.b - target.b) < gap && Mathf.Abs(v.a - target.a) < gap;
+
 	}
 
 

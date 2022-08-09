@@ -139,7 +139,14 @@ namespace BattleSoup {
 		public class GameAsset_Card {
 
 			public Text LevelNumber;
+			public PopUI LevelNumberPop;
 			public RectTransform EnemyShipContainer;
+			public RectTransform StackContainer;
+			public PopUI PlayerHpPop;
+			public PopUI PlayerSpPop;
+			public Text PlayerHp;
+			public Text PlayerSp;
+			public Text MaxLevel;
 			[Header("Item")]
 			public PlayerCard PlayerCard;
 			public EnemyCard EnemyCard;
@@ -160,8 +167,10 @@ namespace BattleSoup {
 			[Header("Data")]
 			public AnimationCurve FlipCurve;
 			public Sprite[] TypeIcons;
-			public CardInfo[] CardInfos;
 			public Texture2D[] Maps;
+			public string[] Fleets;
+			public CardInfo[] BasicCards;
+			public CardInfo[] AdditionalCards;
 
 		}
 
