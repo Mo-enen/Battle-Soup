@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 
 
 namespace BattleSoup {
-	public class PlayerCard : Card, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler {
+	public class PlayerCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler {
 
 
 		// Ser

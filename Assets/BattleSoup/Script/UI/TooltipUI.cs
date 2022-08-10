@@ -8,8 +8,8 @@ using UnityEngine.UI;
 
 namespace BattleSoup {
 	public class TooltipUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler {
-		public string Tooltip = "";
 		[SerializeField] Text m_Tooltip = null;
+		[TextArea] public string Tooltip = "";
 		public void OnPointerEnter (PointerEventData eventData) {
 			if (m_Tooltip == null) return;
 			m_Tooltip.text = Tooltip;

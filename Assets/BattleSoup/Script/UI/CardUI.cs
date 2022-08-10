@@ -7,7 +7,7 @@ using AngeliaFramework;
 
 
 namespace BattleSoup {
-	public abstract class Card : MonoBehaviour {
+	public abstract class CardUI : MonoBehaviour {
 
 
 

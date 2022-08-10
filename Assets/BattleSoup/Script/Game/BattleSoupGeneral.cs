@@ -139,6 +139,7 @@ namespace BattleSoup {
 		Sonar = 2,
 		Shield = 3,
 		Heart = 4,
+		Card = 5,
 	}
 
 
@@ -281,6 +282,18 @@ namespace BattleSoup {
 		public static bool StopLerp (this Vector3 v, Vector3 target, float gap) => Mathf.Abs(v.x - target.x) < gap && Mathf.Abs(v.y - target.y) < gap && Mathf.Abs(v.z - target.z) < gap;
 
 		public static bool StopLerp (this Color v, Color target, float gap) => Mathf.Abs(v.r - target.r) < gap && Mathf.Abs(v.g - target.g) < gap && Mathf.Abs(v.b - target.b) < gap && Mathf.Abs(v.a - target.a) < gap;
+
+		public static int[] AngeHash (this string[] strs) {
+			var result = new int[strs.Length];
+			for (int i = 0; i < strs.Length; i++) {
+				result[i] = strs[i].AngeHash();
+			}
+			return result;
+		}
+
+		public static void PushRange<T> (this Stack<T> stack, IEnumerable<T> list) {
+			foreach (var l in list) stack.Push(l);
+		}
 
 	}
 

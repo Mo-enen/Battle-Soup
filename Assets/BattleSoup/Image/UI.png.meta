@@ -1281,6 +1281,90 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: ecAttackOne
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 512
+        width: 31
+        height: 44
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: da4c370be3be52f409d9b6208c680052
+      internalID: 1138302231
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ecAttackTwo
+      rect:
+        serializedVersion: 2
+        x: 97
+        y: 512
+        width: 31
+        height: 44
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aef2f0461ae9e444c99a2566015d2692
+      internalID: 37805231
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ecAttackThree
+      rect:
+        serializedVersion: 2
+        x: 129
+        y: 512
+        width: 31
+        height: 44
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 89365bca79cd78744a652733cd54e4ab
+      internalID: 333861831
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ecAttackFour
+      rect:
+        serializedVersion: 2
+        x: 161
+        y: 512
+        width: 31
+        height: 44
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6ad2831a2258c0a4384f4cc45856fa9a
+      internalID: 396118742
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -1307,6 +1391,8 @@ TextureImporter:
       Heart: 1686350667
       CheatWin: 1893319958
       Card Back 2: 1966888473
+      ecAttackTwo: 37805231
+      ecAttackThree: 333861831
       Trident: 781701380
       Cucumber: -1186084701
       Dev: 390764257
@@ -1317,6 +1403,7 @@ TextureImporter:
       Mark: 1325594848
       Turn Mark: 2122127840
       Folder: -1701764842
+      ecAttackOne: 1138302231
       VS: -550570813
       Reload: 1544891859
       ESC: -1301258364
@@ -1327,8 +1414,8 @@ TextureImporter:
       Wood Item: -954188774
       Wood Panel: 1851841581
       Cheat 1: 1271489718
-      Demon Hand 0: -1666693782
       Panel_Top: -694896823
+      Demon Hand 0: -1666693782
       Title Ship 1: -190956466
       Wood Panel B: 1929336801
       Soup: -476286866
@@ -1343,6 +1430,7 @@ TextureImporter:
       ShipBodyItem: 2090411686
       Title Ship 3: 1629271374
       Card Back 0: -689853508
+      ecAttackFour: 396118742
       Panel: -2113243177
       Reveal: -1573931899
       Button: 126692845

@@ -94,9 +94,7 @@ namespace BattleSoup {
 			}
 			ReloadShipEditorArtworkPopupUI();
 
-			CardMaps.Clear();
-			foreach (var mTexture in m_CardAssets.Maps) CardMaps.Add(new Map(mTexture));
-
+			Init_Card();
 			Init_AI();
 			SetUiScale(s_UiScale.Value);
 			SetUseScreenEffect(s_UseScreenEffect.Value);
@@ -401,7 +399,15 @@ namespace BattleSoup {
 		}
 
 
-		public void AbandonAbility () => CellStep.Clear(typeof(sSwitchTurn));
+		public void AbandonAbility () {
+			if (State != GameState.CardGame) {
+				// Playing
+				CellStep.Clear(typeof(sSwitchTurn));
+			} else {
+				// Card
+				CellStep.Clear(typeof(sCard_EnemyTurn));
+			}
+		}
 
 
 		public bool TryGetAbility (int id, out Ability ability) => AbilityPool.TryGetValue(id, out ability);

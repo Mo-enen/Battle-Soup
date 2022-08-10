@@ -13,8 +13,9 @@ namespace BattleSoup {
 			Title = 0,
 			Prepare = 1,
 			Playing = 2,
-			CardGame = 3,
-			ShipEditor = 4,
+			CardPrepare = 3,
+			CardGame = 4,
+			ShipEditor = 5,
 		}
 
 
@@ -138,6 +139,13 @@ namespace BattleSoup {
 		[System.Serializable]
 		public class GameAsset_Card {
 
+			[System.Serializable]
+			public class Level {
+				public string Fleet;
+				public Texture2D Map;
+				public string[] Cards;
+			}
+
 			public Text LevelNumber;
 			public PopUI LevelNumberPop;
 			public RectTransform EnemyShipContainer;
@@ -146,10 +154,10 @@ namespace BattleSoup {
 			public PopUI PlayerSpPop;
 			public Text PlayerHp;
 			public Text PlayerSp;
-			public Text MaxLevel;
+			public RectTransform PickingHint;
 			[Header("Item")]
-			public PlayerCard PlayerCard;
-			public EnemyCard EnemyCard;
+			public PlayerCardUI PlayerCard;
+			public EnemyCardUI EnemyCard;
 			public Grabber ShipItem;
 			[Header("Slot")]
 			public RectTransform PlayerSlot_From;
@@ -167,11 +175,10 @@ namespace BattleSoup {
 			[Header("Data")]
 			public AnimationCurve FlipCurve;
 			public Sprite[] TypeIcons;
-			public Texture2D[] Maps;
-			public string[] Fleets;
+			public Sprite[] EnemyCardSprites;
 			public CardInfo[] BasicCards;
 			public CardInfo[] AdditionalCards;
-
+			public Level[] Levels;
 		}
 
 

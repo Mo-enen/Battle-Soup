@@ -6,9 +6,26 @@ using AngeliaFramework;
 using UnityEngine.UI;
 using System.Text;
 
+
 namespace BattleSoup {
 	public partial class BattleSoup {
 
+
+
+
+
+		#region --- SUB ---
+
+
+		public enum Hero {
+			Nerd,
+			GG,
+			Nessie,
+			Hacker,
+		}
+
+
+		#endregion
 
 
 
@@ -17,14 +34,14 @@ namespace BattleSoup {
 
 
 		// Data
-		private readonly List<CardInfo> CardStack = new();
-		private readonly List<Map> CardMaps = new();
+		private readonly Stack<CardInfo> Card_PlayerStack = new();
+		private readonly Stack<int> Card_EnemyStack = new();
+		private readonly List<Map> Card_Maps = new();
+		private readonly Dictionary<int, EnemyCard> Card_EnemyCardPool = new();
 		private int Card_PlayerHP = 10;
 		private int Card_PlayerSP = 0;
-
-		// Saving
-		private SavingInt s_CardLevel = new("BattleSoup.CardLevel", 1);
-		private SavingInt s_CardMaxLevel = new("BattleSoup.CardMaxLevel", 1);
+		private int CardLevel = 0;
+		private Hero CurrentHero = Hero.Nerd;
 
 
 		#endregion
@@ -33,6 +50,26 @@ namespace BattleSoup {
 
 
 		#region --- MSG ---
+
+
+		private void Init_Card () {
+
+			CurrentHero = Hero.Nerd;
+
+			Card_Maps.Clear();
+			foreach (var level in m_CardAssets.Levels) Card_Maps.Add(new Map(level.Map));
+
+			var iconPool = new Dictionary<int, Sprite>();
+			foreach (var sp in m_CardAssets.EnemyCardSprites) iconPool.TryAdd(sp.name.AngeHash(), sp);
+			Card_EnemyCardPool.Clear();
+			foreach (var type in typeof(EnemyCard).AllChildClass()) {
+				int id = type.AngeHash();
+				var card = System.Activator.CreateInstance(type) as EnemyCard;
+				Card_EnemyCardPool.TryAdd(id, card);
+				card.Icon = iconPool.TryGetValue(id, out var sp) ? sp : null;
+			}
+
+		}
 
 
 		private void SwitchState_CardGame () {
@@ -55,7 +92,7 @@ namespace BattleSoup {
 			PickingDirection = default;
 			GameOver = false;
 
-			Card_GotoLevel(s_CardLevel.Value);
+			Card_GotoLevel(0);
 
 		}
 
@@ -65,18 +102,33 @@ namespace BattleSoup {
 			RefreshDialogFrame();
 			bool noDialog = GlobalFrame > DialogFrame + 4;
 			bool waitingForPlayer = !GameOver && CellStep.CurrentStep == null;
+			bool picking = CellStep.CurrentStep is sPick;
 
 			FieldB.AllowHoveringOnWater = noDialog && waitingForPlayer;
 			FieldB.SetPickingDirection(PickingDirection);
 
 			StopAbilityOnShipSunk();
 
-			// Fill up Steps
+			// Picking Hint
+			if (m_CardAssets.PickingHint.gameObject.activeSelf != picking) {
+				m_CardAssets.PickingHint.gameObject.SetActive(picking);
+			}
+
+			// Fill Stack when Empty
+			if (Card_PlayerStack.Count == 0) {
+				FillPlayerStack(CardLevel);
+			}
+			if (Card_EnemyStack.Count == 0) {
+				FillEnemyStack(CardLevel);
+			}
+
+			// Fill up Steps for a whole turn
 			if (CellStep.CurrentStep == null) {
 				// Deal for Player
 
 
-				// Enemy Attack
+				// Enemy Turn
+				//sCard_EnemyTurn
 
 
 
@@ -89,9 +141,12 @@ namespace BattleSoup {
 				// Game Over
 				CellStep.Clear();
 				if (playerWin) {
-					Card_GotoLevel(s_CardLevel.Value + 1);
+					Card_GotoLevel(CardLevel + 1);
 				} else if (enemyWin) {
-					Card_GotoLevel(s_CardLevel.Value - 1);
+					// Lose
+
+
+
 				}
 			}
 
@@ -128,10 +183,21 @@ namespace BattleSoup {
 
 
 		// UI
-		public void UI_Card_SurrenderAndQuit () {
-			s_CardLevel.Value = Mathf.Max(s_CardLevel.Value - 1, 1);
-			SwitchState(GameState.Title);
+		public void UI_SetHero_Nerd (bool isOn) {
+			if (isOn) CurrentHero = Hero.Nerd;
 		}
+		public void UI_SetHero_GG (bool isOn) {
+			if (isOn) CurrentHero = Hero.GG;
+		}
+		public void UI_SetHero_Nessie (bool isOn) {
+			if (isOn) CurrentHero = Hero.Nessie;
+		}
+		public void UI_SetHero_Hacker (bool isOn) {
+			if (isOn) CurrentHero = Hero.Hacker;
+		}
+
+
+		public void UI_Card_SurrenderAndQuit () => SwitchState(GameState.Title);
 
 
 		#endregion
@@ -144,78 +210,34 @@ namespace BattleSoup {
 
 		private void Card_GotoLevel (int level) {
 
-			level = level.Clamp(1, int.MaxValue);
-			s_CardLevel.Value = level;
+			level = level.Clamp(0, m_CardAssets.Levels.Length - 1);
+			CardLevel = level;
 			Card_SetPlayerHP(Card_GetPlayerMaxHP());
 			Card_SetPlayerSP(0);
 
-			// Fill Stack
-			CardStack.Clear();
-			CardStack.AddRange(m_CardAssets.BasicCards);
-			int addLen = CardAssets.AdditionalCards.Length;
-			if (level < addLen) {
-				CardStack.AddRange(CardAssets.AdditionalCards[0..level]);
-			} else {
-				CardStack.AddRange(CardAssets.AdditionalCards);
-				for (int i = addLen; i < level; i++) {
-					CardStack.Add(CardAssets.AdditionalCards[(i % 3) + addLen - 3]);
-				}
-			}
-			Card_ReloadStackInfoUI();
+			// Stack
+			FillPlayerStack(level);
+			FillEnemyStack(level);
 
-			// Shuffle Stack
-			for (int i = 0; i < CardStack.Count; i++) {
-				int random = Random.Range(0, CardStack.Count);
-				if (random != i) (CardStack[i], CardStack[random]) = (CardStack[random], CardStack[i]);
-			}
+			// Map
+			FieldB.SetMap(Card_Maps[(level / 3).Clamp(0, Card_Maps.Count - 1)], false);
 
-			// Field
-			FieldB.SetMap(CardMaps[(level / 3).Clamp(0, CardMaps.Count - 1)], false);
+			// Level
+			var levelAsset = m_CardAssets.Levels[level];
 
 			// Fleet
-			string fleet;
-			if (level - 1 < m_CardAssets.Fleets.Length) {
-				// Built In
-				int fIndex = level - 1;
-				fleet = m_CardAssets.Fleets[fIndex.Clamp(0, m_CardAssets.Fleets.Length - 1)];
-			} else {
-				// Random
-				int sCount = Random.Range(4, 7);
-				var builder = new StringBuilder();
-				for (int i = 0; i < sCount; i++) {
-					string sName = "Sailboat";
-					var meta = ShipMetas[Random.Range(0, ShipMetas.Count)];
-					if (TryGetShip(meta.ID, out var ship)) sName = ship.GlobalName;
-					builder.Append(sName);
-					if (i != sCount - 1) builder.Append(',');
-				}
-				fleet = builder.ToString();
-			}
-			var ships = GetShipsFromFleetString(fleet);
+			var ships = GetShipsFromFleetString(levelAsset.Fleet);
 			if (ships == null || ships.Length == 0) ships = GetShipsFromFleetString("Sailboat,SeaMonster,Longboat,MiniSub");
 			FieldB.SetShips(ships);
 			FieldB.RandomPlaceShips(128);
 			FieldB.GameStart();
 
-			// Reload Fleet UI
-			m_CardAssets.EnemyShipContainer.DestroyAllChirldrenImmediate();
-			foreach (var ship in FieldB.Ships) {
-				var grab = Instantiate(m_CardAssets.ShipItem, m_CardAssets.EnemyShipContainer);
-				grab.ReadyForInstantiate();
-				var icon = grab.Grab<Image>("Icon");
-				var tip = grab.Grab<TooltipUI>();
-				var shape = grab.Grab<ShipShapeUI>();
-				icon.sprite = ship.Icon;
-				tip.Tooltip = $"Enemy Ship {ship.DisplayName}";
-				shape.Ship = ship;
-			}
-
 			// Final
+			Card_ReloadFleetUI();
+			Card_ReloadStackInfoUI();
 			m_CardAssets.LevelNumber.text = level.ToString("00");
 			m_CardAssets.PlayerSlotBackground_Out.gameObject.SetActive(false);
 			m_CardAssets.EnemySlotBackground_Out.gameObject.SetActive(false);
-			s_CardMaxLevel.Value = Mathf.Max(s_CardMaxLevel.Value, s_CardLevel.Value);
-			m_CardAssets.MaxLevel.text = $"Best {s_CardMaxLevel.Value:00}";
 			m_CardAssets.LevelNumberPop.Pop();
 
 		}
@@ -244,7 +266,7 @@ namespace BattleSoup {
 
 		private void Card_ReloadStackInfoUI () {
 			m_CardAssets.StackContainer.DestroyAllChirldrenImmediate();
-			foreach (var info in CardStack) {
+			foreach (var info in Card_PlayerStack) {
 				var rt = new GameObject("", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image)).transform as RectTransform;
 				rt.SetParent(m_CardAssets.StackContainer);
 				rt.localScale = Vector3.one;
@@ -269,13 +291,79 @@ namespace BattleSoup {
 		}
 
 
+		private void Card_ReloadFleetUI () {
+			m_CardAssets.EnemyShipContainer.DestroyAllChirldrenImmediate();
+			foreach (var ship in FieldB.Ships) {
+				var grab = Instantiate(m_CardAssets.ShipItem, m_CardAssets.EnemyShipContainer);
+				grab.ReadyForInstantiate();
+				var icon = grab.Grab<Image>("Icon");
+				var tip = grab.Grab<TooltipUI>();
+				var shape = grab.Grab<ShipShapeUI>();
+				icon.sprite = ship.Icon;
+				tip.Tooltip = $"Enemy Ship {ship.DisplayName}";
+				shape.Ship = ship;
+			}
+		}
+
+
 		// Util
-		private int Card_GetPlayerMaxHP () {
+		private int Card_GetPlayerMaxHP () => CurrentHero switch {
+			Hero.Nerd => 10,
+			Hero.GG => 10,
+			Hero.Nessie => 15,
+			Hero.Hacker => 7,
+			_ => 10,
+		};
 
 
+		private int Card_GetPlayerDefaultSP () => CurrentHero switch {
+			Hero.Nerd => 0,
+			Hero.GG => 0,
+			Hero.Nessie => 2,
+			Hero.Hacker => 0,
+			_ => 0,
+		};
 
 
-			return 10;
+		private void FillPlayerStack (int level) {
+			var pList = new List<CardInfo>();
+			pList.AddRange(m_CardAssets.BasicCards);
+			int addLen = CardAssets.AdditionalCards.Length;
+			if (level < addLen) {
+				pList.AddRange(CardAssets.AdditionalCards[0..level]);
+			} else {
+				pList.AddRange(CardAssets.AdditionalCards);
+				for (int i = addLen; i < level; i++) {
+					pList.Add(CardAssets.AdditionalCards[(i % 3) + addLen - 3]);
+				}
+			}
+			Card_ShufflePlayerStack(pList);
+			Card_PlayerStack.Clear();
+			Card_PlayerStack.PushRange(pList);
+		}
+
+
+		private void FillEnemyStack (int level) {
+			var eList = new List<int>(m_CardAssets.Levels[level].Cards.AngeHash());
+			Card_ShuffleEnemyStack(eList);
+			Card_EnemyStack.Clear();
+			Card_EnemyStack.PushRange(eList);
+		}
+
+
+		private void Card_ShufflePlayerStack (List<CardInfo> list) {
+			for (int i = 0; i < Card_PlayerStack.Count; i++) {
+				int random = Random.Range(0, Card_PlayerStack.Count);
+				if (random != i) (list[i], list[random]) = (list[random], list[i]);
+			}
+		}
+
+
+		private void Card_ShuffleEnemyStack (List<int> list) {
+			for (int i = 0; i < Card_EnemyStack.Count; i++) {
+				int random = Random.Range(0, Card_EnemyStack.Count);
+				if (random != i) (list[i], list[random]) = (list[random], list[i]);
+			}
 		}
 
 
