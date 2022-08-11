@@ -155,6 +155,8 @@ namespace BattleSoup {
 			public Text PlayerHp;
 			public Text PlayerSp;
 			public RectTransform PickingHint;
+			public Image HeroAvatar;
+			public Animator EnemyAni;
 			[Header("Item")]
 			public PlayerCardUI PlayerCard;
 			public EnemyCardUI EnemyCard;
@@ -164,18 +166,17 @@ namespace BattleSoup {
 			public RectTransform PlayerSlot_Out;
 			public RectTransform PlayerSlot_Dock;
 			public RectTransform PlayerSlot_Performing;
-			public RectTransform PlayerSlotBackground_From;
 			public RectTransform PlayerSlotBackground_Out;
 			public RectTransform EnemySlot_From;
 			public RectTransform EnemySlot_Out;
 			public RectTransform EnemySlot_Dock;
 			public RectTransform EnemySlot_Performing;
-			public RectTransform EnemySlotBackground_From;
 			public RectTransform EnemySlotBackground_Out;
 			[Header("Data")]
 			public AnimationCurve FlipCurve;
 			public Sprite[] TypeIcons;
 			public Sprite[] EnemyCardSprites;
+			public Sprite[] HeroIcons;
 			public CardInfo[] BasicCards;
 			public CardInfo[] AdditionalCards;
 			public Level[] Levels;

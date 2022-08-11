@@ -22,9 +22,8 @@ namespace BattleSoup {
 				return a < 90f || a > 270f;
 			}
 		}
-		public bool InDock { get; set; } = true;
 		public bool DynamicSlot { get; set; } = false;
-		public bool Hovering { get; set; } = false;
+		public bool DestoryWhenReady { get; set; } = false;
 
 		// Short
 		protected Image Back => m_Back;
@@ -42,10 +41,10 @@ namespace BattleSoup {
 		[SerializeField] Image m_Back;
 		[SerializeField] Image m_Front;
 		[SerializeField] TooltipUI m_Hint;
-		[SerializeField] Text m_Number;
 
 		// Data
 		private Coroutine FlipCor = null;
+		protected bool Hovering = false;
 
 
 		#endregion
@@ -60,12 +59,10 @@ namespace BattleSoup {
 
 
 		protected virtual void Update () {
-			if (InDock) {
-				if (DynamicSlot) {
-					Update_DockInside();
-				} else {
-					Update_DockContainer();
-				}
+			if (DynamicSlot) {
+				Update_DockInside();
+			} else {
+				Update_DockContainer();
 			}
 		}
 
@@ -109,7 +106,7 @@ namespace BattleSoup {
 			rot.x = 0f;
 			rot.z = 0f;
 			RT.localRotation = rot;
-			if (!DynamicSlot && Mathf.Abs(RT.anchoredPosition3D.x) < 0.5f && Mathf.Abs(RT.anchoredPosition3D.y) < 0.5f) {
+			if (DestoryWhenReady && !DynamicSlot && Mathf.Abs(RT.anchoredPosition3D.x) < 0.5f && Mathf.Abs(RT.anchoredPosition3D.y) < 0.5f) {
 				Destroy(gameObject);
 			}
 		}
@@ -149,20 +146,14 @@ namespace BattleSoup {
 		}
 
 
-		public void SetContainer (RectTransform container) {
+		public void SetContainer (RectTransform container, bool resetPosition = false) {
 			RT.SetParent(container, true);
 			RT.localScale = Vector3.one;
-			RT.anchoredPosition3D = Vector3.zero;
+			if (resetPosition) RT.anchoredPosition3D = Vector3.zero;
 		}
 
 
 		public void SetTrigger (System.Action trigger) => OnTriggered = trigger;
-
-
-		public void Invoke () => OnTriggered?.Invoke();
-
-
-		public void SetNumber (int value) => m_Number.text = value.ToString();
 
 
 		#endregion

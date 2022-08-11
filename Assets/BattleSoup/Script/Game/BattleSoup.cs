@@ -405,7 +405,21 @@ namespace BattleSoup {
 				CellStep.Clear(typeof(sSwitchTurn));
 			} else {
 				// Card
-				CellStep.Clear(typeof(sCard_EnemyTurn));
+				var list = new List<Step>();
+				int count = CellStep.StepCount;
+				for (int i = 0; i < count; i++) {
+					var step = CellStep.GetStepAt(i);
+					switch (step) {
+						case sEntranceCallback _:
+						case sActionPerformer _:
+						case sPick _:
+						case sSwitchTurn _:
+						case sSoupStep _: continue;
+					}
+					list.Add(step);
+				}
+				CellStep.Clear();
+				foreach (var step in list) CellStep.AddToLast(step);
 			}
 		}
 

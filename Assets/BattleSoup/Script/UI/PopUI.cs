@@ -34,7 +34,7 @@ namespace BattleSoup {
 
 		public void Pop () {
 			if (PopCor != null) StopCoroutine(PopCor);
-			PopCor = StartCoroutine(Poping());
+			if (gameObject.activeInHierarchy) PopCor = StartCoroutine(Poping());
 			IEnumerator Poping () {
 				transform.localScale = Scale * m_Amount;
 				IMG.color = m_Tint;

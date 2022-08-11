@@ -10,6 +10,9 @@ namespace BattleSoup {
 	public class PlayerCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler {
 
 
+		// Api
+		public bool Interactable { get; set; } = true;
+
 		// Ser
 		[SerializeField] Image m_Icon;
 		[SerializeField] Image m_TypeIcon;
@@ -25,6 +28,7 @@ namespace BattleSoup {
 			base.OnEnable();
 			Hovering = false;
 			ClickedOnce = false;
+			Interactable = true;
 		}
 
 
@@ -36,7 +40,9 @@ namespace BattleSoup {
 		}
 
 
-		public void OnPointerEnter (PointerEventData eventData) => Hovering = true;
+		public void OnPointerEnter (PointerEventData eventData) {
+			Hovering = Interactable;
+		}
 
 
 		public void OnPointerExit (PointerEventData eventData) {
@@ -47,6 +53,7 @@ namespace BattleSoup {
 
 		public void OnPointerClick (PointerEventData eventData) {
 			if (eventData.button != PointerEventData.InputButton.Left) return;
+			if (!Interactable) return;
 			if (ClickedOnce) {
 				ClickedOnce = false;
 				OnTriggered?.Invoke();
@@ -57,11 +64,10 @@ namespace BattleSoup {
 
 
 		// API
-		public void Init (CardInfo info) {
+		public void SetInfo (CardInfo info) {
 			if (!info.IsShip) {
 				// Built-in
 				m_Icon.sprite = Soup.CardAssets.TypeIcons[(int)info.Type];
-				m_TypeIcon.sprite = null;
 				Hint.Tooltip = info.Type switch {
 					CardType.Attack => "Pick a cell to Attack",
 					CardType.Reveal => "Pick a cell to Reveal",
@@ -82,17 +88,15 @@ namespace BattleSoup {
 				}
 				m_TypeIcon.sprite = Soup.CardAssets.TypeIcons[(int)info.Type];
 			}
-			m_Icon.gameObject.SetActive(m_Icon.sprite != null);
-			m_TypeIcon.gameObject.SetActive(m_TypeIcon.sprite != null);
+			m_TypeIcon.gameObject.SetActive(info.IsShip);
 		}
 
 
 		protected override void RefreshFrontBackUI () {
 			base.RefreshFrontBackUI();
 			bool front = Front;
-			m_Icon.gameObject.SetActive(front);
-			m_TypeIcon.gameObject.SetActive(front);
-			m_ClickedMark.gameObject.SetActive(front);
+			m_Icon.enabled = front;
+			m_TypeIcon.enabled = front;
 		}
 
 
