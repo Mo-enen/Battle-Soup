@@ -135,11 +135,9 @@ namespace BattleSoup {
 
 	public enum CardType {
 		Attack = 0,
-		Reveal = 1,
-		Sonar = 2,
-		Shield = 3,
-		Heart = 4,
-		Card = 5,
+		Shield = 1,
+		Heart = 2,
+		Card = 3,
 	}
 
 

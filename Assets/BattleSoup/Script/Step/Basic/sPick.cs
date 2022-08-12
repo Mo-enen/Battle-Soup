@@ -15,7 +15,7 @@ namespace BattleSoup {
 		public ActionKeyword Keyword { get; init; } = default;
 		public Ship Ship { get; init; } = null;
 		public bool Interactable { get; init; } = true;
-
+		
 		// Data
 		private bool RequireAbandonAbility = false;
 		private bool RequireCancelPick = false;

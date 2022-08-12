@@ -15,12 +15,13 @@ namespace BattleSoup {
 
 		// Ser
 		[SerializeField] Image m_Icon;
-		[SerializeField] Image m_TypeIcon;
 		[SerializeField] RectTransform m_ClickedMark;
+		[SerializeField] RectTransform m_Root;
+		[SerializeField] TooltipUI m_Hint;
 
 		// Data
 		private bool ClickedOnce = false;
-
+		private bool Hovering = false;
 
 
 		// MSG
@@ -37,6 +38,11 @@ namespace BattleSoup {
 			if (m_ClickedMark.gameObject.activeSelf != ClickedOnce) {
 				m_ClickedMark.gameObject.SetActive(ClickedOnce);
 			}
+			m_Root.anchoredPosition3D = new Vector3(
+				0f,
+				Mathf.Lerp(m_Root.anchoredPosition3D.y, Hovering ? 36f : 0f, Time.deltaTime * 20f),
+				0f
+			);
 		}
 
 
@@ -68,12 +74,11 @@ namespace BattleSoup {
 			if (!info.IsShip) {
 				// Built-in
 				m_Icon.sprite = Soup.CardAssets.TypeIcons[(int)info.Type];
-				Hint.Tooltip = info.Type switch {
-					CardType.Attack => "Pick a cell to Attack",
-					CardType.Reveal => "Pick a cell to Reveal",
-					CardType.Sonar => "Pick a cell to Sonar",
-					CardType.Shield => "Add a Shield",
-					CardType.Heart => "Add a Heart",
+				m_Hint.Tooltip = info.Type switch {
+					CardType.Attack => "Pick a cell to attack",
+					CardType.Shield => "Add 2 shields",
+					CardType.Heart => "Add 2 hearts",
+					CardType.Card => "Draw 2 cards",
 					_ => "",
 				};
 			} else {
@@ -81,22 +86,18 @@ namespace BattleSoup {
 				int id = info.GlobalName.AngeHash();
 				if (Soup.TryGetShip(id, out var ship)) {
 					m_Icon.sprite = ship.Icon;
-					Hint.Tooltip = ship.Description;
+					m_Hint.Tooltip = ship.Description;
 				} else {
 					m_Icon.sprite = null;
-					Hint.Tooltip = "";
+					m_Hint.Tooltip = "";
 				}
-				m_TypeIcon.sprite = Soup.CardAssets.TypeIcons[(int)info.Type];
 			}
-			m_TypeIcon.gameObject.SetActive(info.IsShip);
 		}
 
 
 		protected override void RefreshFrontBackUI () {
 			base.RefreshFrontBackUI();
-			bool front = Front;
-			m_Icon.enabled = front;
-			m_TypeIcon.enabled = front;
+			m_Icon.enabled = Front;
 		}
 
 

@@ -12,9 +12,17 @@ namespace BattleSoup {
 		// Const
 		private static readonly int FRAME_CODE = "Water Reveal Frame".AngeHash();
 		public bool RevealOnPickedPosition { get; set; } = false;
-
+		public bool AimToPickedPosition { get; set; } = false;
 
 		// MSG
+		public override void OnStart (Game game) {
+			base.OnStart(game);
+			if (AimToPickedPosition) {
+				var soup = game as BattleSoup;
+				X = soup.PickingPosition.x;
+				Y = soup.PickingPosition.y;
+			}
+		}
 		public override StepResult FrameUpdate (Game game) {
 			base.FrameUpdate(game);
 			if (RevealOnPickedPosition) {

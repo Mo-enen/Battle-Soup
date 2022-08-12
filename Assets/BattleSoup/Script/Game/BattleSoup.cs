@@ -393,8 +393,10 @@ namespace BattleSoup {
 			if (!ability.HasManuallyEntrance || entrance.IsManualEntrance()) {
 				ship.CurrentCooldown = ship.MaxCooldown;
 			}
-			RefreshShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
-			RefreshShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
+			if (State == GameState.Playing) {
+				RefreshShipAbilityUI(m_Assets.AbilityContainerA, FieldA, Mode == GameMode.PvA);
+				RefreshShipAbilityUI(m_Assets.AbilityContainerB, FieldB, false);
+			}
 			return performed;
 		}
 

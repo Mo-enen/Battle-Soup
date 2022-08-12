@@ -28,7 +28,6 @@ namespace BattleSoup {
 		// Short
 		protected Image Back => m_Back;
 		protected Image FrontIMG => m_Front;
-		protected TooltipUI Hint => m_Hint;
 		protected RectTransform RT => _RT != null ? _RT : (_RT = transform as RectTransform);
 		private RectTransform _RT = null;
 		protected RectTransform Container => _Container != null ? _Container : (_Container = transform.parent as RectTransform);
@@ -40,11 +39,11 @@ namespace BattleSoup {
 		// Ser
 		[SerializeField] Image m_Back;
 		[SerializeField] Image m_Front;
-		[SerializeField] TooltipUI m_Hint;
+		[SerializeField] float m_Lerp = 10f;
+		[SerializeField] float m_LerpDock = 20f;
 
 		// Data
 		private Coroutine FlipCor = null;
-		protected bool Hovering = false;
 
 
 		#endregion
@@ -87,10 +86,9 @@ namespace BattleSoup {
 			int index = transform.GetSiblingIndex();
 			int count = Container.childCount;
 			var aimPosition = new Vector2(
-				Mathf.Lerp(0f, Container.rect.width, count > 1 ? (index + 1f) / (count + 1f) : 0.5f),
-				Hovering ? 40f : 11f
+				Mathf.Lerp(0f, Container.rect.width, count > 1 ? (index + 1f) / (count + 1f) : 0.5f), 0f
 			);
-			RT.anchoredPosition3D = Vector2.Lerp(RT.anchoredPosition, aimPosition, Time.deltaTime * 20f);
+			RT.anchoredPosition3D = Vector2.Lerp(RT.anchoredPosition, aimPosition, Time.deltaTime * m_LerpDock);
 			RT.localScale = Vector3.one;
 			var rot = RT.localRotation;
 			rot.x = 0f;
@@ -100,13 +98,13 @@ namespace BattleSoup {
 
 
 		private void Update_DockContainer () {
-			RT.anchoredPosition3D = Vector2.Lerp(RT.anchoredPosition, Vector2.zero, Time.deltaTime * 10f);
+			RT.anchoredPosition = Vector2.Lerp(RT.anchoredPosition, Vector2.zero, Time.deltaTime * m_Lerp);
 			RT.localScale = Vector3.one;
 			var rot = RT.localRotation;
 			rot.x = 0f;
 			rot.z = 0f;
 			RT.localRotation = rot;
-			if (DestoryWhenReady && !DynamicSlot && Mathf.Abs(RT.anchoredPosition3D.x) < 0.5f && Mathf.Abs(RT.anchoredPosition3D.y) < 0.5f) {
+			if (DestoryWhenReady && !DynamicSlot && Mathf.Abs(RT.anchoredPosition.x) < 0.5f && Mathf.Abs(RT.anchoredPosition.y) < 0.5f) {
 				Destroy(gameObject);
 			}
 		}

@@ -9,11 +9,24 @@ namespace BattleSoup {
 
 
 
+		// Api
+		public bool AimToPickedPosition { get; set; } = false;
+
 		// Data
 		private bool ShowCrosshair = true;
 
 
 		// MSG
+		public override void OnStart (Game game) {
+			base.OnStart(game);
+			if (AimToPickedPosition) {
+				var soup = game as BattleSoup;
+				X = soup.PickingPosition.x;
+				Y = soup.PickingPosition.y;
+			}
+		}
+
+
 		public override StepResult FrameUpdate (Game game) {
 			base.FrameUpdate(game);
 			if (X < 0 || Y < 0 || X >= Field.MapSize || Y >= Field.MapSize) return StepResult.Over;

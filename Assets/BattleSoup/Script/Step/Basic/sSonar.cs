@@ -9,8 +9,16 @@ namespace BattleSoup {
 
 
 		private static readonly int SONAR_CODE = "Water Sonar Frame".AngeHash();
+		public bool AimToPickedPosition { get; set; } = false;
 
-
+		public override void OnStart (Game game) {
+			base.OnStart(game);
+			if (AimToPickedPosition) {
+				var soup = game as BattleSoup;
+				X = soup.PickingPosition.x;
+				Y = soup.PickingPosition.y;
+			}
+		}
 		public override StepResult FrameUpdate (Game game) {
 			base.FrameUpdate(game);
 			if (X < 0 || X >= Field.MapSize || Y < 0 || Y >= Field.MapSize) return StepResult.Over;

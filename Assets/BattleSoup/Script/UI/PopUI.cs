@@ -34,6 +34,7 @@ namespace BattleSoup {
 
 		public void Pop () {
 			if (PopCor != null) StopCoroutine(PopCor);
+			if (!gameObject.activeSelf) gameObject.SetActive(true);
 			if (gameObject.activeInHierarchy) PopCor = StartCoroutine(Poping());
 			IEnumerator Poping () {
 				transform.localScale = Scale * m_Amount;

@@ -7,10 +7,12 @@ using AngeliaFramework;
 namespace BattleSoup {
 	public class scClearPlayerCards : Step {
 		public override StepResult FrameUpdate (Game game) {
-			var soup = game as BattleSoup;
-			soup.Card_ClearPlayerCards(soup.CardAssets.PlayerSlot_Performing);
-			soup.Card_ClearPlayerCards(soup.CardAssets.PlayerSlot_Dock);
-			return StepResult.Over;
+			if (LocalFrame == 0) {
+				var soup = game as BattleSoup;
+				soup.Card_ClearPlayerCards(soup.CardAssets.PlayerSlot_Performing);
+				soup.Card_ClearPlayerCards(soup.CardAssets.PlayerSlot_Dock);
+			}
+			return LocalFrame < 42 ? StepResult.Continue : StepResult.Over;
 		}
 	}
 }

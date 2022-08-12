@@ -13,7 +13,7 @@ namespace BattleSoup {
 		public virtual int Wait { get; } = 0;
 
 		// Data
-		protected int CurrentTurn = 0;
+		public int CurrentTurn { get; private set; } = 0;
 
 
 		// MSG
@@ -27,11 +27,13 @@ namespace BattleSoup {
 		}
 
 
-		public void Turn (BattleSoup soup) {
+		public bool Turn (BattleSoup soup) {
 			if (CurrentTurn <= 0) {
 				Perform(soup);
+				return true;
 			} else {
 				CurrentTurn--;
+				return false;
 			}
 		}
 

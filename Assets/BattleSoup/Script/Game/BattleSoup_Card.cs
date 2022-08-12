@@ -88,10 +88,11 @@ namespace BattleSoup {
 			FieldB.DragToMoveShips = false;
 			FieldB.RightClickToFlipShips = false;
 			FieldB.DrawPickingArrow = false;
-			FieldB.HideInvisibleShip = true;
 			FieldB.DrawCookedInfo = false;
 			FieldB.DrawDevInfo = false;
 			FieldB.ClickToAttack = false;
+
+			FieldB.HideInvisibleShip = true;
 
 			Cheating = false;
 			PickingPosition = default;
@@ -109,13 +110,11 @@ namespace BattleSoup {
 
 			RefreshDialogFrame();
 			bool noDialog = GlobalFrame > DialogFrame + 4;
-			bool playerPicking = CellStep.CurrentStep is sPick;
-			bool picking = CellStep.CurrentStep is sPick;
+			bool playerPicking = !GameOver && CellStep.CurrentStep is sPick;
+			bool picking = !GameOver && CellStep.CurrentStep is sPick;
 
 			FieldB.AllowHoveringOnWater = noDialog && playerPicking;
 			FieldB.SetPickingDirection(PickingDirection);
-
-			StopAbilityOnShipSunk();
 
 			// Picking Hint
 			if (m_CardAssets.PickingHint.gameObject.activeSelf != picking) {
@@ -128,11 +127,14 @@ namespace BattleSoup {
 				// Deal for Player
 				int count = Card_PlayerDrawCardCount;
 				for (int i = 0; i < count; i++) {
-					Card_DealForPlayer();
+					CellStep.AddToLast(new scDealPlayerCard(8));
 				}
 
+				// Player Turn
 				CellStep.AddToLast(new scWaitForPlayer());
 				if (CurrentHero == Hero.Hacker) CellStep.AddToLast(new scWaitForPlayer());
+
+				// End Player Turn
 				CellStep.AddToLast(new scClearPlayerCards());
 
 				// Enemy Turn
@@ -148,13 +150,12 @@ namespace BattleSoup {
 				if (m_CardAssets.PlayerSlot_Performing.childCount > 0) {
 					Card_ClearPlayerCards(m_CardAssets.PlayerSlot_Performing);
 				}
-			}
-
-			// GG Guy
-			if (CurrentHero == Hero.GG && !LastShipExposed && FieldB.AliveShipCount <= 1) {
-				LastShipExposed = true;
-				foreach (var ship in FieldB.Ships) {
-					if (!ship.Exposed && ship.Alive) FieldB.Expose(ship.FieldX, ship.FieldY);
+				// GG Guy
+				if (!GameOver && CurrentHero == Hero.GG && !LastShipExposed && FieldB.AliveShipCount <= 1) {
+					LastShipExposed = true;
+					foreach (var ship in FieldB.Ships) {
+						if (!ship.Exposed && ship.Alive) FieldB.Expose(ship.FieldX, ship.FieldY);
+					}
 				}
 			}
 
@@ -169,21 +170,28 @@ namespace BattleSoup {
 			}
 
 			// Gameover Check
-			bool playerWin = FieldB.AllShipsSunk();
-			bool enemyWin = Card_PlayerHP <= 0;
-			if (playerWin || enemyWin) {
-				// Game Over
-				CellStep.Clear();
-				if (playerWin) {
-					// Win
+			if (!GameOver) {
+				bool playerWin = FieldB.AllShipsSunk();
+				bool enemyWin = Card_PlayerHP <= 0;
+				if (playerWin || enemyWin) {
+					// Game Over
+					GameOver = true;
+					CellStep.Clear();
+					Card_ClearPlayerCards(m_CardAssets.PlayerSlot_Performing);
+					Card_ClearPlayerCards(m_CardAssets.PlayerSlot_Dock);
+					if (playerWin) {
+						// Win
+						CellStep.AddToLast(new scWait(24));
+						CellStep.AddToLast(new scDemonExplosion());
+						CellStep.AddToLast(new scGotoNextLevel());
+						CellStep.AddToLast(new scDemonBack());
+						CellStep.AddToLast(new scWait(24));
+					} else {
+						// Lose
 
 
 
-				} else if (enemyWin) {
-					// Lose
-
-
-
+					}
 				}
 			}
 
@@ -212,18 +220,7 @@ namespace BattleSoup {
 			card.SetInfo(info);
 			card.Flip(true);
 			card.SetContainer(m_CardAssets.PlayerSlot_Dock);
-			card.SetTrigger(() => {
-				if (CellStep.CurrentStep is not scWaitForPlayer wait) return;
-				wait.StopWaiting();
-				// info
-
-
-
-				// Final
-				card.Flip(true);
-				card.SetContainer(m_CardAssets.PlayerSlot_Performing);
-				card.Interactable = false;
-			});
+			card.SetTrigger(() => Card_TriggerPlayerCard(info, card));
 		}
 
 
@@ -303,18 +300,20 @@ namespace BattleSoup {
 
 		private void Card_GotoLevel (int level) {
 
+			GameOver = false;
 			level = level.Clamp(0, m_CardAssets.Levels.Length - 1);
 			CardLevel = level;
 			Card_SetPlayerHP(Card_GetPlayerMaxHP());
 			Card_SetPlayerSP(Card_GetPlayerDefaultSP());
 			LastShipExposed = false;
+			FieldB.Enable = true;
 
 			// Stack
 			Card_FillPlayerStack(level);
 			Card_FillEnemyStack(level);
 
 			// Map
-			FieldB.SetMap(Card_Maps[(level / 3).Clamp(0, Card_Maps.Count - 1)], false);
+			FieldB.SetMap(Card_Maps[level.Clamp(0, Card_Maps.Count - 1)], false);
 
 			// Level
 			var levelAsset = m_CardAssets.Levels[level];
@@ -329,13 +328,18 @@ namespace BattleSoup {
 			// Final
 			Card_ReloadFleetUI();
 			Card_ReloadStackInfoUI();
-			m_CardAssets.LevelNumber.text = level.ToString("00");
+			m_CardAssets.LevelNumber.text = (level + 1).ToString("00");
 			m_CardAssets.PlayerSlotBackground_Out.gameObject.SetActive(false);
 			m_CardAssets.EnemySlotBackground_Out.gameObject.SetActive(false);
 			m_CardAssets.LevelNumberPop.Pop();
 			Card_ClearPlayerCards(m_CardAssets.PlayerSlot_Performing);
 			Card_ClearPlayerCards(m_CardAssets.PlayerSlot_Dock);
-
+			m_Assets.PanelRoot.pivot = Vector2.one * 0.5f;
+			m_Assets.PanelRoot.localRotation = Quaternion.identity;
+			CardAssets.DemonExplosion.gameObject.SetActive(false);
+			CardAssets.EnemyAni.SetBool("Lose", false);
+			CardAssets.DemonRoot.anchoredPosition3D = Vector3.zero;
+			CardAssets.DemonRoot.localScale = Vector3.one;
 		}
 
 
@@ -399,6 +403,50 @@ namespace BattleSoup {
 				tip.Tooltip = $"Enemy Ship {ship.DisplayName}";
 				shape.Ship = ship;
 			}
+		}
+
+
+		private void Card_TriggerPlayerCard (CardInfo info, PlayerCardUI card) {
+			if (CellStep.CurrentStep is not scWaitForPlayer wait) return;
+			if (info.Type == CardType.Heart && Card_PlayerHP >= Card_GetPlayerMaxHP()) return;
+			wait.StopWaiting();
+			// Perform
+			if (!info.IsShip) {
+				// Built In
+				switch (info.Type) {
+					case CardType.Attack:
+						CellStep.AddToFirst(new sAttack() {
+							AimToPickedPosition = true,
+							Fast = false,
+							Field = FieldB,
+							Ship = null,
+						});
+						CellStep.AddToFirst(new sPick(FieldB, FieldA, null, null, ActionKeyword.Hittable, true));
+						break;
+					case CardType.Shield:
+						CellStep.AddToFirst(new scShieldPlayer(2, 22));
+						break;
+					case CardType.Heart:
+						CellStep.AddToFirst(new scHealPlayer(2, 22));
+						break;
+					case CardType.Card:
+						CellStep.AddToFirst(new scWaitForPlayer());
+						CellStep.AddToFirst(new scDealPlayerCard());
+						CellStep.AddToFirst(new scDealPlayerCard());
+						break;
+				}
+			} else {
+				// Ship
+				int id = info.GlobalName.AngeHash();
+				if (TryGetShip(id, out var ship) && TryGetAbility(id, out var ability)) {
+					PerformAbility(ability, ship, EntranceType.OnAbilityUsed, FieldA, FieldB, true);
+				}
+			}
+			// Final
+			card.Flip(true);
+			card.SetContainer(m_CardAssets.PlayerSlot_Performing);
+			card.DynamicSlot = false;
+			card.Interactable = false;
 		}
 
 

@@ -1117,9 +1117,9 @@ TextureImporter:
       name: Attack
       rect:
         serializedVersion: 2
-        x: 483
+        x: 484
         y: 513
-        width: 130
+        width: 129
         height: 148
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -1365,6 +1365,69 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Watch
+      rect:
+        serializedVersion: 2
+        x: 210
+        y: 513
+        width: 108
+        height: 124
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e26d88ee43059294398b410d5b000fbe
+      internalID: 484479584
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Exp 0
+      rect:
+        serializedVersion: 2
+        x: 917
+        y: 669
+        width: 106
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3419f7a8b96ba4f408b0a9f1e2265415
+      internalID: -2905230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Exp 1
+      rect:
+        serializedVersion: 2
+        x: 809
+        y: 668
+        width: 107
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a16acfbd960bff94492e3c664a42e4b5
+      internalID: 1930870731
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -1377,6 +1440,8 @@ TextureImporter:
     secondaryTextures: []
     nameFileIdTable:
       Plus: -118985312
+      Exp 0: -2905230
+      Watch: 484479584
       Shape: -466322452
       Mouse Left: 1570630487
       Pumpkin: 1557231514
@@ -1405,6 +1470,7 @@ TextureImporter:
       Folder: -1701764842
       ecAttackOne: 1138302231
       VS: -550570813
+      Exp 1: 1930870731
       Reload: 1544891859
       ESC: -1301258364
       Sonar: 639350574
@@ -1414,8 +1480,8 @@ TextureImporter:
       Wood Item: -954188774
       Wood Panel: 1851841581
       Cheat 1: 1271489718
-      Panel_Top: -694896823
       Demon Hand 0: -1666693782
+      Panel_Top: -694896823
       Title Ship 1: -190956466
       Wood Panel B: 1929336801
       Soup: -476286866

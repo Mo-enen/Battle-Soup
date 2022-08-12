@@ -146,6 +146,7 @@ namespace BattleSoup {
 				public string[] Cards;
 			}
 
+			public RectTransform LevelNumberRoot;
 			public Text LevelNumber;
 			public PopUI LevelNumberPop;
 			public RectTransform EnemyShipContainer;
@@ -157,6 +158,8 @@ namespace BattleSoup {
 			public RectTransform PickingHint;
 			public Image HeroAvatar;
 			public Animator EnemyAni;
+			public RectTransform DemonRoot;
+			public RandomExplosionUI DemonExplosion;
 			[Header("Item")]
 			public PlayerCardUI PlayerCard;
 			public EnemyCardUI EnemyCard;
