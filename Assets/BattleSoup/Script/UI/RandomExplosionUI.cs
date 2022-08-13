@@ -33,19 +33,14 @@ namespace BattleSoup {
 		};
 		private readonly Queue<Node> Nodes = new();
 		private int Index = 0;
-		private AudioSource Audio = null;
 		private float PrevAddTime = float.MinValue;
+
 
 		// MSG
 		protected override void OnEnable () {
 			base.OnEnable();
 			SetAllDirty();
 			Nodes.Clear();
-			if (Audio == null) Audio = GetComponent<AudioSource>();
-			if (Audio != null && Soup.UseSound) {
-				Audio.Play();
-				Audio.volume = 1f;
-			}
 		}
 
 
@@ -58,9 +53,6 @@ namespace BattleSoup {
 					StartTime = Time.time,
 					EndTime = Time.time + Random.Range(m_DurationA, m_DurationB),
 				});
-			}
-			if (Audio != null) {
-				Audio.volume = Mathf.Clamp01(Audio.volume - Time.deltaTime / 2f);
 			}
 			while (Nodes.Count > 0) {
 				if (Time.time > Nodes.Peek().EndTime) {

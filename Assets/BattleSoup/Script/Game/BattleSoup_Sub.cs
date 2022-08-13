@@ -59,6 +59,8 @@ namespace BattleSoup {
 			public RectTransform Dialog_Lose;
 			public RectTransform Dialog_LoseCheat;
 			public RectTransform Dialog_AbilityCopy;
+			public RectTransform CardFinalWinDialog;
+			public RectTransform CardFinalLoseDialog;
 
 			[Header("Map")]
 			public RectTransform MapSelectorContentA;
@@ -150,7 +152,6 @@ namespace BattleSoup {
 			public Text LevelNumber;
 			public PopUI LevelNumberPop;
 			public RectTransform EnemyShipContainer;
-			public RectTransform StackContainer;
 			public PopUI PlayerHpPop;
 			public PopUI PlayerSpPop;
 			public Text PlayerHp;
@@ -160,6 +161,8 @@ namespace BattleSoup {
 			public Animator EnemyAni;
 			public RectTransform DemonRoot;
 			public RandomExplosionUI DemonExplosion;
+			public RectTransform FinalWinDialogHeroRoot;
+			public RectTransform[] PrepareCaps;
 			[Header("Item")]
 			public PlayerCardUI PlayerCard;
 			public EnemyCardUI EnemyCard;
@@ -172,7 +175,6 @@ namespace BattleSoup {
 			public RectTransform PlayerSlotBackground_Out;
 			public RectTransform EnemySlot_From;
 			public RectTransform EnemySlot_Out;
-			public RectTransform EnemySlot_Dock;
 			public RectTransform EnemySlot_Performing;
 			public RectTransform EnemySlotBackground_Out;
 			[Header("Data")]

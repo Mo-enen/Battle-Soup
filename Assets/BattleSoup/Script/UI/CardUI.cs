@@ -85,8 +85,19 @@ namespace BattleSoup {
 		private void Update_DockInside () {
 			int index = transform.GetSiblingIndex();
 			int count = Container.childCount;
-			var aimPosition = new Vector2(
-				Mathf.Lerp(0f, Container.rect.width, count > 1 ? (index + 1f) / (count + 1f) : 0.5f), 0f
+			float width = RT.rect.width;
+			const float GAP = 24f;
+			Vector2 aimPosition;
+			float left = 0f;
+			float right = Container.rect.width;
+			if ((count + 1) * (width + GAP) < Container.rect.width) {
+				// Not Too Many Cards
+				float fix = (Container.rect.width - (count + 1) * (width + GAP)) / 2f;
+				left += fix;
+				right -= fix;
+			}
+			aimPosition = new Vector2(
+				Mathf.Lerp(left, right, count > 1 ? (index + 1f) / (count + 1f) : 0.5f), 0f
 			);
 			RT.anchoredPosition3D = Vector2.Lerp(RT.anchoredPosition, aimPosition, Time.deltaTime * m_LerpDock);
 			RT.localScale = Vector3.one;
@@ -130,9 +141,10 @@ namespace BattleSoup {
 			}
 			// Func
 			IEnumerator Flipping (bool _front) {
-				float duration = Soup.CardAssets.FlipCurve.Duration();
+				var asset = Soup.CardAssets;
+				float duration = asset.FlipCurve.Duration();
 				for (float time = 0f; time < duration; time += Time.deltaTime) {
-					float y01 = Soup.CardAssets.FlipCurve.Evaluate(time);
+					float y01 = asset.FlipCurve.Evaluate(time);
 					if (_front) y01 = 1f - y01;
 					RT.localRotation = Quaternion.Euler(0f, y01 * 180f, 0f);
 					RefreshFrontBackUI();

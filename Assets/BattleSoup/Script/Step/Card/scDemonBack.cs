@@ -8,22 +8,25 @@ namespace BattleSoup {
 		private int Duration = 80;
 		public override StepResult FrameUpdate (Game game) {
 			var soup = game as BattleSoup;
+			var asset = soup.CardAssets;
 			if (LocalFrame == 0) {
-				soup.CardAssets.DemonRoot.gameObject.SetActive(true);
-				soup.CardAssets.DemonExplosion.gameObject.SetActive(false);
-				soup.CardAssets.EnemyAni.SetBool("Lose", false);
-				soup.CardAssets.DemonRoot.anchoredPosition = new Vector2(0f, 200f);
+				asset.DemonRoot.gameObject.SetActive(true);
+				asset.DemonExplosion.gameObject.SetActive(false);
+				asset.EnemyAni.SetBool("Lose", false);
+				asset.DemonRoot.anchoredPosition = new Vector2(0f, 200f);
+				AudioPlayer.PlaySound("Laugh".AngeHash(), 0.5f);
+				asset.EnemyAni.SetTrigger("Perform");
 			}
 
-			soup.CardAssets.DemonRoot.anchoredPosition = Vector2.LerpUnclamped(
-				soup.CardAssets.DemonRoot.anchoredPosition,
+			asset.DemonRoot.anchoredPosition = Vector2.LerpUnclamped(
+				asset.DemonRoot.anchoredPosition,
 				Vector2.zero,
 				Time.deltaTime * 2f
 			);
 
 			if (LocalFrame > Duration) {
 				soup.FieldB.Enable = true;
-				soup.CardAssets.DemonRoot.anchoredPosition = Vector2.zero;
+				asset.DemonRoot.anchoredPosition = Vector2.zero;
 				return StepResult.Over;
 			}
 			return StepResult.Continue;

@@ -45,6 +45,7 @@ namespace BattleSoup {
 		// Ser
 		[SerializeField] GameAsset m_Assets = null;
 		[SerializeField] GameAsset_Card m_CardAssets = null;
+		[SerializeField] bool m_ClearSaving = false;
 
 		// Data
 		private readonly Dictionary<int, Ship> ShipPool = new();
@@ -63,6 +64,7 @@ namespace BattleSoup {
 
 		// Saving
 		private readonly SavingString s_PlayerFleet = new("BattleSoup.PlayerFleet", "Sailboat,SeaMonster,Longboat,MiniSub");
+		private readonly SavingString s_CardFinalWin = new("BattleSoup.CardFinalWin", "0000");
 		private readonly SavingBool s_UseSound = new("BattleSoup.UseSound", true);
 		private readonly SavingBool s_AutoPlayForAvA = new("BattleSoup.AutoPlayForAvA", true);
 		private readonly SavingBool s_UseAnimation = new("BattleSoup.UseAnimation", true);
@@ -87,12 +89,29 @@ namespace BattleSoup {
 
 			base.Initialize();
 
+#if UNITY_EDITOR
+			if (m_ClearSaving) {
+				s_PlayerFleet.Reset();
+				s_CardFinalWin.Reset();
+				s_UseSound.Reset();
+				s_AutoPlayForAvA.Reset();
+				s_UseAnimation.Reset();
+				s_UseScreenEffect.Reset();
+				s_SelectingAiA.Reset();
+				s_SelectingAiB.Reset();
+				s_MapIndexA.Reset();
+				s_MapIndexB.Reset();
+				s_UiScale.Reset();
+			}
+#endif
+
 			CustomShipSprites.Clear();
 			int id = "Custom Ship".AngeHash();
 			for (int index = 0; CellRenderer.TryGetSpriteFromGroup(id, index, out var sprite, false, false); index++) {
 				CustomShipSprites.Add(CellRenderer.CreateUnitySprite(sprite.GlobalID));
 			}
 			ReloadShipEditorArtworkPopupUI();
+			RefreshCardFinalWinUI();
 
 			Init_Card();
 			Init_AI();
@@ -520,6 +539,9 @@ namespace BattleSoup {
 					break;
 				case GameState.ShipEditor:
 					SwitchState_ShipEditor();
+					break;
+				case GameState.CardPrepare:
+					RefreshCardFinalWinUI();
 					break;
 			}
 		}
@@ -1118,6 +1140,15 @@ namespace BattleSoup {
 
 
 		private void RefreshTurnLabelUI () => m_Assets.TurnLabel.text = CurrentTurn == Turn.A ? Mode == GameMode.PvA ? "Player's Turn" : "Robot A's Turn" : "Robot B's Turn";
+
+
+		private void RefreshCardFinalWinUI () {
+			for (int i = 0; i < m_CardAssets.PrepareCaps.Length; i++) {
+				m_CardAssets.PrepareCaps[i].gameObject.SetActive(
+					Card_GetFinalWin(i)
+				);
+			}
+		}
 
 
 		// Load Data

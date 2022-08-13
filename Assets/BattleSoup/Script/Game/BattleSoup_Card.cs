@@ -42,11 +42,12 @@ namespace BattleSoup {
 		private readonly Stack<int> Card_EnemyStack = new();
 		private readonly List<Map> Card_Maps = new();
 		private readonly Dictionary<int, EnemyCard> Card_EnemyCardPool = new();
-		private readonly List<PlayerCardUI> Card_CacheCards = new();
+		private readonly List<CardUI> Card_CacheCards = new();
 		private Hero CurrentHero = Hero.Nerd;
 		private int Card_PlayerHP = 10;
 		private int Card_PlayerSP = 0;
 		private int CardLevel = 0;
+		private EnemyCard Card_PerformingEnemyCard = null;
 		private bool LastShipExposed = false;
 
 
@@ -100,6 +101,13 @@ namespace BattleSoup {
 			GameOver = false;
 
 			m_CardAssets.HeroAvatar.sprite = m_CardAssets.HeroIcons[(int)CurrentHero];
+			for (int i = 0; i < m_CardAssets.FinalWinDialogHeroRoot.childCount; i++) {
+				m_CardAssets.FinalWinDialogHeroRoot.GetChild(i).gameObject.SetActive(
+					(int)CurrentHero == i
+				);
+			}
+
+			m_CardAssets.DemonRoot.gameObject.SetActive(true);
 
 			Card_GotoLevel(0);
 
@@ -122,7 +130,9 @@ namespace BattleSoup {
 			}
 
 			// Fill up Steps for a whole turn
-			if (CellStep.CurrentStep == null) {
+			if (!GameOver && CellStep.CurrentStep == null) {
+
+				Card_RefreshFleetUI();
 
 				// Deal for Player
 				int count = Card_PlayerDrawCardCount;
@@ -138,17 +148,17 @@ namespace BattleSoup {
 				CellStep.AddToLast(new scClearPlayerCards());
 
 				// Enemy Turn
-				//sCard_EnemyTurn
-
-
+				CellStep.AddToLast(new scDealEnemyCard());
+				CellStep.AddToLast(new scPerformEnemyCard());
+				CellStep.AddToLast(new scClearEnemyPerformedCard());
 
 			}
 
 			// Waiting for Player to Pick a Card
-			if (CellStep.CurrentStep is scWaitForPlayer) {
+			if (!GameOver && CellStep.CurrentStep is scWaitForPlayer) {
 				// Clear Performing UI
 				if (m_CardAssets.PlayerSlot_Performing.childCount > 0) {
-					Card_ClearPlayerCards(m_CardAssets.PlayerSlot_Performing);
+					Card_ClearPlayerCards_Performing();
 				}
 				// GG Guy
 				if (!GameOver && CurrentHero == Hero.GG && !LastShipExposed && FieldB.AliveShipCount <= 1) {
@@ -177,9 +187,15 @@ namespace BattleSoup {
 					// Game Over
 					GameOver = true;
 					CellStep.Clear();
-					Card_ClearPlayerCards(m_CardAssets.PlayerSlot_Performing);
-					Card_ClearPlayerCards(m_CardAssets.PlayerSlot_Dock);
-					if (playerWin) {
+					Card_ClearPlayerCards_Performing();
+					Card_ClearPlayerCards_Dock();
+					if (CardLevel >= m_CardAssets.Levels.Length - 1) {
+						// Final Win
+						CellStep.AddToLast(new scWait(24));
+						CellStep.AddToLast(new scDemonExplosion());
+						CellStep.AddToLast(new scFinalWin());
+						Card_SetFinalWin((int)CurrentHero);
+					} else if (playerWin) {
 						// Win
 						CellStep.AddToLast(new scWait(24));
 						CellStep.AddToLast(new scDemonExplosion());
@@ -188,9 +204,8 @@ namespace BattleSoup {
 						CellStep.AddToLast(new scWait(24));
 					} else {
 						// Lose
-
-
-
+						CellStep.AddToLast(new scWait(24));
+						CellStep.AddToLast(new scFinalLose());
 					}
 				}
 			}
@@ -206,7 +221,7 @@ namespace BattleSoup {
 		#region --- API ---
 
 
-		// Deck
+		// Deal
 		public void Card_DealForPlayer () {
 			if (Card_PlayerStack.Count == 0) Card_FillPlayerStack(CardLevel);
 			if (Card_PlayerStack.Count == 0) return;
@@ -224,29 +239,52 @@ namespace BattleSoup {
 		}
 
 
-		public void Card_ClearPlayerCards (Transform container, bool immediately = false) {
-			container.GetComponentsInChildren(true, Card_CacheCards);
-			for (int i = 0; i < Card_CacheCards.Count; i++) {
-				var card = Card_CacheCards[i];
-				if (!immediately) {
-					card.Flip(false);
-					card.SetContainer(m_CardAssets.PlayerSlot_Out);
-					card.DynamicSlot = false;
-					card.DestoryWhenReady = true;
-				} else {
-					DestroyImmediate(card.gameObject);
-				}
+		public void Card_DealForEnemy () {
+			if (Card_PerformingEnemyCard != null) return;
+			if (Card_EnemyStack.Count == 0) Card_FillEnemyStack(CardLevel);
+			if (Card_EnemyStack.Count == 0) return;
+			int id = Card_EnemyStack.Pop();
+			if (!Card_EnemyCardPool.TryGetValue(id, out var card)) return;
+			Card_PerformingEnemyCard = card;
+			card.Start();
+			// Clear UI
+			Card_ClearEnemyCards_Performing();
+			// Deal
+			var cardUI = Instantiate(m_CardAssets.EnemyCard, m_CardAssets.EnemySlot_From);
+			cardUI.gameObject.SetActive(true);
+			cardUI.Flip(false, false);
+			cardUI.SetContainer(m_CardAssets.EnemySlot_From, true);
+			cardUI.DynamicSlot = false;
+			cardUI.DestoryWhenReady = false;
+			cardUI.SetInfo(card);
+			cardUI.Flip(true);
+			cardUI.SetContainer(m_CardAssets.EnemySlot_Performing);
+		}
+
+
+		// Perform
+		public void Card_PerformEnemyCard () {
+			var card = Card_PerformingEnemyCard;
+			if (card == null) return;
+			card.Turn(this);
+			var cardUI = m_CardAssets.EnemySlot_Performing.GetComponentInChildren<EnemyCardUI>(true);
+			if (cardUI != null) cardUI.SetInfo(card);
+		}
+
+
+		// Clear
+		public void Card_ClearEnemyPerformedCards () {
+			var card = Card_PerformingEnemyCard;
+			if (card != null && card.Performed) {
+				Card_PerformingEnemyCard = null;
+				Card_ClearEnemyCards_Performing();
 			}
 		}
 
 
-		public void Card_DealForEnemy () {
-			if (Card_EnemyStack.Count == 0) Card_FillEnemyStack(CardLevel);
-
-
-
-
-		}
+		public void Card_ClearPlayerCards_Performing (bool immediately = false) => Card_ClearCardsLogic(m_CardAssets.PlayerSlot_Performing, m_CardAssets.PlayerSlot_Out, immediately);
+		public void Card_ClearPlayerCards_Dock (bool immediately = false) => Card_ClearCardsLogic(m_CardAssets.PlayerSlot_Dock, m_CardAssets.PlayerSlot_Out, immediately);
+		public void Card_ClearEnemyCards_Performing (bool immediately = false) => Card_ClearCardsLogic(m_CardAssets.EnemySlot_Performing, m_CardAssets.EnemySlot_Out, immediately);
 
 
 		// Player Health
@@ -273,6 +311,12 @@ namespace BattleSoup {
 
 		// Workflow
 		public void Card_GotoNextLevel () => Card_GotoLevel(CardLevel + 1);
+
+
+		public void Card_FinalWin () => m_Assets.CardFinalWinDialog.gameObject.SetActive(true);
+
+
+		public void Card_FinalLose () => m_Assets.CardFinalLoseDialog.gameObject.SetActive(true);
 
 
 		// UI
@@ -327,19 +371,19 @@ namespace BattleSoup {
 
 			// Final
 			Card_ReloadFleetUI();
-			Card_ReloadStackInfoUI();
 			m_CardAssets.LevelNumber.text = (level + 1).ToString("00");
 			m_CardAssets.PlayerSlotBackground_Out.gameObject.SetActive(false);
 			m_CardAssets.EnemySlotBackground_Out.gameObject.SetActive(false);
 			m_CardAssets.LevelNumberPop.Pop();
-			Card_ClearPlayerCards(m_CardAssets.PlayerSlot_Performing);
-			Card_ClearPlayerCards(m_CardAssets.PlayerSlot_Dock);
+			Card_ClearPlayerCards_Performing();
+			Card_ClearPlayerCards_Dock();
 			m_Assets.PanelRoot.pivot = Vector2.one * 0.5f;
 			m_Assets.PanelRoot.localRotation = Quaternion.identity;
-			CardAssets.DemonExplosion.gameObject.SetActive(false);
-			CardAssets.EnemyAni.SetBool("Lose", false);
-			CardAssets.DemonRoot.anchoredPosition3D = Vector3.zero;
-			CardAssets.DemonRoot.localScale = Vector3.one;
+			m_CardAssets.DemonExplosion.gameObject.SetActive(false);
+			m_CardAssets.EnemyAni.SetBool("Lose", false);
+			m_CardAssets.DemonRoot.anchoredPosition3D = Vector3.zero;
+			m_CardAssets.DemonRoot.localScale = Vector3.one;
+
 		}
 
 
@@ -361,33 +405,6 @@ namespace BattleSoup {
 			}
 			m_CardAssets.PlayerSpPop.gameObject.SetActive(Card_PlayerSP > 0);
 			m_CardAssets.PlayerSp.text = Card_PlayerSP.ToString("00");
-		}
-
-
-		private void Card_ReloadStackInfoUI () {
-			m_CardAssets.StackContainer.DestroyAllChirldrenImmediate();
-			foreach (var info in Card_PlayerStack) {
-				var rt = new GameObject("", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image)).transform as RectTransform;
-				rt.SetParent(m_CardAssets.StackContainer);
-				rt.localScale = Vector3.one;
-				rt.localRotation = Quaternion.identity;
-				var img = rt.GetComponent<Image>();
-				img.preserveAspect = true;
-				img.raycastTarget = false;
-				if (!info.IsShip) {
-					// Built-in
-					img.sprite = CardAssets.TypeIcons[(int)info.Type];
-				} else {
-					// Ship
-					int id = info.GlobalName.AngeHash();
-					if (TryGetShip(id, out var ship)) {
-						img.sprite = ship.Icon;
-					} else {
-						img.sprite = null;
-						img.enabled = false;
-					}
-				}
-			}
 		}
 
 
@@ -450,6 +467,16 @@ namespace BattleSoup {
 		}
 
 
+		private void Card_RefreshFleetUI () {
+			int count = m_CardAssets.EnemyShipContainer.childCount;
+			for (int i = 0; i < count && i < FieldB.Ships.Length; i++) {
+				var grab = m_CardAssets.EnemyShipContainer.GetChild(i).GetComponent<Grabber>();
+				var img = grab.Grab<Image>(grab.name);
+				img.color = FieldB.Ships[i].Alive ? Color.white : new Color32(242, 76, 46, 255);
+			}
+		}
+
+
 		// Config
 		private int Card_GetPlayerMaxHP () => CurrentHero switch {
 			Hero.Nerd => 10,
@@ -473,13 +500,13 @@ namespace BattleSoup {
 		private void Card_FillPlayerStack (int level) {
 			var pList = new List<CardInfo>();
 			pList.AddRange(m_CardAssets.BasicCards);
-			int addLen = CardAssets.AdditionalCards.Length;
+			int addLen = m_CardAssets.AdditionalCards.Length;
 			if (level < addLen) {
-				pList.AddRange(CardAssets.AdditionalCards[0..level]);
+				pList.AddRange(m_CardAssets.AdditionalCards[0..level]);
 			} else {
-				pList.AddRange(CardAssets.AdditionalCards);
+				pList.AddRange(m_CardAssets.AdditionalCards);
 				for (int i = addLen; i < level; i++) {
-					pList.Add(CardAssets.AdditionalCards[(i % 3) + addLen - 3]);
+					pList.Add(m_CardAssets.AdditionalCards[(i % 3) + addLen - 3]);
 				}
 			}
 			Card_ShufflePlayerStack(pList);
@@ -508,6 +535,34 @@ namespace BattleSoup {
 			for (int i = 0; i < list.Count; i++) {
 				int random = Random.Range(0, list.Count);
 				if (random != i) (list[i], list[random]) = (list[random], list[i]);
+			}
+		}
+
+
+		private bool Card_GetFinalWin (int heroIndex) => s_CardFinalWin.Value[heroIndex] == '1';
+
+
+		private void Card_SetFinalWin (int heroIndex) {
+			string result = "";
+			for (int i = 0; i < 4; i++) {
+				result += i == heroIndex ? "1" : s_CardFinalWin.Value[i];
+			}
+			s_CardFinalWin.Value = result;
+		}
+
+
+		private void Card_ClearCardsLogic (RectTransform container, RectTransform outContainer, bool immediately = false) {
+			container.GetComponentsInChildren(true, Card_CacheCards);
+			for (int i = 0; i < Card_CacheCards.Count; i++) {
+				var card = Card_CacheCards[i];
+				if (!immediately) {
+					card.Flip(false);
+					card.SetContainer(outContainer);
+					card.DynamicSlot = false;
+					card.DestoryWhenReady = true;
+				} else {
+					DestroyImmediate(card.gameObject);
+				}
 			}
 		}
 

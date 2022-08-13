@@ -11,6 +11,7 @@ namespace BattleSoup {
 		// APi
 		public Sprite Icon { get; set; } = null;
 		public virtual int Wait { get; } = 0;
+		public bool Performed { get; private set; } = false;
 
 		// Data
 		public int CurrentTurn { get; private set; } = 0;
@@ -19,21 +20,16 @@ namespace BattleSoup {
 		// MSG
 		public virtual void Start () {
 			CurrentTurn = Wait;
+			Performed = false;
 		}
 
 
-		public virtual void End () {
-			CurrentTurn = Wait;
-		}
-
-
-		public bool Turn (BattleSoup soup) {
+		public void Turn (BattleSoup soup) {
 			if (CurrentTurn <= 0) {
 				Perform(soup);
-				return true;
+				Performed = true;
 			} else {
 				CurrentTurn--;
-				return false;
 			}
 		}
 

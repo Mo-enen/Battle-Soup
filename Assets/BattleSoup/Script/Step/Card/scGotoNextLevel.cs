@@ -4,7 +4,7 @@ using UnityEngine;
 using AngeliaFramework;
 namespace BattleSoup {
 	public class scGotoNextLevel : Step {
-		private int Duration = 190;
+		private int Duration = 120;
 		public override StepResult FrameUpdate (Game game) {
 			var soup = game as BattleSoup;
 			var rt = soup.CardAssets.LevelNumberRoot;
@@ -13,13 +13,14 @@ namespace BattleSoup {
 			if (LocalFrame == Duration / 3) {
 				soup.Card_GotoNextLevel();
 				soup.FieldB.Enable = false;
+				AudioPlayer.PlaySound("Coin".AngeHash());
 			}
 			if (LocalFrame < Duration * 0.333f) {
 				rt.anchoredPosition = Vector2.LerpUnclamped(
 					rt.anchoredPosition,
 					new Vector2(
-						-prt.rect.width / 2f + rt.rect.width / 2, 
-						-prt.rect.height / 2f + rt.rect.height / 2
+						-prt.rect.width / 2f + rt.rect.width / 2 + 64f,
+						-prt.rect.height / 2f + rt.rect.height / 2 + 64f
 					),
 					Time.deltaTime * 10f
 				);

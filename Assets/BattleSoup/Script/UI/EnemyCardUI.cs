@@ -14,8 +14,8 @@ namespace BattleSoup {
 
 		public void SetInfo (EnemyCard card) {
 			FrontIMG.sprite = card.Icon;
-			m_TurnNumber.text = card.CurrentTurn.ToString();
-			m_TurnNumber.gameObject.SetActive(card.CurrentTurn > 0);
+			m_TurnNumber.text = (card.CurrentTurn + 1).ToString();
+			m_TurnNumber.gameObject.SetActive(!card.Performed);
 		}
 
 

@@ -6,51 +6,70 @@ using AngeliaFramework;
 
 namespace BattleSoup {
 	public class scDemonExplosion : Step {
-		private int Duration = 190;
+		private int Duration = 196;
+		private AudioSource Audio = null;
 		public override StepResult FrameUpdate (Game game) {
 
 			var soup = game as BattleSoup;
+			var asset = soup.CardAssets;
 			if (LocalFrame == 0) {
 				// Start
-				soup.CardAssets.DemonExplosion.gameObject.SetActive(true);
-				soup.CardAssets.EnemyAni.SetBool("Lose", true);
+				asset.DemonExplosion.gameObject.SetActive(true);
+				asset.EnemyAni.SetBool("Lose", true);
 				soup.FieldB.Enable = false;
+				if (Audio == null) {
+					Audio = asset.DemonExplosion.GetComponent<AudioSource>();
+				}
+				if (Audio != null) {
+					Audio.Play();
+					Audio.volume = 1f;
+				}
+			}
+
+			if (LocalFrame == 80) {
+				AudioPlayer.PlaySound("Fall".AngeHash());
 			}
 
 			const float OFFSET_Y = -460f;
 			if (LocalFrame < 80) {
 				// First Part
-				soup.CardAssets.DemonRoot.anchoredPosition = Vector2.LerpUnclamped(
-					soup.CardAssets.DemonRoot.anchoredPosition,
+				asset.DemonRoot.anchoredPosition = Vector2.LerpUnclamped(
+					asset.DemonRoot.anchoredPosition,
 					new Vector2(0f, OFFSET_Y),
 					Time.deltaTime * 5f
 				);
-				soup.CardAssets.DemonRoot.localScale = Vector2.LerpUnclamped(
-					soup.CardAssets.DemonRoot.localScale,
+				asset.DemonRoot.localScale = Vector2.LerpUnclamped(
+					asset.DemonRoot.localScale,
 					Vector2.one * 1.5f,
 					Time.deltaTime * 5f
 				);
 			} else {
 				// Last Part
-				soup.CardAssets.DemonRoot.anchoredPosition = Vector2.LerpUnclamped(
-					soup.CardAssets.DemonRoot.anchoredPosition,
+				asset.DemonRoot.anchoredPosition = Vector2.LerpUnclamped(
+					asset.DemonRoot.anchoredPosition,
 					new Vector2(0f, OFFSET_Y),
 					Time.deltaTime * 2f
 				);
-				soup.CardAssets.DemonRoot.localScale = Vector2.LerpUnclamped(
-					soup.CardAssets.DemonRoot.localScale,
+				asset.DemonRoot.localScale = Vector2.LerpUnclamped(
+					asset.DemonRoot.localScale,
 					Vector2.zero,
 					Time.deltaTime * 1.5f
 				);
+				if (Audio != null) {
+					Audio.volume = Mathf.Lerp(Audio.volume, 0f, Time.deltaTime);
+				}
 			}
 
 			if (LocalFrame > Duration) {
 				// End
-				soup.CardAssets.DemonRoot.gameObject.SetActive(false);
-				soup.CardAssets.DemonExplosion.gameObject.SetActive(false);
-				soup.CardAssets.EnemyAni.SetBool("Lose", false);
-				soup.CardAssets.DemonRoot.anchoredPosition = Vector2.zero;
-				soup.CardAssets.DemonRoot.localScale = Vector3.one;
+				asset.DemonRoot.gameObject.SetActive(false);
+				asset.DemonExplosion.gameObject.SetActive(false);
+				asset.EnemyAni.SetBool("Lose", false);
+				asset.DemonRoot.anchoredPosition = Vector2.zero;
+				asset.DemonRoot.localScale = Vector3.one;
+				if (Audio != null) {
+					Audio.volume = 0f;
+				}
 				return StepResult.Over;
 			}
 			return StepResult.Continue;

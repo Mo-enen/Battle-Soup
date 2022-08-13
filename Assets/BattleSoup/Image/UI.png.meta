@@ -1395,7 +1395,7 @@ TextureImporter:
         width: 106
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -1416,7 +1416,7 @@ TextureImporter:
         width: 107
         height: 107
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -1424,6 +1424,48 @@ TextureImporter:
       bones: []
       spriteID: a16acfbd960bff94492e3c664a42e4b5
       internalID: 1930870731
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cap
+      rect:
+        serializedVersion: 2
+        x: 651
+        y: 652
+        width: 157
+        height: 154
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bd1cdd68d727d3d4bb398910598ec5fb
+      internalID: -139435304
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cap White
+      rect:
+        serializedVersion: 2
+        x: 493
+        y: 663
+        width: 157
+        height: 155
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7bfe3cd481f65854bb8ff08d0aa24a94
+      internalID: -1246105668
       vertices: []
       indices: 
       edges: []
@@ -1482,6 +1524,8 @@ TextureImporter:
       Cheat 1: 1271489718
       Demon Hand 0: -1666693782
       Panel_Top: -694896823
+      Cap White: -1246105668
+      Cap: -139435304
       Title Ship 1: -190956466
       Wood Panel B: 1929336801
       Soup: -476286866
