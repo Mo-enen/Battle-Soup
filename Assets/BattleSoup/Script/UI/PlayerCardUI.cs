@@ -66,6 +66,7 @@ namespace BattleSoup {
 			} else {
 				ClickedOnce = true;
 			}
+			AudioPlayer.PlaySound("Click".AngeHash());
 		}
 
 

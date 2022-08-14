@@ -162,6 +162,10 @@ namespace BattleSoup {
 			public RectTransform DemonRoot;
 			public RandomExplosionUI DemonExplosion;
 			public RectTransform FinalWinDialogHeroRoot;
+			public RectTransform EnemySword;
+			public RectTransform EnemyStunHand;
+			public RectTransform PlayerStun;
+			public Text PlayerStunLabel;
 			public RectTransform[] PrepareCaps;
 			[Header("Item")]
 			public PlayerCardUI PlayerCard;

@@ -13,6 +13,7 @@ namespace BattleSoup {
 		public override StepResult FrameUpdate (Game game) {
 			if (LocalFrame == 0) {
 				(game as BattleSoup).Card_DealForPlayer();
+				AudioPlayer.PlaySound("Draw".AngeHash());
 			}
 			return LocalFrame < Duration ? StepResult.Continue : StepResult.Over;
 		}

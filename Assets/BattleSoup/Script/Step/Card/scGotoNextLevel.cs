@@ -12,8 +12,9 @@ namespace BattleSoup {
 			if (LocalFrame == 0) soup.FieldB.Enable = false;
 			if (LocalFrame == Duration / 3) {
 				soup.Card_GotoNextLevel();
-				soup.FieldB.Enable = false;
+				soup.FieldB.Enable = true;
 				AudioPlayer.PlaySound("Coin".AngeHash());
+
 			}
 			if (LocalFrame < Duration * 0.333f) {
 				rt.anchoredPosition = Vector2.LerpUnclamped(

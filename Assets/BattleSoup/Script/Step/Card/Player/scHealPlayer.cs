@@ -15,6 +15,7 @@ namespace BattleSoup {
 		public override StepResult FrameUpdate (Game game) {
 			if (LocalFrame == 0) {
 				(game as BattleSoup).Card_HealPlayer(Heal);
+				AudioPlayer.PlaySound("Heal".AngeHash());
 			}
 			return LocalFrame < Duration ? StepResult.Continue : StepResult.Over;
 		}

@@ -1458,7 +1458,7 @@ TextureImporter:
         width: 157
         height: 155
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -1466,6 +1466,90 @@ TextureImporter:
       bones: []
       spriteID: 7bfe3cd481f65854bb8ff08d0aa24a94
       internalID: -1246105668
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Sword
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 654
+        width: 142
+        height: 142
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7f7f814ed65de6045a86eedaae5c9820
+      internalID: -1408706203
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Stun
+      rect:
+        serializedVersion: 2
+        x: 217
+        y: 654
+        width: 133
+        height: 134
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3382444fd71526f4d88a4751d1461643
+      internalID: 293036222
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ecStunOne
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 557
+        width: 31
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a1a73c4a1638de94daf92ec40778eda3
+      internalID: -1955665918
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ecStunTwo
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 557
+        width: 31
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 29fff17ce28775d4d8b050f567d09a22
+      internalID: 820111955
       vertices: []
       indices: 
       edges: []
@@ -1521,6 +1605,8 @@ TextureImporter:
       Cheat 0: -254108267
       Wood Item: -954188774
       Wood Panel: 1851841581
+      ecStunOne: -1955665918
+      Stun: 293036222
       Cheat 1: 1271489718
       Demon Hand 0: -1666693782
       Panel_Top: -694896823
@@ -1535,6 +1621,8 @@ TextureImporter:
       Warning: 1168501572
       Trash: -240999965
       Button_Left: -591023230
+      Sword: -1408706203
+      ecStunTwo: 820111955
       Win: 1757180342
       Lose: -1458830814
       ShipBodyItem: 2090411686

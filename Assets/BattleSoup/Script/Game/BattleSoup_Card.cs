@@ -49,6 +49,7 @@ namespace BattleSoup {
 		private int CardLevel = 0;
 		private EnemyCard Card_PerformingEnemyCard = null;
 		private bool LastShipExposed = false;
+		private int Card_PlayerStun = 0;
 
 
 		#endregion
@@ -136,6 +137,7 @@ namespace BattleSoup {
 
 				// Deal for Player
 				int count = Card_PlayerDrawCardCount;
+				if (Card_PlayerStun > 0) count -= 2;
 				for (int i = 0; i < count; i++) {
 					CellStep.AddToLast(new scDealPlayerCard(8));
 				}
@@ -144,11 +146,16 @@ namespace BattleSoup {
 				CellStep.AddToLast(new scWaitForPlayer());
 				if (CurrentHero == Hero.Hacker) CellStep.AddToLast(new scWaitForPlayer());
 
+				// Stun
+				CellStep.AddToLast(new scReducePlayerStun());
+
 				// End Player Turn
 				CellStep.AddToLast(new scClearPlayerCards());
 
 				// Enemy Turn
-				CellStep.AddToLast(new scDealEnemyCard());
+				if (Card_PerformingEnemyCard == null) {
+					CellStep.AddToLast(new scDealEnemyCard());
+				}
 				CellStep.AddToLast(new scPerformEnemyCard());
 				CellStep.AddToLast(new scClearEnemyPerformedCard());
 
@@ -189,19 +196,24 @@ namespace BattleSoup {
 					CellStep.Clear();
 					Card_ClearPlayerCards_Performing();
 					Card_ClearPlayerCards_Dock();
-					if (CardLevel >= m_CardAssets.Levels.Length - 1) {
-						// Final Win
-						CellStep.AddToLast(new scWait(24));
-						CellStep.AddToLast(new scDemonExplosion());
-						CellStep.AddToLast(new scFinalWin());
-						Card_SetFinalWin((int)CurrentHero);
-					} else if (playerWin) {
-						// Win
-						CellStep.AddToLast(new scWait(24));
-						CellStep.AddToLast(new scDemonExplosion());
-						CellStep.AddToLast(new scGotoNextLevel());
-						CellStep.AddToLast(new scDemonBack());
-						CellStep.AddToLast(new scWait(24));
+					Card_PerformingEnemyCard = null;
+					Card_ClearEnemyCards_Performing();
+					Card_RefreshFleetUI();
+					if (playerWin) {
+						if (CardLevel >= m_CardAssets.Levels.Length - 1) {
+							// Final Win
+							CellStep.AddToLast(new scWait(24));
+							CellStep.AddToLast(new scDemonExplosion());
+							CellStep.AddToLast(new scFinalWin());
+							Card_SetFinalWin((int)CurrentHero);
+						} else {
+							// Win
+							CellStep.AddToLast(new scWait(24));
+							CellStep.AddToLast(new scDemonExplosion());
+							CellStep.AddToLast(new scGotoNextLevel());
+							CellStep.AddToLast(new scDemonBack());
+							CellStep.AddToLast(new scWait(24));
+						}
 					} else {
 						// Lose
 						CellStep.AddToLast(new scWait(24));
@@ -263,12 +275,13 @@ namespace BattleSoup {
 
 
 		// Perform
-		public void Card_PerformEnemyCard () {
+		public bool Card_PerformEnemyCard () {
 			var card = Card_PerformingEnemyCard;
-			if (card == null) return;
-			card.Turn(this);
+			if (card == null) return false;
+			bool performed = card.Turn(this);
 			var cardUI = m_CardAssets.EnemySlot_Performing.GetComponentInChildren<EnemyCardUI>(true);
 			if (cardUI != null) cardUI.SetInfo(card);
+			return performed;
 		}
 
 
@@ -287,13 +300,19 @@ namespace BattleSoup {
 		public void Card_ClearEnemyCards_Performing (bool immediately = false) => Card_ClearCardsLogic(m_CardAssets.EnemySlot_Performing, m_CardAssets.EnemySlot_Out, immediately);
 
 
-		// Player Health
+		// Deck
 		public void Card_DamagePlayer (int damage) {
 			if (damage <= 0) return;
 			int damageShied = Mathf.Min(Card_PlayerSP.Clamp(0, int.MaxValue), damage);
 			int damageHealth = damage - damageShied;
-			if (damageShied > 0) Card_SetPlayerSP(Card_PlayerSP - damageShied);
-			if (damageHealth > 0) Card_SetPlayerHP(Card_PlayerHP - damageHealth);
+			if (damageShied > 0) {
+				Card_SetPlayerSP(Card_PlayerSP - damageShied);
+				AudioPlayer.PlaySound("DamageShield".AngeHash());
+			}
+			if (damageHealth > 0) {
+				Card_SetPlayerHP(Card_PlayerHP - damageHealth);
+				AudioPlayer.PlaySound("Damage".AngeHash());
+			}
 		}
 
 
@@ -306,6 +325,22 @@ namespace BattleSoup {
 		public void Card_ShieldPlayer (int shield) {
 			if (shield < 0) return;
 			Card_SetPlayerSP(Card_PlayerSP + shield);
+		}
+
+
+		public void Card_StunPlayer (int stun) {
+			stun = stun.Clamp(0, int.MaxValue);
+			Card_PlayerStun += stun;
+			if (stun > 0) {
+				AudioPlayer.PlaySound("Stun".AngeHash());
+			}
+			Card_RefreshStunUI();
+		}
+
+
+		public void Card_ReducePlayerStun () {
+			Card_PlayerStun = (Card_PlayerStun - 1).Clamp(0, int.MaxValue);
+			Card_RefreshStunUI();
 		}
 
 
@@ -351,6 +386,8 @@ namespace BattleSoup {
 			Card_SetPlayerSP(Card_GetPlayerDefaultSP());
 			LastShipExposed = false;
 			FieldB.Enable = true;
+			Card_PlayerStun = 0;
+			Card_RefreshStunUI();
 
 			// Stack
 			Card_FillPlayerStack(level);
@@ -474,6 +511,12 @@ namespace BattleSoup {
 				var img = grab.Grab<Image>(grab.name);
 				img.color = FieldB.Ships[i].Alive ? Color.white : new Color32(242, 76, 46, 255);
 			}
+		}
+
+
+		private void Card_RefreshStunUI () {
+			m_CardAssets.PlayerStun.gameObject.SetActive(Card_PlayerStun > 0);
+			m_CardAssets.PlayerStunLabel.text = Card_PlayerStun.ToString();
 		}
 
 
