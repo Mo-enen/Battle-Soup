@@ -145,16 +145,20 @@ namespace BattleSoup {
 			public class Level {
 				public string Fleet;
 				public Texture2D Map;
-				public string[] Cards;
+				public string[] EnemyCards;
+				public CardInfo[] AdditionalCards;
+
 			}
 
 			public RectTransform LevelNumberRoot;
 			public Text LevelNumber;
+			public Text MaxLevelNumber;
 			public PopUI LevelNumberPop;
 			public RectTransform EnemyShipContainer;
 			public PopUI PlayerHpPop;
 			public PopUI PlayerSpPop;
 			public Text PlayerHp;
+			public Text MaxPlayerHp;
 			public Text PlayerSp;
 			public RectTransform PickingHint;
 			public Image HeroAvatar;
@@ -166,6 +170,8 @@ namespace BattleSoup {
 			public RectTransform EnemyStunHand;
 			public RectTransform PlayerStun;
 			public Text PlayerStunLabel;
+			public RectTransform CardTopUI;
+			public RectTransform CardBottomUI;
 			public RectTransform[] PrepareCaps;
 			[Header("Item")]
 			public PlayerCardUI PlayerCard;
@@ -187,7 +193,6 @@ namespace BattleSoup {
 			public Sprite[] EnemyCardSprites;
 			public Sprite[] HeroIcons;
 			public CardInfo[] BasicCards;
-			public CardInfo[] AdditionalCards;
 			public Level[] Levels;
 		}
 

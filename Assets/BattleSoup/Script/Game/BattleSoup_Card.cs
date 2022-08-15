@@ -34,8 +34,8 @@ namespace BattleSoup {
 
 
 		// Short
-		private int Card_PlayerDrawCardCount => CurrentHero == Hero.Nerd ? 4 : 3;
-		private int Card_PlayerPerformCardCount => CurrentHero == Hero.Hacker ? 2 : 1;
+		private int Card_PlayerDrawCardCount => Card_CurrentHero == Hero.Nerd ? 4 : 3;
+		private int Card_PlayerPerformCardCount => Card_CurrentHero == Hero.Hacker ? 2 : 1;
 
 		// Data
 		private readonly Stack<CardInfo> Card_PlayerStack = new();
@@ -43,12 +43,12 @@ namespace BattleSoup {
 		private readonly List<Map> Card_Maps = new();
 		private readonly Dictionary<int, EnemyCard> Card_EnemyCardPool = new();
 		private readonly List<CardUI> Card_CacheCards = new();
-		private Hero CurrentHero = Hero.Nerd;
+		private EnemyCard Card_PerformingEnemyCard = null;
+		private Hero Card_CurrentHero = Hero.Nerd;
 		private int Card_PlayerHP = 10;
 		private int Card_PlayerSP = 0;
 		private int CardLevel = 0;
-		private EnemyCard Card_PerformingEnemyCard = null;
-		private bool LastShipExposed = false;
+		private bool Card_LastShipExposed = false;
 		private int Card_PlayerStun = 0;
 
 
@@ -62,7 +62,7 @@ namespace BattleSoup {
 
 		private void Init_Card () {
 
-			CurrentHero = Hero.Nerd;
+			Card_CurrentHero = Hero.Nerd;
 
 			Card_Maps.Clear();
 			foreach (var level in m_CardAssets.Levels) Card_Maps.Add(new Map(level.Map));
@@ -77,6 +77,7 @@ namespace BattleSoup {
 				card.Icon = iconPool.TryGetValue(id, out var sp) ? sp : null;
 			}
 
+			m_CardAssets.MaxLevelNumber.text = "/ " + m_CardAssets.Levels.Length.ToString("00");
 		}
 
 
@@ -101,16 +102,20 @@ namespace BattleSoup {
 			PickingDirection = default;
 			GameOver = false;
 
-			m_CardAssets.HeroAvatar.sprite = m_CardAssets.HeroIcons[(int)CurrentHero];
+			m_CardAssets.HeroAvatar.sprite = m_CardAssets.HeroIcons[(int)Card_CurrentHero];
 			for (int i = 0; i < m_CardAssets.FinalWinDialogHeroRoot.childCount; i++) {
 				m_CardAssets.FinalWinDialogHeroRoot.GetChild(i).gameObject.SetActive(
-					(int)CurrentHero == i
+					(int)Card_CurrentHero == i
 				);
 			}
 
 			m_CardAssets.DemonRoot.gameObject.SetActive(true);
 
-			Card_GotoLevel(0);
+			int startLevel = 0;
+#if UNITY_EDITOR
+			startLevel = m_CardJumpLevel;
+#endif
+			Card_GotoLevel(startLevel);
 
 		}
 
@@ -144,7 +149,11 @@ namespace BattleSoup {
 
 				// Player Turn
 				CellStep.AddToLast(new scWaitForPlayer());
-				if (CurrentHero == Hero.Hacker) CellStep.AddToLast(new scWaitForPlayer());
+				CellStep.AddToLast(new scRefreshFleetUI());
+				if (Card_CurrentHero == Hero.Hacker) {
+					CellStep.AddToLast(new scWaitForPlayer());
+					CellStep.AddToLast(new scRefreshFleetUI());
+				}
 
 				// Stun
 				CellStep.AddToLast(new scReducePlayerStun());
@@ -161,6 +170,11 @@ namespace BattleSoup {
 
 			}
 
+			// Stop Waiting if No Card
+			if (CellStep.CurrentStep is scWaitForPlayer wait && m_CardAssets.PlayerSlot_Dock.childCount == 0) {
+				wait.StopWaiting();
+			}
+
 			// Waiting for Player to Pick a Card
 			if (!GameOver && CellStep.CurrentStep is scWaitForPlayer) {
 				// Clear Performing UI
@@ -168,10 +182,13 @@ namespace BattleSoup {
 					Card_ClearPlayerCards_Performing();
 				}
 				// GG Guy
-				if (!GameOver && CurrentHero == Hero.GG && !LastShipExposed && FieldB.AliveShipCount <= 1) {
-					LastShipExposed = true;
+				if (!GameOver && Card_CurrentHero == Hero.GG && !Card_LastShipExposed && FieldB.AliveShipCount <= 1) {
+					Card_LastShipExposed = true;
 					foreach (var ship in FieldB.Ships) {
-						if (!ship.Exposed && ship.Alive) FieldB.Expose(ship.FieldX, ship.FieldY);
+						if (!ship.Exposed && ship.Alive && ship.BodyNodes.Length > 0) {
+							var pos = ship.GetFieldNodePosition(0);
+							FieldB.Expose(pos.x, pos.y);
+						}
 					}
 				}
 			}
@@ -205,7 +222,7 @@ namespace BattleSoup {
 							CellStep.AddToLast(new scWait(24));
 							CellStep.AddToLast(new scDemonExplosion());
 							CellStep.AddToLast(new scFinalWin());
-							Card_SetFinalWin((int)CurrentHero);
+							Card_SetFinalWin((int)Card_CurrentHero);
 						} else {
 							// Win
 							CellStep.AddToLast(new scWait(24));
@@ -281,6 +298,14 @@ namespace BattleSoup {
 			bool performed = card.Turn(this);
 			var cardUI = m_CardAssets.EnemySlot_Performing.GetComponentInChildren<EnemyCardUI>(true);
 			if (cardUI != null) cardUI.SetInfo(card);
+			if (performed) {
+				CellStep.AddToFirst(new sEntranceCallback() {
+					Entrance = EntranceType.OnOpponentGetAttack,
+					LocalX = 0,
+					LocalY = 0,
+					Field = FieldA,
+				});
+			}
 			return performed;
 		}
 
@@ -356,16 +381,26 @@ namespace BattleSoup {
 
 		// UI
 		public void UI_SetHero_Nerd (bool isOn) {
-			if (isOn) CurrentHero = Hero.Nerd;
+			if (isOn) Card_CurrentHero = Hero.Nerd;
 		}
 		public void UI_SetHero_GG (bool isOn) {
-			if (isOn) CurrentHero = Hero.GG;
+			if (isOn) Card_CurrentHero = Hero.GG;
 		}
 		public void UI_SetHero_Nessie (bool isOn) {
-			if (isOn) CurrentHero = Hero.Nessie;
+			if (isOn) Card_CurrentHero = Hero.Nessie;
 		}
 		public void UI_SetHero_Hacker (bool isOn) {
-			if (isOn) CurrentHero = Hero.Hacker;
+			if (isOn) Card_CurrentHero = Hero.Hacker;
+		}
+
+
+		public void Card_RefreshFleetUI () {
+			int count = m_CardAssets.EnemyShipContainer.childCount;
+			for (int i = 0; i < count && i < FieldB.Ships.Length; i++) {
+				var grab = m_CardAssets.EnemyShipContainer.GetChild(i).GetComponent<Grabber>();
+				var img = grab.Grab<Image>(grab.name);
+				img.color = FieldB.Ships[i].Alive ? Color.white : new Color32(242, 76, 46, 255);
+			}
 		}
 
 
@@ -384,7 +419,7 @@ namespace BattleSoup {
 			CardLevel = level;
 			Card_SetPlayerHP(Card_GetPlayerMaxHP());
 			Card_SetPlayerSP(Card_GetPlayerDefaultSP());
-			LastShipExposed = false;
+			Card_LastShipExposed = false;
 			FieldB.Enable = true;
 			Card_PlayerStun = 0;
 			Card_RefreshStunUI();
@@ -425,12 +460,14 @@ namespace BattleSoup {
 
 
 		private void Card_SetPlayerHP (int newHP) {
-			newHP = newHP.Clamp(0, Card_GetPlayerMaxHP());
+			int maxHP = Card_GetPlayerMaxHP();
+			newHP = newHP.Clamp(0, maxHP);
 			if (newHP != Card_PlayerHP) {
 				Card_PlayerHP = newHP;
 				m_CardAssets.PlayerHpPop.Pop();
 			}
 			m_CardAssets.PlayerHp.text = Card_PlayerHP.ToString("00");
+			m_CardAssets.MaxPlayerHp.text = "/" + maxHP.ToString("00");
 		}
 
 
@@ -462,7 +499,6 @@ namespace BattleSoup {
 
 		private void Card_TriggerPlayerCard (CardInfo info, PlayerCardUI card) {
 			if (CellStep.CurrentStep is not scWaitForPlayer wait) return;
-			if (info.Type == CardType.Heart && Card_PlayerHP >= Card_GetPlayerMaxHP()) return;
 			wait.StopWaiting();
 			// Perform
 			if (!info.IsShip) {
@@ -504,16 +540,6 @@ namespace BattleSoup {
 		}
 
 
-		private void Card_RefreshFleetUI () {
-			int count = m_CardAssets.EnemyShipContainer.childCount;
-			for (int i = 0; i < count && i < FieldB.Ships.Length; i++) {
-				var grab = m_CardAssets.EnemyShipContainer.GetChild(i).GetComponent<Grabber>();
-				var img = grab.Grab<Image>(grab.name);
-				img.color = FieldB.Ships[i].Alive ? Color.white : new Color32(242, 76, 46, 255);
-			}
-		}
-
-
 		private void Card_RefreshStunUI () {
 			m_CardAssets.PlayerStun.gameObject.SetActive(Card_PlayerStun > 0);
 			m_CardAssets.PlayerStunLabel.text = Card_PlayerStun.ToString();
@@ -521,7 +547,7 @@ namespace BattleSoup {
 
 
 		// Config
-		private int Card_GetPlayerMaxHP () => CurrentHero switch {
+		private int Card_GetPlayerMaxHP () => Card_CurrentHero switch {
 			Hero.Nerd => 10,
 			Hero.GG => 10,
 			Hero.Nessie => 15,
@@ -530,7 +556,7 @@ namespace BattleSoup {
 		};
 
 
-		private int Card_GetPlayerDefaultSP () => CurrentHero switch {
+		private int Card_GetPlayerDefaultSP () => Card_CurrentHero switch {
 			Hero.Nerd => 0,
 			Hero.GG => 0,
 			Hero.Nessie => 2,
@@ -543,15 +569,8 @@ namespace BattleSoup {
 		private void Card_FillPlayerStack (int level) {
 			var pList = new List<CardInfo>();
 			pList.AddRange(m_CardAssets.BasicCards);
-			int addLen = m_CardAssets.AdditionalCards.Length;
-			if (level < addLen) {
-				pList.AddRange(m_CardAssets.AdditionalCards[0..level]);
-			} else {
-				pList.AddRange(m_CardAssets.AdditionalCards);
-				for (int i = addLen; i < level; i++) {
-					pList.Add(m_CardAssets.AdditionalCards[(i % 3) + addLen - 3]);
-				}
-			}
+			var levelItem = m_CardAssets.Levels[level];
+			pList.AddRange(levelItem.AdditionalCards);
 			Card_ShufflePlayerStack(pList);
 			Card_PlayerStack.Clear();
 			Card_PlayerStack.PushRange(pList);
@@ -559,7 +578,7 @@ namespace BattleSoup {
 
 
 		private void Card_FillEnemyStack (int level) {
-			var eList = new List<int>(m_CardAssets.Levels[level].Cards.AngeHash());
+			var eList = new List<int>(m_CardAssets.Levels[level].EnemyCards.AngeHash());
 			Card_ShuffleEnemyStack(eList);
 			Card_EnemyStack.Clear();
 			Card_EnemyStack.PushRange(eList);

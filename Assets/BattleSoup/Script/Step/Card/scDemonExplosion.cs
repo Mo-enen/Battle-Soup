@@ -20,7 +20,7 @@ namespace BattleSoup {
 				if (Audio == null) {
 					Audio = asset.DemonExplosion.GetComponent<AudioSource>();
 				}
-				if (Audio != null) {
+				if (Audio != null && soup.UseSound) {
 					Audio.Play();
 					Audio.volume = 1f;
 				}

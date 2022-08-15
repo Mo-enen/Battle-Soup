@@ -12,6 +12,9 @@ namespace BattleSoup {
 			RequireStop = false;
 		}
 		public void StopWaiting () => RequireStop = true;
-		public override StepResult FrameUpdate (Game game) => RequireStop ? StepResult.Over : StepResult.Continue;
+		public override StepResult FrameUpdate (Game game) {
+
+			return RequireStop ? StepResult.Over : StepResult.Continue;
+		}
 	}
 }

@@ -3,13 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using AngeliaFramework;
 
-
 namespace BattleSoup {
-	public class scFinalLose : Step {
+	public class scRefreshFleetUI : Step {
 		public override StepResult FrameUpdate (Game game) {
-			var soup = game as BattleSoup;
-			soup.Card_FinalLose();
-			AudioPlayer.PlaySound("Lose".AngeHash());
+			(game as BattleSoup).Card_RefreshFleetUI();
 			return StepResult.Over;
 		}
 	}

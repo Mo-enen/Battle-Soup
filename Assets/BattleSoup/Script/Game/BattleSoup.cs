@@ -46,6 +46,7 @@ namespace BattleSoup {
 		[SerializeField] GameAsset m_Assets = null;
 		[SerializeField] GameAsset_Card m_CardAssets = null;
 		[SerializeField] bool m_ClearSaving = false;
+		[SerializeField] int m_CardJumpLevel = 0;
 
 		// Data
 		private readonly Dictionary<int, Ship> ShipPool = new();
@@ -541,6 +542,8 @@ namespace BattleSoup {
 					SwitchState_ShipEditor();
 					break;
 				case GameState.CardPrepare:
+					FieldA.Enable = false;
+					FieldB.Enable = false;
 					RefreshCardFinalWinUI();
 					break;
 			}
@@ -949,6 +952,11 @@ namespace BattleSoup {
 			} else if (State == GameState.ShipEditor) {
 				float bottom01 = m_Assets.ShipEditorBottomUI.rect.height / (m_Assets.ShipEditorBottomUI.parent as RectTransform).rect.height;
 				uiBottomSize = (int)(viewHeight * bottom01);
+			} else if (State == GameState.CardGame) {
+				float top01 = m_CardAssets.CardTopUI.rect.height / (m_CardAssets.CardTopUI.parent as RectTransform).rect.height;
+				uiTopSize = (int)(viewHeight * top01) + SoupConst.ISO_SIZE / 2;
+				float bottom01 = m_CardAssets.CardBottomUI.rect.height / (m_CardAssets.CardBottomUI.parent as RectTransform).rect.height;
+				uiBottomSize = (int)(viewHeight * bottom01) + SoupConst.ISO_SIZE / 2;
 			}
 			var rect = new RectInt(minX, minY, maxX - minX, maxY - minY);
 			rect = rect.Expand(SoupConst.ISO_SIZE / 2, SoupConst.ISO_SIZE / 2, uiBottomSize, uiTopSize);

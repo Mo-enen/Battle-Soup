@@ -25,6 +25,7 @@ namespace BattleSoup {
 		protected override void RefreshFrontBackUI () {
 			base.RefreshFrontBackUI();
 			m_TurnNumber.gameObject.SetActive(Front && ShowTurnNumber);
+			m_Description.gameObject.SetActive(Front);
 		}
 
 	}

@@ -229,6 +229,7 @@ namespace BattleSoup {
 
 		// Action
 		public ActionResult Attack (int x, int y) {
+			TrySelfAttackForCardGame();
 			if (!Enable) return ActionResult.None;
 			var result = ActionResult.None;
 			if (x < 0 || x >= MapSize || y < 0 || y >= MapSize) goto End;
@@ -682,6 +683,12 @@ namespace BattleSoup {
 					}
 				}
 			}
+		}
+
+
+		private void TrySelfAttackForCardGame () {
+			if (Soup.State != BattleSoup.GameState.CardGame || this != Soup.FieldA) return;
+			Soup.Card_DamagePlayer(1);
 		}
 
 
