@@ -4,7 +4,7 @@
 
 Download latest  version at [Itch](https://m-oenen.itch.io/battlesoup) or [Github](https://github.com/Mo-enen/Battle-Soup/releases)
 
-<img src="_Res\0.jpg">
+<img src="_Res\Title.jpg">
 
 <img src="_Res\1.jpg">
 
