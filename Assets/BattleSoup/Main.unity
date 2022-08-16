@@ -3532,7 +3532,7 @@ MonoBehaviour:
       EnemyCards:
       - ecAttackTwo
       - ecAttackTwo
-      - ecAttackTwo
+      - ecAttackThree
       - ecAttackThree
       - ecAttackThree
       - ecAttackFour
@@ -3565,15 +3565,16 @@ MonoBehaviour:
     - Fleet: Coracle,Coracle,Catamaran,Catamaran
       Map: {fileID: 2800000, guid: 96323b48e202a0045a200011f42f91fd, type: 3}
       EnemyCards:
-      - ecAttackOne
       - ecAttackTwo
-      - ecAttackTwo
-      - ecAttackTwo
+      - ecAttackThree
+      - ecAttackThree
       - ecAttackThree
       - ecAttackFour
       - ecAttackFour
+      - ecAttackTwo
+      - ecAttackOne
+      - ecAttackOne
       - ecStunOne
-      - ecStunTwo
       - ecStunTwo
       AdditionalCards:
       - GlobalName: Blunderbuster
@@ -3638,7 +3639,7 @@ MonoBehaviour:
       EnemyCards:
       - ecAttackTwo
       - ecAttackTwo
-      - ecAttackTwo
+      - ecAttackThree
       - ecAttackThree
       - ecAttackThree
       - ecAttackFour
@@ -7592,7 +7593,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
   m_AnchoredPosition: {x: 0, y: 6}
-  m_SizeDelta: {x: 480, y: 100}
+  m_SizeDelta: {x: 703.5, y: 100}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &338634316
 MonoBehaviour:

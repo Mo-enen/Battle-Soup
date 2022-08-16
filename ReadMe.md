@@ -16,6 +16,8 @@ Download latest  version at [Itch](https://m-oenen.itch.io/battlesoup) or [Githu
 
 <img src="_Res\5.jpg">
 
+<img src="_Res\6.jpg">
+
 
 
 ##### Contact
@@ -39,6 +41,10 @@ Download latest  version at [Itch](https://m-oenen.itch.io/battlesoup) or [Githu
 
 
 ##### Change Log
+
+`v2.2.0`
+
+- New feature: Card Mode.
 
 `v2.1.0`
 
