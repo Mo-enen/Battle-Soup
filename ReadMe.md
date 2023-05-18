@@ -23,7 +23,7 @@ Download latest  version at [Itch](https://m-oenen.itch.io/battlesoup) or [Githu
 ##### Contact
 
 - BattleTabs 🎃+🥒=🥘  id:LclSU0kfN
-- Twitter [@_Moenen](https://twitter.com/_Moenen)
+- Twitter [@Mo_Enen](https://twitter.com/Mo_Enen)
 - Email moenen6@gmail.com
 
 
